@@ -1,0 +1,293 @@
+﻿@{
+    ViewData["Title"] = "Home - Subdivision Homeowner's Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <!-- Fix Phosphor Icons import -->
+    <link rel="stylesheet" href="https://unpkg.com/@@phosphor-icons/web@2.0.3/src/regular/style.css" />
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+    <!-- Fix Poppins font import for Razor syntax -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+</head>
+<body class="font-sans bg-light flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
+        </div>
+
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center gap-5">
+            <a href="@Url.Action("Index", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Home">
+                <i class="ph-house-simple"></i>
+                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "opacity-100" : "opacity-0")"></div>
+            </a>
+            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
+                <i class="ph-gear"></i>
+                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Services" ? "opacity-100" : "opacity-0")"></div>
+            </a>
+            <a href="@Url.Action("Account", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Account">
+                <i class="ph-user"></i>
+                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Account" ? "opacity-100" : "opacity-0")"></div>
+            </a>
+            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+                <i class="ph-shield"></i>
+                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Security" ? "opacity-100" : "opacity-0")"></div>
+            </a>
+            <a href="@Url.Action("Contact", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Contact">
+                <i class="ph-phone"></i>
+                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Contact" ? "opacity-100" : "opacity-0")"></div>
+            </a>
+        </div>
+
+        <!-- Logout Button -->
+        <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+            <i class="ph-sign-out"></i>
+        </a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Welcome Card -->
+            <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
+                <img src="~/images/subdivhouse.png" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
+                <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
+                    <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.UserName</span>!</h2>
+                    <p class="text-gray-700 font-light mt-2">Stay updated with the latest announcements, events, and community discussions.</p>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <i class="ph-credit-card text-2xl text-blue-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Due Bills</p>
+                        <p class="text-xl font-semibold">@ViewBag.DueBills</p>
+                    </div>
+                    <a href="@Url.Action("Bills", "Home")" class="ml-auto text-blue-500"><i class="ph-arrow-right text-xl"></i></a>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <i class="ph-calendar text-2xl text-green-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Upcoming Events</p>
+                        <p class="text-xl font-semibold">@ViewBag.EventCount</p>
+                    </div>
+                    <a href="@Url.Action("Events", "Home")" class="ml-auto text-green-500"><i class="ph-arrow-right text-xl"></i></a>
+                </div>
+
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                        <i class="ph-clipboard-text text-2xl text-purple-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Pending Requests</p>
+                        <p class="text-xl font-semibold">@ViewBag.RequestCount</p>
+                    </div>
+                    <a href="@Url.Action("Requests", "Home")" class="ml-auto text-purple-500"><i class="ph-arrow-right text-xl"></i></a>
+                </div>
+            </div>
+
+            <!-- Calendar Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="font-semibold text-lg text-tertiary mb-4">Community Calendar</h3>
+                    <div id="calendar"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="font-semibold text-lg text-tertiary mb-4">Upcoming Events</h3>
+                    <ul id="event-list" class="space-y-3">
+                        @* Event items will be inserted by JS *@
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Announcements and Forum -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
+                        <a href="@Url.Action("Announcements", "Home")" class="text-blue-500 text-sm">View All</a>
+                    </div>
+                    <ul class="space-y-4">
+                        @if (ViewBag.Announcements != null)
+                        {
+                            foreach (var announcement in ViewBag.Announcements)
+                            {
+                                <li class="border-b border-gray-100 pb-3">
+                                    <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
+                                    <p class="font-medium">@announcement.Title</p>
+                                    <p class="text-gray-500 text-sm">@announcement.Content</p>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="border-b border-gray-100 pb-3">
+                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">NOTICE</span>
+                                <p class="font-medium">Water Supply Update</p>
+                                <p class="text-gray-500 text-sm">Scheduled maintenance on March 10.</p>
+                            </li>
+                            <li class="border-b border-gray-100 pb-3">
+                                <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">SECURITY</span>
+                                <p class="font-medium">Security Notice</p>
+                                <p class="text-gray-500 text-sm">New visitor guidelines effective March 15.</p>
+                            </li>
+                            <li>
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">EVENT</span>
+                                <p class="font-medium">Community Gathering</p>
+                                <p class="text-gray-500 text-sm">Join us for a BBQ night on March 20!</p>
+                            </li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-lg text-tertiary">Community Forum</h3>
+                        <a href="@Url.Action("Forum", "Home")" class="text-blue-500 text-sm">View All</a>
+                    </div>
+                    <ul class="space-y-4">
+                        @if (ViewBag.ForumThreads != null)
+                        {
+                            foreach (var thread in ViewBag.ForumThreads)
+                            {
+                                <li class="border-b border-gray-100 pb-3">
+                                    <a href="@Url.Action("ThreadDetails", "Forum", new { id = thread.Id })" class="block">
+                                        <p class="font-medium text-secondary hover:text-blue-600 transition-colors">@thread.Title</p>
+                                        <div class="flex items-center text-sm text-gray-500 mt-1">
+                                            <i class="ph-chats mr-1"></i> @thread.ReplyCount replies
+                                            <span class="mx-2">•</span>
+                                            <i class="ph-clock mr-1"></i> @thread.TimeAgo
+                                        </div>
+                                    </a>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="border-b border-gray-100 pb-3">
+                                <a href="#" class="block">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">How to report a maintenance issue?</p>
+                                    <div class="flex items-center text-sm text-gray-500 mt-1">
+                                        <i class="ph-chats mr-1"></i> 12 replies
+                                        <span class="mx-2">•</span>
+                                        <i class="ph-clock mr-1"></i> 2 days ago
+                                    </div>
+                                </a>
+                            </li>
+                            <li class="border-b border-gray-100 pb-3">
+                                <a href="#" class="block">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">Best ways to improve community security?</p>
+                                    <div class="flex items-center text-sm text-gray-500 mt-1">
+                                        <i class="ph-chats mr-1"></i> 8 replies
+                                        <span class="mx-2">•</span>
+                                        <i class="ph-clock mr-1"></i> 4 days ago
+                                    </div>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="block">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">Ideas for the next homeowners' event?</p>
+                                    <div class="flex items-center text-sm text-gray-500 mt-1">
+                                        <i class="ph-chats mr-1"></i> 15 replies
+                                        <span class="mx-2">•</span>
+                                        <i class="ph-clock mr-1"></i> 1 week ago
+                                    </div>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var eventListEl = document.getElementById('event-list');
+
+            var events = @Html.Raw(Json.Serialize(ViewBag.Events ?? new[] {
+                new { title = "Homeowners Meeting", start = "2025-03-15", color = "#FF9AA2" },
+                new { title = "Facility Maintenance", start = "2025-03-20", color = "#B5EAD7" },
+                new { title = "Community Clean-Up", start = "2025-03-25", color = "#C7CEEA" }
+            }));
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                height: 450,
+                events: events
+            });
+
+            // Render event list on the side
+            events.forEach(event => {
+                let li = document.createElement('li');
+
+                // Format the date nicely
+                const eventDate = new Date(event.start);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                li.style.borderLeftColor = event.color;
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="text-center mr-3">
+                            <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium">${event.title}</p>
+                        </div>
+                    </div>
+                `;
+                eventListEl.appendChild(li);
+            });
+
+            calendar.render();
+        });
+    </script>
+</body>
+</html>
