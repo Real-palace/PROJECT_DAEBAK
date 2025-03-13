@@ -12,8 +12,10 @@
     <!-- Add Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <!-- Fix Phosphor Icons import -->
-    <link rel="stylesheet" href="https://unpkg.com/@@phosphor-icons/web@2.0.3/src/regular/style.css" />
+
+    <!-- Replace Phosphor Icons import with a working version -->
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+
     <!-- Custom Tailwind Configuration -->
     <script>
         tailwind.config = {
@@ -45,91 +47,166 @@
 
         <!-- Menu Items -->
         <div class="flex flex-col items-center gap-5">
-            <a href="@Url.Action("Index", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Home">
-                <i class="ph-house-simple"></i>
-                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "opacity-100" : "opacity-0")"></div>
+            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Dashboard">
+                <i class="ph ph-house-simple"></i>
+            </a>
+            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
+                <i class="ph ph-credit-card"></i>
+            </a>
+            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+                <i class="ph ph-tree-structure"></i>
             </a>
             <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
-                <i class="ph-gear"></i>
-                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Services" ? "opacity-100" : "opacity-0")"></div>
-            </a>
-            <a href="@Url.Action("Account", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Account">
-                <i class="ph-user"></i>
-                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Account" ? "opacity-100" : "opacity-0")"></div>
+                <i class="ph ph-wrench"></i>
             </a>
             <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
-                <i class="ph-shield"></i>
-                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Security" ? "opacity-100" : "opacity-0")"></div>
-            </a>
-            <a href="@Url.Action("Contact", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Contact">
-                <i class="ph-phone"></i>
-                <div class="absolute right-0 h-full w-1.5 bg-tertiary rounded-l-sm opacity-0 group-hover:opacity-30 @(ViewContext.RouteData.Values["action"].ToString() == "Contact" ? "opacity-100" : "opacity-0")"></div>
+                <i class="ph ph-shield"></i>
             </a>
         </div>
 
-        <!-- Logout Button -->
-        <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
-            <i class="ph-sign-out"></i>
-        </a>
+        <!-- User Profile and Logout -->
+        <div class="flex flex-col items-center gap-3">
+            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </a>
+        </div>
     </div>
 
     <!-- Main Content -->
     <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">Dashboard</div>
+
+                <div class="flex items-center gap-5">
+                    <!-- Search Bar -->
+                    <div class="hidden md:flex relative">
+                        <input type="text" placeholder="Search..." class="bg-gray-100 rounded-full py-1.5 px-4 pr-10 w-56 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                            <i class="ph ph-magnifying-glass"></i>
+                        </button>
+                    </div>
+
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.UserName</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="max-w-7xl mx-auto p-6">
             <!-- Welcome Card -->
             <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
-                <img src="~/images/subdivhouse.png" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
+                <img src="~/images/subdiv.png" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
                 <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
                     <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.UserName</span>!</h2>
                     <p class="text-gray-700 font-light mt-2">Stay updated with the latest announcements, events, and community discussions.</p>
                 </div>
             </div>
 
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+                <a href="@Url.Action("CreateServiceRequest", "Home")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
+                        <i class="ph ph-plus-circle"></i>
+                    </div>
+                    <span class="text-sm font-medium text-tertiary">New Request</span>
+                </a>
+
+                <a href="@Url.Action("CreateVisitorPass", "Security")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-500">
+                        <i class="ph ph-identification-card"></i>
+                    </div>
+                    <span class="text-sm font-medium text-tertiary">Visitor Pass</span>
+                </a>
+
+                <a href="@Url.Action("PayBill", "Billing")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
+                        <i class="ph ph-currency-circle-dollar"></i>
+                    </div>
+                    <span class="text-sm font-medium text-tertiary">Pay Bill</span>
+                </a>
+
+                <a href="@Url.Action("BookFacility", "Facilities")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
+                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
+                        <i class="ph ph-calendar-plus"></i>
+                    </div>
+                    <span class="text-sm font-medium text-tertiary">Book Facility</span>
+                </a>
+            </div>
+
             <!-- Quick Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-blue-500">
                     <div class="bg-blue-100 p-3 rounded-full mr-4">
-                        <i class="ph-credit-card text-2xl text-blue-500"></i>
+                        <i class="ph ph-credit-card text-2xl text-blue-500"></i>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">Due Bills</p>
                         <p class="text-xl font-semibold">@ViewBag.DueBills</p>
                     </div>
-                    <a href="@Url.Action("Bills", "Home")" class="ml-auto text-blue-500"><i class="ph-arrow-right text-xl"></i></a>
+                    <a href="@Url.Action("Bills", "Home")" class="ml-auto text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors">
+                        <i class="ph ph-arrow-right text-xl"></i>
+                    </a>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-green-500">
                     <div class="bg-green-100 p-3 rounded-full mr-4">
-                        <i class="ph-calendar text-2xl text-green-500"></i>
+                        <i class="ph ph-calendar-check text-2xl text-green-500"></i>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">Upcoming Events</p>
                         <p class="text-xl font-semibold">@ViewBag.EventCount</p>
                     </div>
-                    <a href="@Url.Action("Events", "Home")" class="ml-auto text-green-500"><i class="ph-arrow-right text-xl"></i></a>
+                    <a href="@Url.Action("Events", "Home")" class="ml-auto text-green-500 hover:bg-green-50 p-2 rounded-full transition-colors">
+                        <i class="ph ph-arrow-right text-xl"></i>
+                    </a>
                 </div>
 
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center">
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-purple-500">
                     <div class="bg-purple-100 p-3 rounded-full mr-4">
-                        <i class="ph-clipboard-text text-2xl text-purple-500"></i>
+                        <i class="ph ph-clipboard-text text-2xl text-purple-500"></i>
                     </div>
                     <div>
                         <p class="text-gray-500 text-sm">Pending Requests</p>
                         <p class="text-xl font-semibold">@ViewBag.RequestCount</p>
                     </div>
-                    <a href="@Url.Action("Requests", "Home")" class="ml-auto text-purple-500"><i class="ph-arrow-right text-xl"></i></a>
+                    <a href="@Url.Action("Requests", "Home")" class="ml-auto text-purple-500 hover:bg-purple-50 p-2 rounded-full transition-colors">
+                        <i class="ph ph-arrow-right text-xl"></i>
+                    </a>
                 </div>
             </div>
 
             <!-- Calendar Section -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
                 <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="font-semibold text-lg text-tertiary mb-4">Community Calendar</h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-calendar-check text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">Community Calendar</h3>
+                    </div>
                     <div id="calendar"></div>
                 </div>
 
                 <div class="bg-white p-6 rounded-xl shadow-md">
-                    <h3 class="font-semibold text-lg text-tertiary mb-4">Upcoming Events</h3>
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">Upcoming Events</h3>
+                    </div>
                     <ul id="event-list" class="space-y-3">
                         @* Event items will be inserted by JS *@
                     </ul>
@@ -140,15 +217,21 @@
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
-                        <a href="@Url.Action("Announcements", "Home")" class="text-blue-500 text-sm">View All</a>
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-megaphone text-lg text-tertiary"></i>
+                            <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
+                        </div>
+                        <a href="@Url.Action("Announcements", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                            View All
+                            <i class="ph ph-arrow-right text-xs"></i>
+                        </a>
                     </div>
                     <ul class="space-y-4">
                         @if (ViewBag.Announcements != null)
                         {
                             foreach (var announcement in ViewBag.Announcements)
                             {
-                                <li class="border-b border-gray-100 pb-3">
+                                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
                                     <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
                                     <p class="font-medium">@announcement.Title</p>
                                     <p class="text-gray-500 text-sm">@announcement.Content</p>
@@ -157,18 +240,24 @@
                         }
                         else
                         {
-                            <li class="border-b border-gray-100 pb-3">
-                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">NOTICE</span>
+                            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                    <i class="ph ph-drop"></i> NOTICE
+                                </span>
                                 <p class="font-medium">Water Supply Update</p>
                                 <p class="text-gray-500 text-sm">Scheduled maintenance on March 10.</p>
                             </li>
-                            <li class="border-b border-gray-100 pb-3">
-                                <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">SECURITY</span>
+                            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                    <i class="ph ph-shield-warning"></i> SECURITY
+                                </span>
                                 <p class="font-medium">Security Notice</p>
                                 <p class="text-gray-500 text-sm">New visitor guidelines effective March 15.</p>
                             </li>
-                            <li>
-                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">EVENT</span>
+                            <li class="hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                    <i class="ph ph-confetti"></i> EVENT
+                                </span>
                                 <p class="font-medium">Community Gathering</p>
                                 <p class="text-gray-500 text-sm">Join us for a BBQ night on March 20!</p>
                             </li>
@@ -178,8 +267,14 @@
 
                 <div class="bg-white p-6 rounded-xl shadow-md">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-lg text-tertiary">Community Forum</h3>
-                        <a href="@Url.Action("Forum", "Home")" class="text-blue-500 text-sm">View All</a>
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-chats text-lg text-tertiary"></i>
+                            <h3 class="font-semibold text-lg text-tertiary">Community Forum</h3>
+                        </div>
+                        <a href="@Url.Action("Forum", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                            View All
+                            <i class="ph ph-arrow-right text-xs"></i>
+                        </a>
                     </div>
                     <ul class="space-y-4">
                         @if (ViewBag.ForumThreads != null)
@@ -187,12 +282,12 @@
                             foreach (var thread in ViewBag.ForumThreads)
                             {
                                 <li class="border-b border-gray-100 pb-3">
-                                    <a href="@Url.Action("ThreadDetails", "Forum", new { id = thread.Id })" class="block">
+                                    <a href="@Url.Action("ThreadDetails", "Forum", new { id = thread.Id })" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
                                         <p class="font-medium text-secondary hover:text-blue-600 transition-colors">@thread.Title</p>
                                         <div class="flex items-center text-sm text-gray-500 mt-1">
-                                            <i class="ph-chats mr-1"></i> @thread.ReplyCount replies
+                                            <i class="ph ph-chat-centered-text mr-1"></i> @thread.ReplyCount replies
                                             <span class="mx-2">•</span>
-                                            <i class="ph-clock mr-1"></i> @thread.TimeAgo
+                                            <i class="ph ph-clock-counter-clockwise mr-1"></i> @thread.TimeAgo
                                         </div>
                                     </a>
                                 </li>
@@ -201,38 +296,140 @@
                         else
                         {
                             <li class="border-b border-gray-100 pb-3">
-                                <a href="#" class="block">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">How to report a maintenance issue?</p>
+                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
+                                        <i class="ph ph-question mr-1 text-blue-500"></i>
+                                        How to report a maintenance issue?
+                                    </p>
                                     <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph-chats mr-1"></i> 12 replies
+                                        <i class="ph ph-chat-centered-text mr-1"></i> 12 replies
                                         <span class="mx-2">•</span>
-                                        <i class="ph-clock mr-1"></i> 2 days ago
+                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 2 days ago
                                     </div>
                                 </a>
                             </li>
                             <li class="border-b border-gray-100 pb-3">
-                                <a href="#" class="block">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">Best ways to improve community security?</p>
+                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
+                                        <i class="ph ph-shield mr-1 text-yellow-500"></i>
+                                        Best ways to improve community security?
+                                    </p>
                                     <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph-chats mr-1"></i> 8 replies
+                                        <i class="ph ph-chat-centered-text mr-1"></i> 8 replies
                                         <span class="mx-2">•</span>
-                                        <i class="ph-clock mr-1"></i> 4 days ago
+                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 4 days ago
                                     </div>
                                 </a>
                             </li>
                             <li>
-                                <a href="#" class="block">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">Ideas for the next homeowners' event?</p>
+                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
+                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
+                                        <i class="ph ph-lightbulb mr-1 text-green-500"></i>
+                                        Ideas for the next homeowners' event?
+                                    </p>
                                     <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph-chats mr-1"></i> 15 replies
+                                        <i class="ph ph-chat-centered-text mr-1"></i> 15 replies
                                         <span class="mx-2">•</span>
-                                        <i class="ph-clock mr-1"></i> 1 week ago
+                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 1 week ago
                                     </div>
                                 </a>
                             </li>
                         }
                     </ul>
                 </div>
+            </div>
+
+            <!-- Documents & Resources -->
+            <div class="mt-8">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-file-text text-lg text-tertiary"></i>
+                            <h3 class="font-semibold text-lg text-tertiary">Documents & Resources</h3>
+                        </div>
+                        <a href="@Url.Action("Documents", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                            View All
+                            <i class="ph ph-arrow-right text-xs"></i>
+                        </a>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                            <div class="bg-blue-50 p-3 rounded-full mb-2">
+                                <i class="ph ph-book-open text-xl text-blue-500"></i>
+                            </div>
+                            <span class="text-sm font-medium text-center">Homeowner's Manual</span>
+                        </a>
+
+                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                            <div class="bg-green-50 p-3 rounded-full mb-2">
+                                <i class="ph ph-file-pdf text-xl text-green-500"></i>
+                            </div>
+                            <span class="text-sm font-medium text-center">Community Guidelines</span>
+                        </a>
+
+                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                            <div class="bg-yellow-50 p-3 rounded-full mb-2">
+                                <i class="ph ph-clipboard text-xl text-yellow-500"></i>
+                            </div>
+                            <span class="text-sm font-medium text-center">Visitor Request Form</span>
+                        </a>
+
+                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                            <div class="bg-purple-50 p-3 rounded-full mb-2">
+                                <i class="ph ph-map-pin text-xl text-purple-500"></i>
+                            </div>
+                            <span class="text-sm font-medium text-center">Community Map</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Contact Directory -->
+            <div class="mt-8">
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-phone text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">Important Contacts</h3>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                            <div class="bg-red-50 p-3 rounded-full">
+                                <i class="ph ph-first-aid text-xl text-red-500"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Emergency</h4>
+                                <a href="tel:911" class="text-blue-600 hover:underline">911</a>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                            <div class="bg-blue-50 p-3 rounded-full">
+                                <i class="ph ph-shield-star text-xl text-blue-500"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Security Office</h4>
+                                <a href="tel:+15551234567" class="text-blue-600 hover:underline">(555) 123-4567</a>
+                            </div>
+                        </div>
+
+                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                            <div class="bg-green-50 p-3 rounded-full">
+                                <i class="ph ph-buildings text-xl text-green-500"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-medium">Admin Office</h4>
+                                <a href="tel:+15559876543" class="text-blue-600 hover:underline">(555) 987-6543</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer with copyright -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
             </div>
         </div>
     </div>
@@ -260,7 +457,7 @@
                 events: events
             });
 
-            // Render event list on the side
+            // Render event list on the side with improved icon display
             events.forEach(event => {
                 let li = document.createElement('li');
 
@@ -271,15 +468,28 @@
                     day: 'numeric'
                 });
 
+                // Determine icon based on event title
+                let icon = 'ph-calendar-check';
+                if (event.title.toLowerCase().includes('meeting')) {
+                    icon = 'ph-users';
+                } else if (event.title.toLowerCase().includes('maintenance')) {
+                    icon = 'ph-wrench';
+                } else if (event.title.toLowerCase().includes('clean')) {
+                    icon = 'ph-broom';
+                }
+
                 li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
                 li.style.borderLeftColor = event.color;
                 li.innerHTML = `
                     <div class="flex items-center">
-                        <div class="text-center mr-3">
+                        <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
                             <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
                         </div>
                         <div>
-                            <p class="font-medium">${event.title}</p>
+                            <p class="font-medium flex items-center">
+                                <i class="ph ${icon} mr-2" style="color: ${event.color}"></i>
+                                ${event.title}
+                            </p>
                         </div>
                     </div>
                 `;
