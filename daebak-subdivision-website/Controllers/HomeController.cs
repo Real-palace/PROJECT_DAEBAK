@@ -15,18 +15,11 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        // Initialize a new LoginViewModel to prevent null reference exceptions
-        return View(new LoginViewModel());
+        return View();
     }
 
     public IActionResult Privacy()
     {
-        return View();
-    }
-
-    public IActionResult Dashboard()
-    {
-        // This would be the page users see after successful login
         return View();
     }
 

@@ -16,10 +16,10 @@ namespace daebak_subdivision_website.Controllers
             // Here you would add your authentication logic
             // For example, checking credentials against a database
             
-            // For testing, we'll just redirect to a dashboard or return with an error
+            // For testing, we'll just redirect to the Home action
             if (model.Username == "admin" && model.Password == "password")
             {
-                return RedirectToAction("Dashboard", "Home");
+                return RedirectToAction("Home", "Home");
             }
             
             ModelState.AddModelError(string.Empty, "Invalid login attempt");
@@ -36,6 +36,13 @@ namespace daebak_subdivision_website.Controllers
         {
             // Implement contact functionality
             return View();
+        }
+
+        public IActionResult Logout()
+        {
+            // Here you would implement logout functionality
+            // For now, just redirect to the login page
+            return RedirectToAction("Index", "Home");
         }
     }
 }
