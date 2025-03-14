@@ -1,0 +1,135 @@
+﻿@using daebak_subdivision_website.Models
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    ViewData["Title"] = "Management - Daebak";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap">
+
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('@Url.Content("~/images/HOME7.jpg")') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* Floating Animations */
+        .floating-shape {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .floating-shape-delay-1 {
+            animation-delay: 1s;
+        }
+
+        .floating-shape-delay-2 {
+            animation-delay: 2s;
+        }
+
+        <style >
+        @@keyframes float {
+            0%
+
+        {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+
+        100% {
+            transform: translateY(0px);
+        }
+
+        }
+
+        .floating-shape {
+            animation: float 4s ease-in-out infinite;
+        }
+    </style>
+
+</head>
+<body class="bg-light min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+
+    <!-- Decorative Floating Shapes -->
+    <div class="absolute top-20 left-1/4 w-40 h-40 bg-primary/10 rounded-full floating-shape"></div>
+    <div class="absolute bottom-20 right-10 w-60 h-60 bg-primary/10 rounded-full floating-shape floating-shape-delay-1"></div>
+    <div class="absolute top-1/4 right-1/4 w-20 h-20 bg-primary/10 rounded-full floating-shape floating-shape-delay-2"></div>
+
+    <div class="container mx-auto p-6 relative z-10">
+        <!-- Page Heading -->
+        <h2 class="text-3xl font-bold text-gray-800 text-center mb-8 uppercase">Management</h2>
+
+        <!-- Button Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- USERS -->
+            <a asp-controller="UserManagement" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">USERS</h4>
+            </a>
+
+            <!-- COMMUNITY -->
+            <a asp-controller="Community" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">COMMUNITY</h4>
+            </a>
+
+            <!-- SERVICES -->
+            <a asp-controller="Services" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">SERVICES</h4>
+            </a>
+
+            <!-- BILLS AND PAYMENTS -->
+            <a asp-controller="Billing" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">BILLS AND PAYMENTS</h4>
+            </a>
+
+            <!-- SECURITY -->
+            <a asp-controller="Security" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">SECURITY</h4>
+            </a>
+
+            <!-- DOCUMENT -->
+            <a asp-controller="Documents" asp-action="Index"
+               class="block p-6 bg-white rounded-xl shadow-lg transform transition hover:scale-105 text-center">
+                <h4 class="text-xl font-semibold text-tertiary">DOCUMENT</h4>
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

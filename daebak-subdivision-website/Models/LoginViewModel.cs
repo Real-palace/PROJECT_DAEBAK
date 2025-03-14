@@ -1,14 +1,14 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace daebak_subdivision_website.Models
 {
     public class LoginViewModel
     {
-        [Required(ErrorMessage = "Username is required")]
-        public string Username { get; set; } = string.Empty;
+        [Required]
+        public string Username { get; set; } = string.Empty; // Default value
 
-        [Required(ErrorMessage = "Password is required")]
+        [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty; // Default value
     }
 }
