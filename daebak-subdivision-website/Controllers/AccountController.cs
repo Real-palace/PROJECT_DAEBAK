@@ -1,57 +1,73 @@
-using daebak_subdivision_website.Models;
 using Microsoft.AspNetCore.Mvc;
+using daebak_subdivision_website.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace daebak_subdivision_website.Controllers
 {
     public class AccountController : Controller
     {
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View(); // Looks for Views/Account/Login.cshtml
+        }
+
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
         {
-            // Temporary static account for testing
-            const string tempUsername = "homeowner";
-            const string tempPassword = "password123";
+            // Temporary static accounts for demonstration
+            const string adminUsername = "admin";
+            const string adminPassword = "password";
+
+            const string homeownerUsername = "homeowner";
+            const string homeownerPassword = "password123";
 
             if (ModelState.IsValid)
             {
-                // Check if credentials match our temporary account
-                if (model.Username == tempUsername && model.Password == tempPassword)
+                if (model.Username == adminUsername && model.Password == adminPassword)
                 {
-                    // Successful login - redirect to home page (fixed to redirect to Home action)
+                    return RedirectToAction("SecondPage");
+                }
+                else if (model.Username == homeownerUsername && model.Password == homeownerPassword)
+                {
                     return RedirectToAction("Home", "Home");
                 }
 
-                // Invalid login attempt
-                ModelState.AddModelError(string.Empty, "Invalid username or password");
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             }
 
-            // If we got this far, something failed, redisplay form
-            return View("~/Views/Home/Index.cshtml", model);
+            return View(model);
+        }
+
+        public IActionResult SecondPage()
+        {
+            var model = new SecondPageModel(); // Ensure the model exists
+            return View("2nd", model); // Ensure the file exists: Views/Account/2nd.cshtml
         }
 
         public IActionResult ForgotPassword()
         {
-            // This is just a placeholder for now
+            // Placeholder for forgot password functionality
             return View();
         }
 
         public IActionResult Contact()
         {
-            // This is just a placeholder for now
+            // Placeholder for contact functionality
             return View();
         }
 
         public IActionResult Logout()
         {
-            // Here you would implement logout functionality
-            // For now, just redirect to the login page
-            return RedirectToAction("Index", "Home");
+            // Clears session or authentication data if implemented
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult Profile()
         {
-            // In a real application, we would fetch this data from the database
-            // For now, create mock data based on our database schema
+            // Mock user profile data
             var userProfile = new UserProfileViewModel
             {
                 Username = "homeowner",
@@ -75,23 +91,20 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult UpdateProfile(UserProfileViewModel model)
         {
             // Remove password validation if not changing password
-            if (string.IsNullOrEmpty(model.CurrentPassword) && string.IsNullOrEmpty(model.NewPassword) && 
+            if (string.IsNullOrEmpty(model.CurrentPassword) && string.IsNullOrEmpty(model.NewPassword) &&
                 string.IsNullOrEmpty(model.ConfirmNewPassword))
             {
-                // If all password fields are empty, password is not being changed
                 ModelState.Remove("CurrentPassword");
                 ModelState.Remove("NewPassword");
                 ModelState.Remove("ConfirmNewPassword");
             }
             else if (!string.IsNullOrEmpty(model.NewPassword) || !string.IsNullOrEmpty(model.ConfirmNewPassword))
             {
-                // If user is trying to set a new password, current password is required
                 if (string.IsNullOrEmpty(model.CurrentPassword))
                 {
                     ModelState.AddModelError("CurrentPassword", "Current password is required to set a new password");
                 }
-                
-                // Check if new password meets requirements (only if trying to change password)
+
                 if (!string.IsNullOrEmpty(model.NewPassword) && model.NewPassword.Length < 8)
                 {
                     ModelState.AddModelError("NewPassword", "Password must be at least 8 characters");
@@ -100,37 +113,22 @@ namespace daebak_subdivision_website.Controllers
 
             if (ModelState.IsValid)
             {
-                // In a real application, update the user profile in the database
-                // For this example, we'll simulate success and show what would be updated
+                List<string> changedFields = new List<string> { "profile" };
 
-                // Create a list of changed fields to display in the success message
-                List<string> changedFields = new List<string>();
-                changedFields.Add("profile"); // Basic profile is always considered updated
-                
-                // Check if password is being changed
                 if (!string.IsNullOrEmpty(model.NewPassword) && !string.IsNullOrEmpty(model.CurrentPassword))
                 {
-                    // In real app we'd verify current password and hash new password
                     changedFields.Add("password");
                 }
-                
-                // Check if email was changed
-                if (!string.IsNullOrEmpty(model.Email) && model.Email != "homeowner@example.com") // Compare with original
+
+                if (!string.IsNullOrEmpty(model.Email) && model.Email != "homeowner@example.com")
                 {
                     changedFields.Add("email");
                 }
 
-                string updateMessage = "Profile updated successfully!";
-                if (changedFields.Count > 1)
-                {
-                    updateMessage = $"{string.Join(", ", changedFields.Take(changedFields.Count - 1))} and {changedFields.Last()} updated successfully!";
-                }
-                
-                TempData["SuccessMessage"] = updateMessage;
+                TempData["SuccessMessage"] = $"{string.Join(", ", changedFields.Take(changedFields.Count - 1))} and {changedFields.Last()} updated successfully!";
                 return RedirectToAction("Profile");
             }
 
-            // If we got here, something went wrong - redisplay the form
             ViewBag.UserName = $"{model.FirstName} {model.LastName}";
             ViewBag.MemberSince = model.CreatedAt.ToString("MMMM d, yyyy") ?? "Unknown";
             return View("Profile", model);
