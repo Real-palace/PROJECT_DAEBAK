@@ -1,0 +1,115 @@
+﻿@model daebak_subdivision_website.Models.UserViewModel
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<!-- 🔹 Edit User Page Container -->
+<div class="edit-user-container">
+    <div class="container mt-5 d-flex justify-content-center">
+        <div class="card p-4 shadow-lg">
+            <h2 class="text-center text-primary">Edit User</h2>
+
+            <form asp-action="EditUser" method="post">
+                <input type="hidden" asp-for="Id" />
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Username</label>
+                    <input type="text" asp-for="Username" class="form-control" required />
+                    <span asp-validation-for="Username" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <label class="form-label">First Name</label>
+                        <input type="text" asp-for="FirstName" class="form-control" required />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" asp-for="LastName" class="form-control" required />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <label class="form-label">Email</label>
+                        <input type="email" asp-for="Email" class="form-control" required />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" asp-for="PhoneNumber" class="form-control" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <label class="form-label">House Number</label>
+                        <input type="text" asp-for="HouseNumber" class="form-control" />
+                        <span asp-validation-for="HouseNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-label">Role</label>
+                        <select asp-for="Role" class="form-control">
+                            <option value="Homeowner">Homeowner</option>
+                            <option value="Staff">Staff</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col">
+                        <label class="form-label">Password</label>
+                        <input type="password" asp-for="Password" class="form-control" required />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+                    <div class="col">
+                        <label class="form-label">Confirm Password</label>
+                        <input type="password" asp-for="ConfirmPassword" class="form-control" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a asp-action="Management" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-success">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 🔹 CSS Styling for Background Image -->
+<style>
+    /* 🔹 Apply Background Image */
+    body {
+        background: url('/images/HOME6.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* 🔹 Form Container */
+    .edit-user-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        padding: 20px;
+    }
+
+    /* 🔹 Form Card */
+    .card {
+        background: white; /* Ensure solid background */
+        border-radius: 12px;
+        width: 50%;
+        max-width: 600px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    }
+</style>

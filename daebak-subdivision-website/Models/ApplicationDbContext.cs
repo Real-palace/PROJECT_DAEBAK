@@ -1,4 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace daebak_subdivision_website.Models
 {
@@ -43,7 +45,7 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<VisitorPass>().ToTable("VISITOR_PASSES");
             modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATIONS");
             modelBuilder.Entity<Contact>().ToTable("CONTACTS");
-            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK"); // Check if singular or plural in DB
+            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK");
             modelBuilder.Entity<ForumCategory>().ToTable("FORUM_CATEGORIES");
             modelBuilder.Entity<ForumThread>().ToTable("FORUM_THREADS");
             modelBuilder.Entity<ForumPost>().ToTable("FORUM_POSTS");
@@ -61,9 +63,16 @@ namespace daebak_subdivision_website.Models
                 .IsUnique();
         }
 
-        internal void SaveChanges()
+        public override int SaveChanges()
         {
-            throw new NotImplementedException();
+            // Calls the base implementation to save changes to the database
+            return base.SaveChanges();
+        }
+
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            // Calls the base async implementation to save changes to the database
+            return await base.SaveChangesAsync(cancellationToken);
         }
     }
 }

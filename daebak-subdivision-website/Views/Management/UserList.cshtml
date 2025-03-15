@@ -28,15 +28,31 @@
         }
     </script>
 </head>
-<body class="bg-light font-sans min-h-screen p-6">
+<body class="bg-light min-h-screen flex flex-col relative overflow-hidden">
+    <!-- Navigation Bar -->
+    <nav class="bg-primary text-white w-full shadow-md mb-6">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <!-- Logo -->
+            <div class="flex items-center space-x-3">
+                <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-10">
+                <h1 class="text-xl font-bold tracking-wide">Daebak Admin Dashboard</h1>
+            </div>
+            <!-- Navigation Links -->
+            <div class="space-x-6 text-sm">
+                <a asp-controller="Home" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Home</a>
+                <a asp-controller="Management" asp-action="Management" class="hover:text-secondary font-medium transition duration-200">Management</a>
+                <a asp-controller="Notifications" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Notifications</a>
+                <a asp-controller="Settings" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Settings</a>
+                <a asp-controller="Account" asp-action="Logout" class="text-accent hover:text-white font-medium transition duration-200">Logout</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container mx-auto">
         <!-- Top Section -->
         <div class="flex justify-between items-center mb-6">
-            <a asp-action="Index" class="bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-tertiary">
-                <i class="bi bi-house-door-fill"></i> Home
-            </a>
             <h2 class="text-xl font-bold text-tertiary">User Management</h2>
-            <a asp-action="AddUser" class="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-secondary">
+            <a asp-action="AddUser" class="bg-primary text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow hover:bg-secondary ml-auto">
                 <i class="bi bi-person-plus-fill"></i> Add New User
             </a>
         </div>

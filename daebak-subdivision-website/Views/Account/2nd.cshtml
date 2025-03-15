@@ -20,12 +20,12 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: {
+                     colors: {
                         primary: '#94B0DF',
                         secondary: '#356480',
                         tertiary: '#2c3e50',
                         light: '#FCFDFF',
-                    },
+                    }
                 },
                 fontFamily: {
                     sans: ['Poppins', 'sans-serif'],
@@ -33,18 +33,18 @@
             },
         };
     </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body class="font-sans bg-light min-h-screen text-gray-800">
 
     <!-- Navigation Bar -->
     <nav class="bg-primary text-white w-full shadow-md">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <!-- Logo -->
             <div class="flex items-center space-x-3">
                 <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-10">
                 <h1 class="text-xl font-bold tracking-wide">Daebak Admin Dashboard</h1>
             </div>
-            <!-- Navigation Links -->
             <div class="space-x-6 text-sm">
                 <a asp-controller="Home" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Home</a>
                 <a asp-controller="Management" asp-action="Management" class="hover:text-secondary font-medium transition duration-200">Management</a>
@@ -55,51 +55,101 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
-        <!-- Card Style Chart -->
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center">User Role Distribution</h2>
-            <canvas id="roleChart" class="h-36"></canvas>
+    <!-- Interactive Cards Section -->
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+        <div class="bg-primary text-white shadow-lg rounded-lg p-6 hover:bg-secondary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                <i class="fas fa-bullhorn mr-2"></i> Total Announcements
+            </h3>
+            <p class="text-3xl font-bold">25</p>
         </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center">Bill Payment Status</h2>
-            <canvas id="billPaymentStatusChart" class="h-36"></canvas>
+        <div class="bg-secondary text-white shadow-lg rounded-lg p-6 hover:bg-tertiary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                <i class="fas fa-calendar-alt mr-2"></i> Active Events
+            </h3>
+            <p class="text-3xl font-bold">7</p>
         </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center">User Registrations Over Time</h2>
-            <canvas id="userRegistrationsChart" class="h-36"></canvas>
-        </div>
-
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center">Facility Reservations</h2>
-            <canvas id="facilityReservationsChart" class="h-36"></canvas>
+        <div class="bg-tertiary text-white shadow-lg rounded-lg p-6 hover:bg-primary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center">
+                <i class="fas fa-tools mr-2"></i> Pending Service Requests
+            </h3>
+            <p class="text-3xl font-bold">12</p>
         </div>
     </div>
 
-    <!-- Chart.js Script -->
+    <!-- Main Charts Section -->
+    <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
+                <i class="fas fa-user-shield mr-2 text-secondary"></i> User Role Distribution
+            </h2>
+            <canvas id="roleChart" class="h-36"></canvas>
+        </div>
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
+                <i class="fas fa-wallet mr-2 text-secondary"></i> Bill Payment Status
+            </h2>
+            <canvas id="billPaymentStatusChart" class="h-36"></canvas>
+        </div>
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
+                <i class="fas fa-chart-area mr-2 text-secondary"></i> Billing Trends
+            </h2>
+            <canvas id="billingTrendsChart" class="h-36"></canvas>
+        </div>
+        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
+                <i class="fas fa-user mr-2 text-secondary"></i> User Registrations Over Time
+            </h2>
+            <canvas id="userRegistrationsChart" class="h-36"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart.js Scripts -->
     <script>
-        // Bar Chart for User Role Distribution
+        // User Role Distribution Chart
         const roleCtx = document.getElementById('roleChart').getContext('2d');
         new Chart(roleCtx, {
-            type: 'bar',
+            type: 'pie',
             data: {
-                labels: ['Homeowners', 'Staff', 'Admins'],
+                labels: ['Admin', 'Manager', 'User'],
                 datasets: [{
-                    label: 'User Roles',
-                    data: [10, 20, 5],
-                    backgroundColor: ['#94B0DF', '#356480', '#2c3e50'],
+                    data: [10, 15, 25],
+                    backgroundColor: ['#A9DEF9', '#FFBCBC', '#B7E4C7']
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-            }
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
         });
 
-        // Line Chart for User Registrations Over Time
+        // Bill Payment Status Chart
+        const billStatusCtx = document.getElementById('billPaymentStatusChart').getContext('2d');
+        new Chart(billStatusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Paid', 'Pending', 'Overdue'],
+                datasets: [{
+                    data: [50, 35, 15],
+                    backgroundColor: ['#559C5F', '#FFD166', '#EF476F']
+                }]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
+        });
+
+        // Billing Trends Chart
+        const billingTrendsCtx = document.getElementById('billingTrendsChart').getContext('2d');
+        new Chart(billingTrendsCtx, {
+            type: 'line',
+            data: {
+                labels: ['January', 'February', 'March', 'April', 'May'],
+                datasets: [
+                    { label: 'Billed Amounts', data: [5000, 7000, 6000, 8000, 9000], borderColor: '#94B0DF', backgroundColor: 'rgba(148, 176, 223, 0.4)', tension: 0.4, fill: true },
+                    { label: 'Paid Amounts', data: [4500, 6800, 5900, 7700, 8500], borderColor: '#559C5F', backgroundColor: 'rgba(85, 156, 95, 0.4)', tension: 0.4, fill: true }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+        });
+
+        // User Registrations Chart
         const registrationsCtx = document.getElementById('userRegistrationsChart').getContext('2d');
         new Chart(registrationsCtx, {
             type: 'line',
@@ -107,60 +157,14 @@
                 labels: ['January', 'February', 'March', 'April', 'May'],
                 datasets: [{
                     label: 'Registrations',
-                    data: [5, 10, 15, 20, 25], // Replace with dynamic data
+                    data: [5, 10, 15, 20, 25],
                     borderColor: '#356480',
-                    backgroundColor: '#94B0DF1A',
+                    backgroundColor: 'rgba(53, 100, 128, 0.2)',
                     fill: true,
-                    tension: 0.4,
+                    tension: 0.4
                 }]
             },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-            }
-        });
-
-        // Pie Chart for Bill Payment Status
-        const billCtx = document.getElementById('billPaymentStatusChart').getContext('2d');
-        new Chart(billCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Pending', 'Paid', 'Overdue'],
-                datasets: [{
-                    data: [15, 50, 5], // Replace with dynamic data
-                    backgroundColor: ['#94B0DF', '#356480', '#2c3e50'],
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-            }
-        });
-
-        // Radar Chart for Facility Reservations
-        const facilityCtx = document.getElementById('facilityReservationsChart').getContext('2d');
-        new Chart(facilityCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Swimming Pool', 'Gym', 'Tennis Court', 'Conference Room', 'Playground'],
-                datasets: [{
-                    label: 'Reservations',
-                    data: [25, 15, 10, 5, 8], // Replace with dynamic data
-                    backgroundColor: 'rgba(52, 104, 128, 0.2)',
-                    borderColor: '#356480',
-                    borderWidth: 2,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: { legend: { position: 'top' } },
-                scales: {
-                    r: {
-                        angleLines: { color: '#ccc' },
-                        grid: { color: '#ddd' },
-                    }
-                }
-            }
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
         });
     </script>
 </body>
