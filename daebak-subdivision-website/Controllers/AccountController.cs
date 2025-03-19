@@ -28,7 +28,7 @@ namespace daebak_subdivision_website.Controllers
             {
                 if (model.Username == adminUsername && model.Password == adminPassword)
                 {
-                    return RedirectToAction("SecondPage");
+                    return RedirectToAction("AdminPage");
                 }
                 else if (model.Username == homeownerUsername && model.Password == homeownerPassword)
                 {
@@ -41,10 +41,10 @@ namespace daebak_subdivision_website.Controllers
             return View(model);
         }
 
-        public IActionResult SecondPage()
+        public IActionResult AdminPage()
         {
-            var model = new SecondPageModel(); // Ensure the model exists
-            return View("2nd", model); // Ensure the file exists: Views/Account/2nd.cshtml
+            var model = new AdminPageModel(); // Ensure the model exists
+            return View("Admin", model); // Ensure the file exists: Views/Account/Admin.cshtml
         }
 
         public IActionResult ForgotPassword()

@@ -1,4 +1,4 @@
-﻿@model daebak_subdivision_website.Models.SecondPageModel
+﻿@model daebak_subdivision_website.Models.AdminPageModel
 @{
     ViewData["Title"] = "Admin Dashboard";
 }
@@ -20,7 +20,7 @@
         tailwind.config = {
             theme: {
                 extend: {
-                     colors: {
+                    colors: {
                         primary: '#94B0DF',
                         secondary: '#356480',
                         tertiary: '#2c3e50',
@@ -45,9 +45,25 @@
                 <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-10">
                 <h1 class="text-xl font-bold tracking-wide">Daebak Admin Dashboard</h1>
             </div>
-            <div class="space-x-6 text-sm">
-                <a asp-controller="Home" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Home</a>
-                <a asp-controller="Management" asp-action="Management" class="hover:text-secondary font-medium transition duration-200">Management</a>
+            <div class="space-x-6 text-sm flex items-center">
+                <a asp-controller="Account" asp-action="AdminPage" class="hover:text-secondary font-medium transition duration-200">Home</a>
+
+
+                <!-- Management Dropdown -->
+                <div class="relative">
+                    <button id="management-btn" class="hover:text-secondary font-medium transition duration-200 flex items-center">
+                        Management <i class="fas fa-chevron-down ml-2"></i>
+                    </button>
+                    <div id="management-dropdown" class="absolute left-0 mt-2 w-56 bg-white text-gray-800 shadow-md rounded-md hidden transition-all duration-300 z-50">
+                        <a asp-controller="UserManagement" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">USERS</a>
+                        <a asp-controller="Community" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">COMMUNITY</a>
+                        <a asp-controller="ServiceRequests" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">SERVICES</a>
+                        <a asp-controller="Billing" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">BILLS AND PAYMENTS</a>
+                        <a asp-controller="Security" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">SECURITY</a>
+                        <a asp-controller="Documents" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">DOCUMENT</a>
+                    </div>
+                </div>
+
                 <a asp-controller="Notifications" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Notifications</a>
                 <a asp-controller="Settings" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Settings</a>
                 <a asp-controller="Account" asp-action="Logout" class="text-accent hover:text-white font-medium transition duration-200">Logout</a>
@@ -91,81 +107,25 @@
             </h2>
             <canvas id="billPaymentStatusChart" class="h-36"></canvas>
         </div>
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
-                <i class="fas fa-chart-area mr-2 text-secondary"></i> Billing Trends
-            </h2>
-            <canvas id="billingTrendsChart" class="h-36"></canvas>
-        </div>
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
-                <i class="fas fa-user mr-2 text-secondary"></i> User Registrations Over Time
-            </h2>
-            <canvas id="userRegistrationsChart" class="h-36"></canvas>
-        </div>
     </div>
 
     <!-- Chart.js Scripts -->
     <script>
         // User Role Distribution Chart
-        const roleCtx = document.getElementById('roleChart').getContext('2d');
-        new Chart(roleCtx, {
+        new Chart(document.getElementById('roleChart').getContext('2d'), {
             type: 'pie',
-            data: {
-                labels: ['Admin', 'Manager', 'User'],
-                datasets: [{
-                    data: [10, 15, 25],
-                    backgroundColor: ['#A9DEF9', '#FFBCBC', '#B7E4C7']
-                }]
-            },
+            data: { labels: ['Admin', 'Manager', 'User'], datasets: [{ data: [10, 15, 25], backgroundColor: ['#A9DEF9', '#FFBCBC', '#B7E4C7'] }] },
             options: { responsive: true, plugins: { legend: { position: 'top' } } }
         });
 
         // Bill Payment Status Chart
-        const billStatusCtx = document.getElementById('billPaymentStatusChart').getContext('2d');
-        new Chart(billStatusCtx, {
+        new Chart(document.getElementById('billPaymentStatusChart').getContext('2d'), {
             type: 'doughnut',
-            data: {
-                labels: ['Paid', 'Pending', 'Overdue'],
-                datasets: [{
-                    data: [50, 35, 15],
-                    backgroundColor: ['#559C5F', '#FFD166', '#EF476F']
-                }]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'top' } } }
-        });
-
-        // Billing Trends Chart
-        const billingTrendsCtx = document.getElementById('billingTrendsChart').getContext('2d');
-        new Chart(billingTrendsCtx, {
-            type: 'line',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                datasets: [
-                    { label: 'Billed Amounts', data: [5000, 7000, 6000, 8000, 9000], borderColor: '#94B0DF', backgroundColor: 'rgba(148, 176, 223, 0.4)', tension: 0.4, fill: true },
-                    { label: 'Paid Amounts', data: [4500, 6800, 5900, 7700, 8500], borderColor: '#559C5F', backgroundColor: 'rgba(85, 156, 95, 0.4)', tension: 0.4, fill: true }
-                ]
-            },
-            options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
-        });
-
-        // User Registrations Chart
-        const registrationsCtx = document.getElementById('userRegistrationsChart').getContext('2d');
-        new Chart(registrationsCtx, {
-            type: 'line',
-            data: {
-                labels: ['January', 'February', 'March', 'April', 'May'],
-                datasets: [{
-                    label: 'Registrations',
-                    data: [5, 10, 15, 20, 25],
-                    borderColor: '#356480',
-                    backgroundColor: 'rgba(53, 100, 128, 0.2)',
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
+            data: { labels: ['Paid', 'Pending', 'Overdue'], datasets: [{ data: [50, 35, 15], backgroundColor: ['#559C5F', '#FFD166', '#EF476F'] }] },
             options: { responsive: true, plugins: { legend: { position: 'top' } } }
         });
     </script>
+
 </body>
 </html>
+<script src="~/js/site.js"></script>

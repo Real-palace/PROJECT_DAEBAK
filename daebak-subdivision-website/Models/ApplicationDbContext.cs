@@ -21,7 +21,7 @@ namespace daebak_subdivision_website.Models
         public DbSet<VisitorPass> VisitorPasses { get; set; }
         public DbSet<VehicleRegistration> VehicleRegistrations { get; set; }
         public DbSet<Contact> Contacts { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; }
+        public DbSet<Feedback> Feedbacks { get; set; } // ✅ FIXED: Ensure correct plural naming
         public DbSet<ForumCategory> ForumCategories { get; set; }
         public DbSet<ForumThread> ForumThreads { get; set; }
         public DbSet<ForumPost> ForumPosts { get; set; }
@@ -45,7 +45,7 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<VisitorPass>().ToTable("VISITOR_PASSES");
             modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATIONS");
             modelBuilder.Entity<Contact>().ToTable("CONTACTS");
-            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK");
+            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK"); // ✅ FIXED: Correct table mapping
             modelBuilder.Entity<ForumCategory>().ToTable("FORUM_CATEGORIES");
             modelBuilder.Entity<ForumThread>().ToTable("FORUM_THREADS");
             modelBuilder.Entity<ForumPost>().ToTable("FORUM_POSTS");
@@ -65,13 +65,11 @@ namespace daebak_subdivision_website.Models
 
         public override int SaveChanges()
         {
-            // Calls the base implementation to save changes to the database
             return base.SaveChanges();
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
-            // Calls the base async implementation to save changes to the database
             return await base.SaveChangesAsync(cancellationToken);
         }
     }
