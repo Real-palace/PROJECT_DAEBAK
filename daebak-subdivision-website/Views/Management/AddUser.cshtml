@@ -4,141 +4,149 @@
     ViewData["Title"] = "Add New User";
 }
 
-<style>
-    /* Background Styling */
-    body {
-        background: url('/images/HOME6.jpg') no-repeat center center/cover;
-        font-family: 'Poppins', sans-serif;
-    }
-
-    /* 🔹 Change Glassmorphism to Solid White */
-    .glass-card {
-        background: white; /* Solid white background */
-        border-radius: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-    }
-
-    /* Form Inputs */
-    .custom-input {
-        background: white; /* Make input fields white */
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        color: black;
-        padding: 10px;
-        font-size: 14px;
-    }
-
-        .custom-input::placeholder {
-            color: gray;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#009879',
+                        secondary: '#356480',
+                    }
+                }
+            }
         }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen py-12 bg-cover bg-center bg-no-repeat"
+         style="background-image: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/images/HOME6.jpg')">
 
-        .custom-input:focus {
-            outline: none;
-            border-color: #68D2E8;
-            box-shadow: 0 0 10px rgba(104, 210, 232, 0.5);
-        }
+        <div class="max-w-4xl mx-auto px-4">
+            <!-- Form Card -->
+            <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-8">
+                <!-- Header -->
+                <div class="mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center">Add New User</h2>
+                    <p class="text-gray-600 text-center mt-2">Fill in the details to create a new user account</p>
+                </div>
 
-    /* Labels */
-    .form-label {
-        font-weight: bold;
-        color: black; /* Ensure labels are readable */
-    }
+                <form asp-action="AddUser" method="post" class="space-y-8">
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Basic Information</h3>
 
-    /* Buttons */
-    .btn-custom {
-        background-color: #009879;
-        color: white;
-        border-radius: 8px;
-        padding: 10px 15px;
-        transition: 0.3s ease-in-out;
-        font-weight: bold;
-    }
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div class="col-span-3">
+                                <label asp-for="Username" class="block text-sm font-medium text-gray-700 mb-1">Username <span class="text-red-500">*</span></label>
+                                <input asp-for="Username" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter username">
+                                <span asp-validation-for="Username" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="FirstName" class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+                                <input asp-for="FirstName" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter first name">
+                                <span asp-validation-for="FirstName" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="LastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+                                <input asp-for="LastName" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter last name">
+                                <span asp-validation-for="LastName" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="Role" class="block text-sm font-medium text-gray-700 mb-1">Role <span class="text-red-500">*</span></label>
+                                <select asp-for="Role" required
+                                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <option value="">Select Role</option>
+                                    <option value="Homeowner">Homeowner</option>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Admin">Admin</option>
+                                </select>
+                                <span asp-validation-for="Role" class="text-sm text-red-500"></span>
+                            </div>
+                        </div>
+                    </div>
 
-        .btn-custom:hover {
-            background-color: #0b6ba8;
-        }
+                    <!-- Contact Information -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Contact Information</h3>
 
-    .btn-light {
-        background-color: #f1f1f1;
-        color: black;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        padding: 10px 15px;
-        transition: 0.3s ease-in-out;
-    }
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label asp-for="Email" class="block text-sm font-medium text-gray-700 mb-1">Email <span class="text-red-500">*</span></label>
+                                <input asp-for="Email" type="email" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter email">
+                                <span asp-validation-for="Email" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="PhoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <input asp-for="PhoneNumber" type="tel"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter phone number">
+                                <span asp-validation-for="PhoneNumber" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="HouseNumber" class="block text-sm font-medium text-gray-700 mb-1">House Number</label>
+                                <input asp-for="HouseNumber"
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter house number">
+                                <span asp-validation-for="HouseNumber" class="text-sm text-red-500"></span>
+                            </div>
+                        </div>
+                    </div>
 
-        .btn-light:hover {
-            background-color: #e0e0e0;
-        }
-</style>
+                    <!-- Security -->
+                    <div class="space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">Security</h3>
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-5">
-            <div class="glass-card">
-                <h2 class="text-center text-dark">Add New User</h2> <!-- Changed text-white to text-dark -->
-                <form asp-action="AddUser" method="post">
-                    <div class="mb-3">
-                        <label class="form-label">Username</label>
-                        <input type="text" asp-for="Username" class="form-control custom-input" required placeholder="Enter username">
-                        <span asp-validation-for="Username" class="text-danger"></span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label asp-for="Password" class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
+                                <input asp-for="Password" type="password" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Enter password">
+                                <span asp-validation-for="Password" class="text-sm text-red-500"></span>
+                            </div>
+                            <div>
+                                <label asp-for="ConfirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password <span class="text-red-500">*</span></label>
+                                <input asp-for="ConfirmPassword" type="password" required
+                                       class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary"
+                                       placeholder="Confirm password">
+                                <span asp-validation-for="ConfirmPassword" class="text-sm text-red-500"></span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">First Name</label>
-                        <input type="text" asp-for="FirstName" class="form-control custom-input" required placeholder="Enter first name">
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" asp-for="LastName" class="form-control custom-input" required placeholder="Enter last name">
-                        <span asp-validation-for="LastName" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" asp-for="Email" class="form-control custom-input" required placeholder="Enter email">
-                        <span asp-validation-for="Email" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Phone Number</label>
-                        <input type="text" asp-for="PhoneNumber" class="form-control custom-input" placeholder="Enter phone number">
-                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">House Number</label>
-                        <input type="text" asp-for="HouseNumber" class="form-control custom-input" placeholder="Enter house number">
-                        <span asp-validation-for="HouseNumber" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Role</label>
-                        <select asp-for="Role" class="form-control custom-input">
-                            <option value="Homeowner">Homeowner</option>
-                            <option value="Staff">Staff</option>
-                            <option value="Admin">Admin</option>
-                        </select>
-                        <span asp-validation-for="Role" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" asp-for="Password" class="form-control custom-input" required placeholder="Enter password">
-                        <span asp-validation-for="Password" class="text-danger"></span>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Confirm Password</label>
-                        <input type="password" asp-for="ConfirmPassword" class="form-control custom-input" required placeholder="Confirm password">
-                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn btn-custom">Add User</button>
-                        <a asp-action="UserList" class="btn btn-light">Cancel</a>
+
+                    <!-- Form Actions -->
+                    <div class="flex items-center justify-end space-x-4 pt-6">
+                        <a asp-action="UserList"
+                           class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 transition-colors">
+                            Cancel
+                        </a>
+                        <button type="submit"
+                                class="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 focus:ring-4 focus:ring-primary/30 transition-colors">
+                            Add User
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Bootstrap Icons -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>

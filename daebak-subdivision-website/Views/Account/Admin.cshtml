@@ -9,13 +9,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <!-- Add Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Add Chart.js for data visualization -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Import Fonts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
-    <!-- Tailwind Custom Configuration -->
     <script>
         tailwind.config = {
             theme: {
@@ -25,107 +21,319 @@
                         secondary: '#356480',
                         tertiary: '#2c3e50',
                         light: '#FCFDFF',
-                    }
-                },
-                fontFamily: {
-                    sans: ['Poppins', 'sans-serif'],
+                        accent: '#FF6B6B',
+                        dashboard: {
+                            bg: '#F3F4F6',
+                            card: '#FFFFFF'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
                 },
             },
         };
     </script>
-    <!-- FontAwesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
-<body class="font-sans bg-light min-h-screen text-gray-800">
-
+<body class="font-sans bg-dashboard-bg min-h-screen text-gray-800">
     <!-- Navigation Bar -->
-    <nav class="bg-primary text-white w-full shadow-md">
+    <nav class="bg-secondary text-white w-full shadow-lg">
         <div class="container mx-auto px-6 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-10">
                 <h1 class="text-xl font-bold tracking-wide">Daebak Admin Dashboard</h1>
             </div>
             <div class="space-x-6 text-sm flex items-center">
-                <a asp-controller="Account" asp-action="AdminPage" class="hover:text-secondary font-medium transition duration-200">Home</a>
-
+                <a asp-controller="Account" asp-action="AdminPage" class="hover:text-primary font-medium transition duration-200">Home</a>
 
                 <!-- Management Dropdown -->
                 <div class="relative">
-                    <button id="management-btn" class="hover:text-secondary font-medium transition duration-200 flex items-center">
+                    <button id="management-btn" class="hover:text-primary font-medium transition duration-200 flex items-center">
                         Management <i class="fas fa-chevron-down ml-2"></i>
                     </button>
                     <div id="management-dropdown" class="absolute left-0 mt-2 w-56 bg-white text-gray-800 shadow-md rounded-md hidden transition-all duration-300 z-50">
-                        <a asp-controller="UserManagement" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">USERS</a>
-                        <a asp-controller="Community" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">COMMUNITY</a>
-                        <a asp-controller="ServiceRequests" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">SERVICES</a>
-                        <a asp-controller="Billing" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">BILLS AND PAYMENTS</a>
-                        <a asp-controller="Security" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">SECURITY</a>
-                        <a asp-controller="Documents" asp-action="Index" class="block px-4 py-2 hover:bg-gray-200">DOCUMENT</a>
+                        <a asp-controller="UserManagement" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">USERS</a>
+                        <a asp-controller="Community" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">COMMUNITY</a>
+                        <a asp-controller="ServiceRequests" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">SERVICES</a>
+                        <a asp-controller="Billing" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">BILLS AND PAYMENTS</a>
+                        <a asp-controller="Security" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">SECURITY</a>
+                        <a asp-controller="Documents" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">DOCUMENT</a>
                     </div>
                 </div>
 
-                <a asp-controller="Notifications" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Notifications</a>
-                <a asp-controller="Settings" asp-action="Index" class="hover:text-secondary font-medium transition duration-200">Settings</a>
-                <a asp-controller="Account" asp-action="Logout" class="text-accent hover:text-white font-medium transition duration-200">Logout</a>
+                <a asp-controller="Notifications" asp-action="Index" class="hover:text-primary font-medium transition duration-200">Notifications</a>
+                <a asp-controller="Settings" asp-action="Index" class="hover:text-primary font-medium transition duration-200">Settings</a>
+                <a asp-controller="Account" asp-action="Logout" class="hover:text-primary font-medium transition duration-200">Logout</a>
             </div>
         </div>
     </nav>
 
     <!-- Interactive Cards Section -->
     <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-        <div class="bg-primary text-white shadow-lg rounded-lg p-6 hover:bg-secondary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
+        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-primary/10 border-l-4 border-primary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
                 <i class="fas fa-bullhorn mr-2"></i> Total Announcements
             </h3>
-            <p class="text-3xl font-bold">25</p>
+            <p class="text-3xl font-bold text-tertiary">25</p>
         </div>
-        <div class="bg-secondary text-white shadow-lg rounded-lg p-6 hover:bg-tertiary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
+        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-secondary/10 border-l-4 border-secondary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
                 <i class="fas fa-calendar-alt mr-2"></i> Active Events
             </h3>
-            <p class="text-3xl font-bold">7</p>
+            <p class="text-3xl font-bold text-tertiary">7</p>
         </div>
-        <div class="bg-tertiary text-white shadow-lg rounded-lg p-6 hover:bg-primary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center">
+        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-tertiary/10 border-l-4 border-tertiary transition transform hover:scale-105">
+            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
                 <i class="fas fa-tools mr-2"></i> Pending Service Requests
             </h3>
-            <p class="text-3xl font-bold">12</p>
+            <p class="text-3xl font-bold text-tertiary">12</p>
         </div>
     </div>
 
     <!-- Main Charts Section -->
     <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
-                <i class="fas fa-user-shield mr-2 text-secondary"></i> User Role Distribution
+        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                <i class="fas fa-user-shield mr-2 text-gray-300"></i> User Role Distribution
             </h2>
-            <canvas id="roleChart" class="h-36"></canvas>
+            <div id="roleChart" class="h-[300px]"></div>
         </div>
-        <div class="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-800 mb-4 text-center flex items-center">
-                <i class="fas fa-wallet mr-2 text-secondary"></i> Bill Payment Status
+        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                <i class="fas fa-wallet mr-2 text-gray-300"></i> Bill Payment Status
             </h2>
-            <canvas id="billPaymentStatusChart" class="h-36"></canvas>
+            <div id="billPaymentStatusChart" class="h-[300px]"></div>
         </div>
     </div>
 
-    <!-- Chart.js Scripts -->
-    <script>
-        // User Role Distribution Chart
-        new Chart(document.getElementById('roleChart').getContext('2d'), {
-            type: 'pie',
-            data: { labels: ['Admin', 'Manager', 'User'], datasets: [{ data: [10, 15, 25], backgroundColor: ['#A9DEF9', '#FFBCBC', '#B7E4C7'] }] },
-            options: { responsive: true, plugins: { legend: { position: 'top' } } }
-        });
+    <!-- User Growth Chart Section -->
+    <div class="container mx-auto py-8">
+        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                <i class="fas fa-chart-line mr-2 text-gray-300"></i> User Growth Over Time
+            </h2>
+            <div id="userGrowthChart" class="h-[400px]"></div>
+        </div>
+    </div>
 
-        // Bill Payment Status Chart
-        new Chart(document.getElementById('billPaymentStatusChart').getContext('2d'), {
-            type: 'doughnut',
-            data: { labels: ['Paid', 'Pending', 'Overdue'], datasets: [{ data: [50, 35, 15], backgroundColor: ['#559C5F', '#FFD166', '#EF476F'] }] },
-            options: { responsive: true, plugins: { legend: { position: 'top' } } }
+    <!-- ECharts Initialization -->
+    <script>
+        const colors = ['#5470C6', '#EE6666'];
+
+        // Initialize charts
+        const roleChart = echarts.init(document.getElementById('roleChart'));
+        const billChart = echarts.init(document.getElementById('billPaymentStatusChart'));
+        const userGrowthChart = echarts.init(document.getElementById('userGrowthChart'));
+
+        // Role Distribution Chart Configuration
+        const roleOption = {
+            backgroundColor: '#2c343c',
+            title: {
+                left: 'center',
+                top: 20,
+                textStyle: {
+                    color: '#ccc'
+                }
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            visualMap: {
+                show: false,
+                min: 80,
+                max: 600,
+                inRange: {
+                    colorLightness: [0, 1]
+                }
+            },
+            series: [
+                {
+                    name: 'Role Distribution',
+                    type: 'pie',
+                    radius: '90%',
+                    center: ['50%', '50%'],
+                    data: [
+                        { value: 335, name: 'Admin' },
+                        { value: 310, name: 'Homeowner' },
+                        { value: 274, name: 'Staff' }
+                    ].sort((a, b) => a.value - b.value),
+                    roseType: 'radius',
+                    label: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    },
+                    labelLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.3)'
+                        },
+                        smooth: 0.2,
+                        length: 10,
+                        length2: 20
+                    },
+                    itemStyle: {
+                        color: '#c23531',
+                        shadowBlur: 200,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    },
+                    animationType: 'scale',
+                    animationEasing: 'elasticOut',
+                    animationDelay: function (idx) {
+                        return Math.random() * 200;
+                    }
+                }
+            ]
+        };
+
+        // Bill Payment Chart Configuration
+        const billOption = {
+            backgroundColor: '#2c343c',
+            title: {
+                left: 'center',
+                top: 20,
+                textStyle: {
+                    color: '#ccc'
+                }
+            },
+            tooltip: {
+                trigger: 'item'
+            },
+            visualMap: {
+                show: false,
+                min: 80,
+                max: 600,
+                inRange: {
+                    colorLightness: [0, 1]
+                }
+            },
+            series: [
+                {
+                    name: 'Payment Status',
+                    type: 'pie',
+                    radius: '90%',
+                    center: ['50%', '50%'],
+                    data: [
+                        { value: 500, name: 'Paid' },
+                        { value: 300, name: 'Pending' },
+                        { value: 200, name: 'Overdue' }
+                    ].sort((a, b) => a.value - b.value),
+                    roseType: 'radius',
+                    label: {
+                        color: 'rgba(255, 255, 255, 0.3)'
+                    },
+                    labelLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.3)'
+                        },
+                        smooth: 0.2,
+                        length: 10,
+                        length2: 20
+                    },
+                    itemStyle: {
+                        color: '#61a0a8',
+                        shadowBlur: 200,
+                        shadowColor: 'rgba(0, 0, 0, 0.5)'
+                    },
+                    animationType: 'scale',
+                    animationEasing: 'elasticOut',
+                    animationDelay: function (idx) {
+                        return Math.random() * 200;
+                    }
+                }
+            ]
+        };
+
+        // User Growth Chart Configuration
+        const userGrowthOption = {
+            backgroundColor: '#2c343c',
+            color: colors,
+            tooltip: {
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'cross'
+                }
+            },
+            legend: {
+                data: ['2024 Growth', '2025 Growth'],
+                textStyle: {
+                    color: '#ccc'
+                },
+                top: 20
+            },
+            grid: {
+                top: 70,
+                bottom: 50,
+                left: '3%',
+                right: '4%',
+                containLabel: true
+            },
+            xAxis: [
+                {
+                    type: 'category',
+                    axisTick: {
+                        alignWithLabel: true
+                    },
+                    axisLine: {
+                        onZero: false,
+                        lineStyle: {
+                            color: colors[1]
+                        }
+                    },
+                    axisLabel: {
+                        color: '#ccc'
+                    },
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                }
+            ],
+            yAxis: [
+                {
+                    type: 'value',
+                    name: 'New Users',
+                    nameTextStyle: {
+                        color: '#ccc'
+                    },
+                    axisLabel: {
+                        color: '#ccc'
+                    },
+                    splitLine: {
+                        lineStyle: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            ],
+            series: [
+                {
+                    name: '2024 Growth',
+                    type: 'line',
+                    smooth: true,
+                    emphasis: {
+                        focus: 'series'
+                    },
+                    data: [15, 25, 30, 45, 55, 65, 75, 85, 95, 100, 110, 120]
+                },
+                {
+                    name: '2025 Growth',
+                    type: 'line',
+                    smooth: true,
+                    emphasis: {
+                        focus: 'series'
+                    },
+                    data: [20, 35, 45, 60, 70, 80, 90, 100, 110, 120, 130, 140]
+                }
+            ]
+        };
+
+        // Apply configurations
+        roleChart.setOption(roleOption);
+        billChart.setOption(billOption);
+        userGrowthChart.setOption(userGrowthOption);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            roleChart.resize();
+            billChart.resize();
+            userGrowthChart.resize();
         });
     </script>
-
 </body>
 </html>
-<script src="~/js/site.js"></script>
