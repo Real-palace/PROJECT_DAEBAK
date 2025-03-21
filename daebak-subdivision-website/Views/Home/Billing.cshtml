@@ -1,0 +1,984 @@
+@{
+    ViewData["Title"] = "Billing & Payments - Subdivision Homeowner's Portal";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+    <!-- Fix Poppins font import for Razor syntax -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+</head>
+<body class="font-sans bg-light flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
+        </div>
+
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center gap-5">
+            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Dashboard">
+                <i class="ph ph-house-simple"></i>
+            </a>
+            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Billing & Payments">
+                <i class="ph ph-credit-card"></i>
+            </a>
+            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+                <i class="ph ph-tree-structure"></i>
+            </a>
+            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
+                <i class="ph ph-wrench"></i>
+            </a>
+            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+                <i class="ph ph-shield"></i>
+            </a>
+        </div>
+
+        <!-- User Profile and Logout -->
+        <div class="flex flex-col items-center gap-3">
+            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">Billing & Payments</div>
+
+                <div class="flex items-center gap-5">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.UserName</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto p-6">
+            <!-- Overview Section -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-tertiary mb-2">Billing Overview</h2>
+                        <p class="text-gray-600">House #@ViewBag.HouseNumber</p>
+                    </div>
+                    
+                    <div class="mt-4 md:mt-0">
+                        <a href="#payment-section" class="bg-secondary hover:bg-primary text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center">
+                            <i class="ph ph-credit-card mr-2"></i> Make a Payment
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+                    <div class="bg-blue-50 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center border-l-4 border-blue-500">
+                        <div class="bg-blue-100 p-3 rounded-full mr-4">
+                            <i class="ph ph-wallet text-2xl text-blue-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Current Balance</p>
+                            <p class="text-xl font-semibold">₱@(ViewBag.CurrentBalance ?? "5,250.00")</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center border-l-4 border-yellow-500">
+                        <div class="bg-yellow-100 p-3 rounded-full mr-4">
+                            <i class="ph ph-calendar text-2xl text-yellow-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Due Date</p>
+                            <p class="text-xl font-semibold">@(ViewBag.DueDate ?? "March 15, 2025")</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center border-l-4 border-green-500">
+                        <div class="bg-green-100 p-3 rounded-full mr-4">
+                            <i class="ph ph-check-circle text-2xl text-green-500"></i>
+                        </div>
+                        <div>
+                            <p class="text-gray-500 text-sm">Last Payment</p>
+                            <p class="text-xl font-semibold">₱@(ViewBag.LastPayment ?? "2,500.00")</p>
+                            <p class="text-xs text-gray-500">@(ViewBag.LastPaymentDate ?? "February 15, 2025")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Navigation Tabs -->
+            <div class="mb-6">
+                <div class="border-b border-gray-200">
+                    <ul class="flex flex-wrap -mb-px">
+                        <li class="mr-2">
+                            <button id="my-bills-tab" onclick="switchTab('my-bills')" class="inline-block py-2 px-4 text-secondary font-medium text-center border-b-2 border-secondary">
+                                <i class="ph ph-file-text mr-1"></i> My Bills
+                            </button>
+                        </li>
+                        <li class="mr-2">
+                            <button id="payment-history-tab" onclick="switchTab('payment-history')" class="inline-block py-2 px-4 text-gray-500 hover:text-gray-700 font-medium text-center border-b-2 border-transparent hover:border-gray-300">
+                                <i class="ph ph-clock-counter-clockwise mr-1"></i> Payment History
+                            </button>
+                        </li>
+                        <li>
+                            <button id="make-payment-tab" onclick="switchTab('make-payment')" class="inline-block py-2 px-4 text-gray-500 hover:text-gray-700 font-medium text-center border-b-2 border-transparent hover:border-gray-300">
+                                <i class="ph ph-currency-circle-dollar mr-1"></i> Make a Payment
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <!-- My Bills Section -->
+            <div id="my-bills" class="tab-content">
+                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-tertiary">Current Bills</h3>
+                        
+                        <div class="flex gap-2">
+                            <div class="relative">
+                                <input type="text" id="bill-search" placeholder="Search bills..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            
+                            <select id="bill-status-filter" class="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Bills</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="overdue">Overdue</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill ID</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- Row 1 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Monthly Association Dues</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱2,500.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mar 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#payment-section" onclick="prepopulateBill('BILL-2025-001', 'Monthly Association Dues', 2500)" class="hover:underline">Pay Now</a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Row 2 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-002</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Water Utilities</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,250.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mar 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#payment-section" onclick="prepopulateBill('BILL-2025-002', 'Water Utilities', 1250)" class="hover:underline">Pay Now</a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Row 3 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-003</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Security Fee</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,500.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mar 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pending
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#payment-section" onclick="prepopulateBill('BILL-2025-003', 'Security Fee', 1500)" class="hover:underline">Pay Now</a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Row 4 (Overdue) -->
+                                <tr class="hover:bg-gray-50 bg-red-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-000</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Special Assessment</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱3,000.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Feb 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                            Overdue
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">
+                                        <a href="#payment-section" onclick="prepopulateBill('BILL-2025-000', 'Special Assessment', 3000)" class="hover:underline">Pay Now (Urgent)</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment History Section -->
+            <div id="payment-history" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-tertiary">Payment History</h3>
+                        
+                        <div class="flex gap-2">
+                            <div class="relative">
+                                <input type="text" placeholder="Search payments..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                            </div>
+                            
+                            <select class="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Time</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_3_months">Last 3 Months</option>
+                                <option value="last_6_months">Last 6 Months</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt #</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment Method</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <!-- Row 1 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RCPT-2025-003</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Monthly Association Dues</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱2,500.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Feb 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Credit Card</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Completed
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#" onclick="viewReceipt('RCPT-2025-003')" class="hover:underline">View Receipt</a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Row 2 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RCPT-2025-002</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Water Utilities</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,250.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Feb 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">GCash</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Completed
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#" onclick="viewReceipt('RCPT-2025-002')" class="hover:underline">View Receipt</a>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Row 3 -->
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RCPT-2025-001</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Security Fee</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,500.00</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 15, 2025</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Bank Transfer</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Completed
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-blue-600">
+                                        <a href="#" onclick="viewReceipt('RCPT-2025-001')" class="hover:underline">View Receipt</a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Make Payment Section -->
+            <div id="make-payment" class="tab-content hidden">
+                <div id="payment-section" class="bg-white rounded-xl shadow-md p-6 mb-8">
+                    <h3 class="text-lg font-semibold text-tertiary mb-4">Make a Payment</h3>
+                    
+                    <form id="payment-form" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Bill Selection -->
+                            <div>
+                                <label for="bill_id" class="block text-sm font-medium text-gray-700 mb-1">Select Bill</label>
+                                <select id="bill_id" name="bill_id" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="">Select a bill to pay</option>
+                                    <option value="BILL-2025-000">BILL-2025-000 - Special Assessment (Overdue)</option>
+                                    <option value="BILL-2025-001">BILL-2025-001 - Monthly Association Dues</option>
+                                    <option value="BILL-2025-002">BILL-2025-002 - Water Utilities</option>
+                                    <option value="BILL-2025-003">BILL-2025-003 - Security Fee</option>
+                                    <option value="multiple">Pay Multiple Bills</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Amount -->
+                            <div>
+                                <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-gray-500">₱</span>
+                                    </div>
+                                    <input type="text" id="amount" name="amount" class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="0.00">
+                                </div>
+                            </div>
+                            
+                            <!-- Payment Method -->
+                            <div>
+                                <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                                <select id="payment_method" name="payment_method" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="gcash">GCash</option>
+                                    <option value="maya">Maya</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Payment Date -->
+                            <div>
+                                <label for="payment_date" class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                                <input type="date" id="payment_date" name="payment_date" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            </div>
+                        </div>
+                        
+                        <!-- Credit Card Information (conditionally shown based on payment method) -->
+                        <div id="credit-card-section" class="border-t pt-6 space-y-6">
+                            <h4 class="font-medium text-gray-700">Credit Card Information</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Card Number -->
+                                <div>
+                                    <label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+                                    <input type="text" id="card_number" name="card_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="1234 5678 9012 3456">
+                                </div>
+                                
+                                <!-- Card Name -->
+                                <div>
+                                    <label for="card_name" class="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
+                                    <input type="text" id="card_name" name="card_name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="John Doe">
+                                </div>
+                                
+                                <!-- Expiration Date -->
+                                <div>
+                                    <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
+                                    <input type="text" id="expiry_date" name="expiry_date" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="MM/YY">
+                                </div>
+                                
+                                <!-- CVV -->
+                                <div>
+                                    <label for="cvv" class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
+                                    <input type="text" id="cvv" name="cvv" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="123">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- GCash Information (initially hidden) -->
+                        <div id="gcash-section" class="border-t pt-6 space-y-6 hidden">
+                            <h4 class="font-medium text-gray-700">GCash Information</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- GCash Number -->
+                                <div>
+                                    <label for="gcash_number" class="block text-sm font-medium text-gray-700 mb-1">GCash Number</label>
+                                    <input type="text" id="gcash_number" name="gcash_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="09XX XXX XXXX">
+                                </div>
+                                
+                                <!-- GCash Name -->
+                                <div>
+                                    <label for="gcash_name" class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                                    <input type="text" id="gcash_name" name="gcash_name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="John Doe">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Maya Information (initially hidden) -->
+                        <div id="maya-section" class="border-t pt-6 space-y-6 hidden">
+                            <h4 class="font-medium text-gray-700">Maya Information</h4>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Maya Number -->
+                                <div>
+                                    <label for="maya_number" class="block text-sm font-medium text-gray-700 mb-1">Maya Account Number</label>
+                                    <input type="text" id="maya_number" name="maya_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="09XX XXX XXXX">
+                                </div>
+                                
+                                <!-- Maya Name -->
+                                <div>
+                                    <label for="maya_name" class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
+                                    <input type="text" id="maya_name" name="maya_name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="John Doe">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Bank Transfer Information (initially hidden) -->
+                        <div id="bank-section" class="border-t pt-6 space-y-6 hidden">
+                            <h4 class="font-medium text-gray-700">Bank Transfer Information</h4>
+                            
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <p class="text-sm text-gray-700">Please transfer the payment to our bank account and upload the proof of payment below:</p>
+                                <div class="mt-2 space-y-1">
+                                    <p class="text-sm"><span class="font-medium">Bank:</span> Daebak Community Bank</p>
+                                    <p class="text-sm"><span class="font-medium">Account Name:</span> Daebak Subdivision HOA</p>
+                                    <p class="text-sm"><span class="font-medium">Account Number:</span> 1234-5678-9012-3456</p>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="proof_of_payment" class="block text-sm font-medium text-gray-700 mb-1">Upload Proof of Payment</label>
+                                <input type="file" id="proof_of_payment" name="proof_of_payment" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            </div>
+                            
+                            <div>
+                                <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                                <input type="text" id="reference_number" name="reference_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Bank Reference Number">
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Notes -->
+                        <div>
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
+                            <textarea id="notes" name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Any additional information..."></textarea>
+                        </div>
+                        
+                        <!-- Terms and Conditions -->
+                        <div class="flex items-start">
+                            <div class="flex items-center h-5">
+                                <input id="terms" name="terms" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                            </div>
+                            <div class="ml-3 text-sm">
+                                <label for="terms" class="text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a> and acknowledge the <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>.</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <div class="flex justify-end">
+                            <button type="submit" class="bg-secondary hover:bg-primary text-white font-medium py-2 px-6 rounded-lg transition-colors">
+                                <i class="ph ph-credit-card mr-2"></i> Process Payment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Payment Reminder -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-md">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0">
+                        <i class="ph ph-bell-ringing text-xl text-yellow-500"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Payment Reminder</h3>
+                        <div class="mt-1 text-sm text-yellow-700">
+                            <p>Your next payment is due on March 15, 2025. Please make your payment on time to avoid late fees.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Methods Info -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-2">
+                        <i class="ph ph-credit-card text-xl text-blue-500 mr-2"></i>
+                        <h4 class="font-medium">Credit Card</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">Pay securely with Visa, Mastercard, or other major credit cards.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-2">
+                        <i class="ph ph-wallet text-xl text-green-500 mr-2"></i>
+                        <h4 class="font-medium">GCash</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">Quick and easy mobile payments with GCash.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-2">
+                        <i class="ph ph-bank text-xl text-purple-500 mr-2"></i>
+                        <h4 class="font-medium">Bank Transfer</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">Transfer directly from your bank account.</p>
+                </div>
+                
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-2">
+                        <i class="ph ph-currency-circle-dollar text-xl text-red-500 mr-2"></i>
+                        <h4 class="font-medium">Maya</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">Quick payments using your Maya account.</p>
+                </div>
+            </div>
+            
+            <!-- FAQ Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h3 class="text-lg font-semibold text-tertiary mb-4">Frequently Asked Questions</h3>
+                
+                <div class="space-y-4">
+                    <div class="border-b pb-4">
+                        <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
+                            <span>When are my dues typically due?</span>
+                            <i class="ph ph-caret-down text-gray-400"></i>
+                        </button>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p>Association dues are typically due on the 15th of each month. Other utilities may have different due dates.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-b pb-4">
+                        <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
+                            <span>What happens if I miss a payment?</span>
+                            <i class="ph ph-caret-down text-gray-400"></i>
+                        </button>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p>Late payments may incur a penalty fee of 5% after the due date. Continued non-payment may result in additional penalties as outlined in the homeowner's agreement.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="border-b pb-4">
+                        <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
+                            <span>How do I download a receipt for my records?</span>
+                            <i class="ph ph-caret-down text-gray-400"></i>
+                        </button>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p>After making a payment, receipts can be downloaded from the Payment History section. Simply click "View Receipt" next to any payment record.</p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
+                            <span>Who should I contact if I have questions about my bill?</span>
+                            <i class="ph ph-caret-down text-gray-400"></i>
+                        </button>
+                        <div class="mt-2 text-sm text-gray-600">
+                            <p>For billing inquiries, please contact our treasury department at <a href="mailto:treasury@daebak.com" class="text-blue-600 hover:underline">treasury@daebak.com</a> or call (555) 123-4567 during office hours.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Receipt View (hidden by default) -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold text-tertiary">Payment Receipt</h3>
+                    <button onclick="closeReceiptModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+                
+                <div id="receipt-content" class="border rounded-lg p-4">
+                    <!-- Receipt content will be inserted here by JS -->
+                    <div class="text-center mb-4">
+                        <img src="~/images/daebak_logo.png" alt="Daebak Logo" class="h-12 mx-auto mb-2">
+                        <h4 class="font-bold text-lg">DAEBAK SUBDIVISION</h4>
+                        <p class="text-sm text-gray-600">Official Payment Receipt</p>
+                    </div>
+                    
+                    <div class="border-t border-b py-4 my-4">
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-600">Receipt No:</span>
+                            <span class="font-medium" id="receipt-number">RCPT-2025-003</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-600">Date:</span>
+                            <span id="receipt-date">February 15, 2025</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-600">Bill Reference:</span>
+                            <span id="receipt-bill-ref">BILL-2025-001</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span class="text-gray-600">Payment Method:</span>
+                            <span id="receipt-method">Credit Card</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between font-medium py-1">
+                            <span>Description</span>
+                            <span>Amount</span>
+                        </div>
+                        <div class="flex justify-between py-1">
+                            <span id="receipt-description">Monthly Association Dues</span>
+                            <span id="receipt-amount">₱2,500.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t pt-4">
+                        <div class="flex justify-between font-bold py-1">
+                            <span>TOTAL PAID</span>
+                            <span id="receipt-total">₱2,500.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-6 text-sm text-gray-600">
+                        <p>Thank you for your payment!</p>
+                        <p>If you have any questions, please contact the administration office.</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button onclick="downloadReceipt()" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
+                        <i class="ph ph-download mr-1"></i> Download
+                    </button>
+                    <button onclick="printReceipt()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors">
+                        <i class="ph ph-printer mr-1"></i> Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for tab switching and form handling -->
+    <script>
+        // Tab switching functionality
+        function switchTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Reset all tab buttons
+            document.querySelectorAll('[id$="-tab"]').forEach(button => {
+                button.classList.remove('border-secondary', 'text-secondary');
+                button.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Highlight selected tab button
+            document.getElementById(tabId + '-tab').classList.remove('border-transparent', 'text-gray-500');
+            document.getElementById(tabId + '-tab').classList.add('border-secondary', 'text-secondary');
+            
+            // If "Make a Payment" tab is selected, scroll to the payment form
+            if (tabId === 'make-payment') {
+                setTimeout(() => {
+                    document.getElementById('payment-section').scrollIntoView({ behavior: 'smooth' });
+                }, 100);
+            }
+        }
+        
+        // Payment method selection handling
+        document.getElementById('payment_method').addEventListener('change', function() {
+            // Hide all payment method sections
+            document.getElementById('credit-card-section').classList.add('hidden');
+            document.getElementById('gcash-section').classList.add('hidden');
+            document.getElementById('maya-section').classList.add('hidden');
+            document.getElementById('bank-section').classList.add('hidden');
+            
+            // Show selected payment method section
+            switch (this.value) {
+                case 'credit_card':
+                    document.getElementById('credit-card-section').classList.remove('hidden');
+                    break;
+                case 'gcash':
+                    document.getElementById('gcash-section').classList.remove('hidden');
+                    break;
+                case 'maya':
+                    document.getElementById('maya-section').classList.remove('hidden');
+                    break;
+                case 'bank_transfer':
+                    document.getElementById('bank-section').classList.remove('hidden');
+                    break;
+            }
+        });
+        
+        // Bill selection handling
+        document.getElementById('bill_id').addEventListener('change', function() {
+            const amount = document.getElementById('amount');
+            
+            // Prepopulate amount based on selected bill
+            switch (this.value) {
+                case 'BILL-2025-000':
+                    amount.value = '3000.00';
+                    break;
+                case 'BILL-2025-001':
+                    amount.value = '2500.00';
+                    break;
+                case 'BILL-2025-002':
+                    amount.value = '1250.00';
+                    break;
+                case 'BILL-2025-003':
+                    amount.value = '1500.00';
+                    break;
+                case 'multiple':
+                    amount.value = '';
+                    break;
+                default:
+                    amount.value = '';
+            }
+        });
+        
+        // Function to prepopulate bill details from the My Bills table
+        function prepopulateBill(billId, description, amount) {
+            // Switch to Make Payment tab
+            switchTab('make-payment');
+            
+            // Select the bill in dropdown
+            document.getElementById('bill_id').value = billId;
+            
+            // Set amount
+            document.getElementById('amount').value = amount.toFixed(2);
+            
+            // Set today's date as default payment date
+            const today = new Date();
+            const formattedDate = today.toISOString().substr(0, 10);
+            document.getElementById('payment_date').value = formattedDate;
+        }
+        
+        // Form submission handling
+        document.getElementById('payment-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate form
+            const amount = document.getElementById('amount').value;
+            const terms = document.getElementById('terms').checked;
+            
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('Please enter a valid payment amount.');
+                return;
+            }
+            
+            if (!terms) {
+                alert('Please agree to the terms and conditions.');
+                return;
+            }
+            
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to proceed with this payment?')) {
+                // In a real application, you would submit the form to the server
+                // For this demo, we'll simulate a successful payment
+                alert('Payment successful! A receipt has been sent to your email.');
+                
+                // Redirect to Home page or refresh the current page
+                setTimeout(() => {
+                    window.location.href = '@Url.Action("Home", "Home")';
+                }, 1000);
+            }
+        });
+        
+        // Receipt modal handling
+        function viewReceipt(receiptId) {
+            // In a real application, you would fetch the receipt details from the server
+            // For this demo, we'll use hardcoded data
+            let receiptData = {
+                number: receiptId,
+                date: 'February 15, 2025',
+                billRef: 'BILL-2025-001',
+                method: 'Credit Card',
+                description: 'Monthly Association Dues',
+                amount: '₱2,500.00',
+                total: '₱2,500.00'
+            };
+            
+            // If receiptId includes "002", change the data
+            if (receiptId.includes('002')) {
+                receiptData = {
+                    number: receiptId,
+                    date: 'February 15, 2025',
+                    billRef: 'BILL-2025-002',
+                    method: 'GCash',
+                    description: 'Water Utilities',
+                    amount: '₱1,250.00',
+                    total: '₱1,250.00'
+                };
+            } else if (receiptId.includes('001')) {
+                receiptData = {
+                    number: receiptId,
+                    date: 'January 15, 2025',
+                    billRef: 'BILL-2025-003',
+                    method: 'Bank Transfer',
+                    description: 'Security Fee',
+                    amount: '₱1,500.00',
+                    total: '₱1,500.00'
+                };
+            }
+            
+            // Update receipt content
+            document.getElementById('receipt-number').textContent = receiptData.number;
+            document.getElementById('receipt-date').textContent = receiptData.date;
+            document.getElementById('receipt-bill-ref').textContent = receiptData.billRef;
+            document.getElementById('receipt-method').textContent = receiptData.method;
+            document.getElementById('receipt-description').textContent = receiptData.description;
+            document.getElementById('receipt-amount').textContent = receiptData.amount;
+            document.getElementById('receipt-total').textContent = receiptData.total;
+            
+            // Show modal
+            document.getElementById('receipt-modal').classList.remove('hidden');
+        }
+        
+        function closeReceiptModal() {
+            document.getElementById('receipt-modal').classList.add('hidden');
+        }
+        
+        function downloadReceipt() {
+            alert('Receipt download started. The file will be saved to your downloads folder.');
+            // In a real application, you would generate a PDF and trigger a download
+        }
+        
+        function printReceipt() {
+            window.print();
+        }
+        
+        // Set today's date as default payment date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toISOString().substr(0, 10);
+            document.getElementById('payment_date').value = formattedDate;
+            
+            // Check if URL has hash for direct access to a specific tab
+            const hash = window.location.hash;
+            if (hash) {
+                const tabId = hash.substring(1); // Remove the '#' character
+                if (document.getElementById(tabId)) {
+                    switchTab(tabId);
+                }
+            }
+        });
+
+        // Bill filtering functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('bill-search');
+            const statusFilter = document.getElementById('bill-status-filter');
+            const billRows = document.querySelectorAll('#my-bills table tbody tr');
+            
+            function filterBills() {
+                const searchTerm = searchInput.value.toLowerCase();
+                const selectedStatus = statusFilter.value;
+                
+                billRows.forEach(row => {
+                    let showRow = true;
+                    
+                    // Text search filtering
+                    if (searchTerm) {
+                        const textContent = row.textContent.toLowerCase();
+                        if (!textContent.includes(searchTerm)) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Status filtering
+                    if (selectedStatus !== 'all') {
+                        const statusCell = row.querySelector('td:nth-child(5) span');
+                        const rowStatus = statusCell.textContent.trim().toLowerCase();
+                        
+                        if (rowStatus !== selectedStatus) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Show or hide the row
+                    row.style.display = showRow ? '' : 'none';
+                });
+            }
+            
+            // Add event listeners
+            if (searchInput) {
+                searchInput.addEventListener('input', filterBills);
+            }
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterBills);
+            }
+            
+            // Check URL hash for direct access to specific tab and status filter
+            const hash = window.location.hash;
+            if (hash && hash.includes('status=')) {
+                const status = hash.split('status=')[1].split('&')[0];
+                if (status && document.querySelector(`#bill-status-filter option[value="${status}"]`)) {
+                    statusFilter.value = status;
+                    filterBills();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
