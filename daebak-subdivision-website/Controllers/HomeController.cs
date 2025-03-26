@@ -71,6 +71,14 @@ public class HomeController : Controller
         return View();
     }
 
+    // Add this new action method for the Security page
+    public IActionResult Security()
+    {
+        // Set default user name for the view header
+        ViewBag.UserName = "Homeowner";
+        return View();
+    }
+
     // Redirect from old Facilities page to the new FacilitiesController
     public IActionResult Facilities()
     {

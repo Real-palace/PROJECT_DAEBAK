@@ -66,7 +66,7 @@
 
         <!-- User Profile and Logout -->
         <div class="flex flex-col items-center gap-3">
-            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
                 <i class="ph ph-sign-out"></i>
             </a>
         </div>
@@ -90,10 +90,82 @@
 
                     <!-- Notifications -->
                     <div class="relative">
-                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                        <button class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
                             <i class="ph ph-bell text-2xl"></i>
-                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
                         </button>
+                        
+                        <!-- Notification Dropdown -->
+                        <div class="notification-dropdown hidden">
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-medium text-gray-700">Notifications</h3>
+                                    <a href="#" class="text-primary text-xs hover:underline">Mark all as read</a>
+                                </div>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto">
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread notification-dot p-4">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-bell text-blue-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">Community Announcement</p>
+                                            <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
+                                            <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread notification-dot p-4">
+                                    <div class="flex items-start">
+                                        <div class="bg-green-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-check-circle text-green-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">Payment Confirmed</p>
+                                            <p class="text-xs text-gray-500 mt-1">Your payment of ₱2,500 for March dues has been received.</p>
+                                            <p class="text-xs text-gray-400 mt-2">5 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread notification-dot p-4">
+                                    <div class="flex items-start">
+                                        <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-calendar text-yellow-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">New Community Event</p>
+                                            <p class="text-xs text-gray-500 mt-1">Easter Egg Hunt event scheduled for April 9 at the community park.</p>
+                                            <p class="text-xs text-gray-400 mt-2">Yesterday</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Read Notification -->
+                                <div class="notification-item p-4">
+                                    <div class="flex items-start">
+                                        <div class="bg-purple-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-chat-text text-purple-500"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-800">New Forum Post</p>
+                                            <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
+                                            <p class="text-xs text-gray-400 mt-2">2 days ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 border-t border-gray-200 bg-gray-50">
+                                <a href="#" class="block text-center text-primary text-sm hover:underline">
+                                    View all notifications
+                                </a>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- User Menu -->
@@ -221,10 +293,10 @@
                             <i class="ph ph-megaphone text-lg text-tertiary"></i>
                             <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
                         </div>
-                        <a href="@Url.Action("Announcements", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                        <button id="view-all-announcements" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
                             View All
                             <i class="ph ph-arrow-right text-xs"></i>
-                        </a>
+                        </button>
                     </div>
                     <ul class="space-y-4">
                         @if (ViewBag.Announcements != null)
@@ -339,6 +411,92 @@
                 </div>
             </div>
 
+            <!-- Announcements Modal -->
+            <div id="announcements-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-megaphone text-xl text-tertiary"></i>
+                            <h3 class="font-semibold text-xl text-tertiary">All Announcements</h3>
+                        </div>
+                        <button id="close-announcements-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                            <i class="ph ph-x text-xl"></i>
+                        </button>
+                    </div>
+                    <div class="p-6 overflow-y-auto">
+                        <ul class="space-y-6">
+                            @if (ViewBag.AllAnnouncements != null)
+                            {
+                                foreach (var announcement in ViewBag.AllAnnouncements)
+                                {
+                                    <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
+                                        <div class="flex justify-between items-start">
+                                            <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
+                                            <span class="text-gray-400 text-sm">@announcement.Date.ToString("MMM dd, yyyy")</span>
+                                        </div>
+                                        <h4 class="font-medium text-lg">@announcement.Title</h4>
+                                        <p class="text-gray-500">@announcement.Content</p>
+                                    </li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                            <i class="ph ph-drop"></i> NOTICE
+                                        </span>
+                                        <span class="text-gray-400 text-sm">Mar 05, 2025</span>
+                                    </div>
+                                    <h4 class="font-medium text-lg">Water Supply Update</h4>
+                                    <p class="text-gray-500">There will be a scheduled maintenance of our water supply system on March 10, 2025, from 10:00 AM to 2:00 PM. Please store enough water for your needs during this period. We apologize for any inconvenience this may cause.</p>
+                                </li>
+                                <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                            <i class="ph ph-shield-warning"></i> SECURITY
+                                        </span>
+                                        <span class="text-gray-400 text-sm">Mar 03, 2025</span>
+                                    </div>
+                                    <h4 class="font-medium text-lg">Security Notice</h4>
+                                    <p class="text-gray-500">New visitor guidelines will be implemented starting March 15, 2025. All visitors must be registered at least 4 hours before arrival and must present a valid ID at the gate. These measures are being implemented to enhance community security.</p>
+                                </li>
+                                <li class="hover:bg-gray-50 p-4 rounded-md transition-colors">
+                                    <div class="flex justify-between items-start">
+                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                            <i class="ph ph-confetti"></i> EVENT
+                                        </span>
+                                        <span class="text-gray-400 text-sm">Feb 28, 2025</span>
+                                    </div>
+                                    <h4 class="font-medium text-lg">Community Gathering</h4>
+                                    <p class="text-gray-500">Join us for a BBQ night on March 20, 2025, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Confirmation Modal -->
+            <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                        <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div class="flex justify-end gap-4">
+                            <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button id="confirm-logout" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
+                                Yes, Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Documents & Resources -->
             <div class="mt-8">
                 <div class="bg-white rounded-xl shadow-md p-6">
@@ -436,7 +594,37 @@
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
+        // Logout confirmation function
+        function confirmLogout() {
+            const logoutModal = document.getElementById('logout-modal');
+            logoutModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup logout modal buttons
+            const logoutModal = document.getElementById('logout-modal');
+            const cancelLogoutBtn = document.getElementById('cancel-logout');
+            const confirmLogoutBtn = document.getElementById('confirm-logout');
+
+            cancelLogoutBtn.addEventListener('click', function() {
+                logoutModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+            });
+
+            confirmLogoutBtn.addEventListener('click', function() {
+                window.location.href = '@Url.Action("Logout", "Account")';
+            });
+
+            // Close logout modal when clicking outside of it
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Existing calendar code
             var calendarEl = document.getElementById('calendar');
             var eventListEl = document.getElementById('event-list');
 
@@ -497,6 +685,37 @@
             });
 
             calendar.render();
+
+            // Announcements Modal
+            const announcementsModal = document.getElementById('announcements-modal');
+            const viewAllAnnouncementsBtn = document.getElementById('view-all-announcements');
+            const closeAnnouncementsModalBtn = document.getElementById('close-announcements-modal');
+
+            viewAllAnnouncementsBtn.addEventListener('click', function() {
+                announcementsModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
+            });
+
+            closeAnnouncementsModalBtn.addEventListener('click', function() {
+                announcementsModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+            });
+
+            // Close modal when clicking outside of it
+            announcementsModal.addEventListener('click', function(e) {
+                if (e.target === announcementsModal) {
+                    announcementsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Close modal with escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && !announcementsModal.classList.contains('hidden')) {
+                    announcementsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
         });
     </script>
 </body>
