@@ -1,0 +1,356 @@
+﻿@model daebak_subdivision_website.Models.UserProfileViewModel
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+    <!-- Poppins font import -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+</head>
+<body class="font-sans bg-light flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
+        </div>
+
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center gap-5">
+            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Dashboard">
+                <i class="ph ph-house-simple"></i>
+            </a>
+            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
+                <i class="ph ph-credit-card"></i>
+            </a>
+            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+                <i class="ph ph-tree-structure"></i>
+            </a>
+            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
+                <i class="ph ph-wrench"></i>
+            </a>
+            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+                <i class="ph ph-shield"></i>
+            </a>
+        </div>
+
+        <!-- User Profile and Logout -->
+        <div class="flex flex-col items-center gap-3">
+            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">My Profile</div>
+
+                <div class="flex items-center gap-5">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-700">
+                            <span class="hidden md:block">@ViewBag.UserName</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-5xl mx-auto p-6">
+            <!-- Success Message -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md">
+                    <div class="flex items-center">
+                        <i class="ph ph-check-circle text-xl mr-2"></i>
+                        <p>@TempData["SuccessMessage"]</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Tabs Navigation -->
+            <div class="mb-6 border-b border-gray-200">
+                <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+                    <li class="mr-2">
+                        <a href="#personal-info" class="inline-block p-4 border-b-2 border-secondary text-secondary rounded-t-lg active">
+                            <i class="ph ph-user-circle mr-2"></i>Personal Information
+                        </a>
+                    </li>
+                    <li class="mr-2">
+                        <a href="#security" class="inline-block p-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 rounded-t-lg">
+                            <i class="ph ph-lock mr-2"></i>Security
+                        </a>
+                    </li>
+                    <li class="mr-2">
+                        <a href="#preferences" class="inline-block p-4 border-b-2 border-transparent hover:text-gray-600 hover:border-gray-300 rounded-t-lg">
+                            <i class="ph ph-gear mr-2"></i>Preferences
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Profile Form -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div class="bg-primary/20 p-6">
+                    <div class="flex flex-col md:flex-row items-center gap-6">
+                        <div class="w-24 h-24 bg-primary/30 rounded-full flex items-center justify-center text-primary relative overflow-hidden">
+                            @if (Model != null && !string.IsNullOrEmpty(Model.ProfilePicture))
+                            {
+                                <img src="@Model.ProfilePicture" alt="Profile Picture" class="w-full h-full object-cover" />
+                            }
+                            else
+                            {
+                                <i class="ph ph-user text-4xl"></i>
+                            }
+                            <label for="profile_picture_upload" class="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-md text-gray-600 hover:text-primary cursor-pointer">
+                                <i class="ph ph-pencil-simple"></i>
+                            </label>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-semibold text-tertiary">@(Model != null ? $"{Model.FirstName} {Model.LastName}" : "User Name")</h1>
+                            <p class="text-gray-500">@(Model != null ? Model.Role : "Role") • Member since @ViewBag.MemberSince</p>
+                            <p class="text-gray-500">House #@(Model?.HouseNumber ?? "N/A")</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <form asp-action="UpdateProfile" asp-controller="Account" method="post" enctype="multipart/form-data" class="space-y-6">
+                        <!-- Hidden file input for profile picture -->
+                        <input type="file" id="profile_picture_upload" name="ProfilePictureFile" class="hidden" accept="image/*" />
+
+                        <!-- Personal Information Section -->
+                        <div id="personal-info" class="mb-6">
+                            <h2 class="text-lg font-medium text-tertiary flex items-center mb-4">
+                                <i class="ph ph-user-circle mr-2"></i>
+                                Personal Information
+                            </h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="Username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                    <input asp-for="Username" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="Username" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div>
+                                    <label for="Email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <input asp-for="Email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="Email" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div>
+                                    <label for="FirstName" class="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+                                    <input asp-for="FirstName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="FirstName" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div>
+                                    <label for="LastName" class="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                    <input asp-for="LastName" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="LastName" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div>
+                                    <label for="PhoneNumber" class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                    <input asp-for="PhoneNumber" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="PhoneNumber" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div>
+                                    <label for="HouseNumber" class="block text-sm font-medium text-gray-700 mb-1">House Number</label>
+                                    <input asp-for="HouseNumber" readonly class="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-500">
+                                    <span asp-validation-for="HouseNumber" class="text-red-500 text-xs"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings -->
+                        <div id="security" class="border-t pt-6 mt-6">
+                            <h2 class="text-lg font-medium text-tertiary flex items-center mb-4">
+                                <i class="ph ph-lock mr-2"></i>
+                                Change Password
+                            </h2>
+                            <p class="text-sm text-gray-500 mb-4">Leave blank if you don't want to change your password</p>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="CurrentPassword" class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                                    <input asp-for="CurrentPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="CurrentPassword" class="text-red-500 text-xs"></span>
+                                </div>
+                                <div></div>
+                                <div>
+                                    <label for="NewPassword" class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                                    <input asp-for="NewPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="NewPassword" class="text-red-500 text-xs"></span>
+                                    <p class="text-xs text-gray-500 mt-1">Minimum 8 characters with at least 1 uppercase letter, 1 number, and 1 special character</p>
+                                </div>
+                                <div>
+                                    <label for="ConfirmNewPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+                                    <input asp-for="ConfirmNewPassword" type="password" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                    <span asp-validation-for="ConfirmNewPassword" class="text-red-500 text-xs"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div id="preferences" class="border-t pt-6 mt-6">
+                            <h2 class="text-lg font-medium text-tertiary flex items-center mb-4">
+                                <i class="ph ph-bell mr-2"></i>
+                                Notification Preferences
+                            </h2>
+
+                            <div class="space-y-4">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="email_notifications" name="EmailNotifications" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                                    <label for="email_notifications" class="ml-2 block text-sm text-gray-700">Email Notifications</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="sms_notifications" name="SmsNotifications" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                                    <label for="sms_notifications" class="ml-2 block text-sm text-gray-700">SMS Notifications</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="announcements" name="AnnouncementNotifications" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                                    <label for="announcements" class="ml-2 block text-sm text-gray-700">Announcements</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="events" name="EventNotifications" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                                    <label for="events" class="ml-2 block text-sm text-gray-700">Community Events</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="billing" name="BillingNotifications" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded" checked>
+                                    <label for="billing" class="ml-2 block text-sm text-gray-700">Billing & Payment Reminders</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="border-t pt-6 flex justify-end space-x-4">
+                            <a href="@Url.Action("Home", "Home")" class="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                Cancel
+                            </a>
+                            <button type="submit" class="px-6 py-2 bg-secondary text-white rounded-md hover:bg-primary">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Footer with copyright -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for handling profile picture upload preview -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('profile_picture_upload');
+            const profileImageContainer = document.querySelector('.w-24.h-24');
+
+            fileInput.addEventListener('change', function(e) {
+                if (fileInput.files && fileInput.files[0]) {
+                    const reader = new FileReader();
+
+                    reader.onload = function(e) {
+                        // Check if there's already an image or just the icon
+                        const existingImage = profileImageContainer.querySelector('img');
+                        const existingIcon = profileImageContainer.querySelector('i');
+
+                        if (existingImage) {
+                            // Update existing image
+                            existingImage.src = e.target.result;
+                        } else if (existingIcon) {
+                            // Replace icon with new image
+                            existingIcon.remove();
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.alt = "Profile Picture";
+                            img.classList.add('w-full', 'h-full', 'object-cover');
+                            profileImageContainer.prepend(img);
+                        }
+                    };
+
+                    reader.readAsDataURL(fileInput.files[0]);
+                }
+            });
+
+            // Tab Navigation
+            const tabLinks = document.querySelectorAll('a[href^="#"]');
+            const tabContents = document.querySelectorAll('[id^="personal-"], [id^="security"], [id^="preferences"]');
+
+            tabLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+
+                    // Remove active state from all tabs
+                    tabLinks.forEach(tab => {
+                        tab.classList.remove('border-secondary', 'text-secondary');
+                        tab.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+                    });
+
+                    // Add active state to clicked tab
+                    this.classList.add('border-secondary', 'text-secondary');
+                    this.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
+
+                    // Get the target tab content id
+                    const targetId = this.getAttribute('href').substring(1);
+
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        // Don't actually hide the content, just scroll to it
+                        // This keeps the form intact while giving tab-like navigation
+                    });
+
+                    // Show target tab content by scrolling to it
+                    document.getElementById(targetId).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
