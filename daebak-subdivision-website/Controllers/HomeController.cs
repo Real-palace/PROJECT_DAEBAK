@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using daebak_subdivision_website.Models;
+using Microsoft.AspNetCore.Authentication;
 
 namespace daebak_subdivision_website.Controllers;
 
@@ -18,6 +19,8 @@ public class HomeController : Controller
         // This will show the login page
         return View(new LoginViewModel());
     }
+
+
 
     // This action will show the home page after successful login
     public IActionResult Home()
@@ -79,4 +82,14 @@ public class HomeController : Controller
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
+
+    public IActionResult Logout()
+    {
+        // Clear the session or authentication data (if applicable)
+        HttpContext.SignOutAsync();  // This is for cookie-based authentication
+
+        // Redirect to the Login page (Index action of Home controller)
+        return RedirectToAction("Index", "Home");
+    }
+
 }

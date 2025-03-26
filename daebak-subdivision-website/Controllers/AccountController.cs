@@ -3,6 +3,8 @@ using daebak_subdivision_website.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AspNetCoreGeneratedDocument;
+using Microsoft.AspNetCore.Authentication;
 
 namespace daebak_subdivision_website.Controllers
 {
@@ -61,8 +63,11 @@ namespace daebak_subdivision_website.Controllers
 
         public IActionResult Logout()
         {
-            // Clears session or authentication data if implemented
-            return RedirectToAction("Login", "Account");
+            // Clear the session or authentication data (if applicable)
+            HttpContext.SignOutAsync();  // This is for cookie-based authentication
+
+            // Redirect to the Login page (Index action of Home controller)
+            return RedirectToAction("Index", "Home");
         }
 
         public IActionResult Profile()
