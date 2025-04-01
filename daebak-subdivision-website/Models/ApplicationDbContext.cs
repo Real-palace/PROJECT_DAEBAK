@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace daebak_subdivision_website.Models
 {
@@ -8,7 +9,11 @@ namespace daebak_subdivision_website.Models
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
+        // ✅ Define DbSets
         public DbSet<User> Users { get; set; }
+        public DbSet<Homeowner> Homeowners { get; set; }
+        public DbSet<Admin> Admins { get; set; }
+        public DbSet<Staff> Staff { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<BillingItem> BillingItems { get; set; }
@@ -21,7 +26,7 @@ namespace daebak_subdivision_website.Models
         public DbSet<VisitorPass> VisitorPasses { get; set; }
         public DbSet<VehicleRegistration> VehicleRegistrations { get; set; }
         public DbSet<Contact> Contacts { get; set; }
-        public DbSet<Feedback> Feedbacks { get; set; } // ✅ FIXED: Ensure correct plural naming
+        public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<ForumCategory> ForumCategories { get; set; }
         public DbSet<ForumThread> ForumThreads { get; set; }
         public DbSet<ForumPost> ForumPosts { get; set; }
@@ -31,8 +36,11 @@ namespace daebak_subdivision_website.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Map Entities to Database Table Names
+            // ✅ Explicit Table Mapping
             modelBuilder.Entity<User>().ToTable("USERS");
+            modelBuilder.Entity<Homeowner>().ToTable("HOMEOWNERS");
+            modelBuilder.Entity<Admin>().ToTable("ADMINS");
+            modelBuilder.Entity<Staff>().ToTable("STAFF");
             modelBuilder.Entity<Announcement>().ToTable("ANNOUNCEMENTS");
             modelBuilder.Entity<Event>().ToTable("EVENTS");
             modelBuilder.Entity<BillingItem>().ToTable("BILLING_ITEMS");
@@ -43,9 +51,9 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<ServiceRequest>().ToTable("SERVICE_REQUESTS");
             modelBuilder.Entity<Document>().ToTable("DOCUMENTS");
             modelBuilder.Entity<VisitorPass>().ToTable("VISITOR_PASSES");
-            modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATIONS");
+            modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATION");
             modelBuilder.Entity<Contact>().ToTable("CONTACTS");
-            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK"); // ✅ FIXED: Correct table mapping
+            modelBuilder.Entity<Feedback>().ToTable("FEEDBACK");
             modelBuilder.Entity<ForumCategory>().ToTable("FORUM_CATEGORIES");
             modelBuilder.Entity<ForumThread>().ToTable("FORUM_THREADS");
             modelBuilder.Entity<ForumPost>().ToTable("FORUM_POSTS");
@@ -53,7 +61,57 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<Poll>().ToTable("POLLS");
             modelBuilder.Entity<PollResponse>().ToTable("POLL_RESPONSES");
 
-            // Ensure Username and Email are Unique
+            // ✅ Explicit Column Mapping for Homeowner
+            modelBuilder.Entity<Homeowner>()
+                .Property(h => h.HomeownerId)
+                .HasColumnName("HOMEOWNER_ID");
+
+            modelBuilder.Entity<Homeowner>()
+                .Property(h => h.UserId)
+                .HasColumnName("USER_ID");
+
+            modelBuilder.Entity<Homeowner>()
+                .Property(h => h.HouseNumber)
+                .HasColumnName("HOUSE_NUMBER");
+
+            // ✅ Define Relationships
+            modelBuilder.Entity<Homeowner>()
+                .HasOne(h => h.User)
+                .WithOne()
+                .HasForeignKey<Homeowner>(h => h.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Admin>()
+                .HasOne<User>()
+                .WithOne()
+                .HasForeignKey<Admin>(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Staff>()
+                .HasOne<User>()
+                .WithOne()
+                .HasForeignKey<Staff>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ServiceRequest>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(sr => sr.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<ServiceRequest>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(sr => sr.AssignedTo)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<Feedback>()
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // ✅ Unique Constraints
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Username)
                 .IsUnique();

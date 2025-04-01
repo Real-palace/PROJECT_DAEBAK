@@ -1,93 +1,204 @@
 using Microsoft.AspNetCore.Mvc;
-using daebak_subdivision_website.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using AspNetCoreGeneratedDocument;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.Logging;
+using daebak_subdivision_website.Models;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using BCrypt.Net;
 
 namespace daebak_subdivision_website.Controllers
 {
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext _dbContext;
+        private readonly ILogger<AccountController> _logger;
+
+        public AccountController(ApplicationDbContext dbContext, ILogger<AccountController> logger)
+        {
+            _dbContext = dbContext;
+            _logger = logger;
+        }
+
         [HttpGet]
         public IActionResult Login()
         {
-            return View(); // Looks for Views/Account/Login.cshtml
+            return View();
         }
 
         [HttpPost]
-        public IActionResult Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
-            // Temporary static accounts for demonstration
-            const string adminUsername = "admin";
-            const string adminPassword = "password";
-
-            const string homeownerUsername = "homeowner";
-            const string homeownerPassword = "password123";
-
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                if (model.Username == adminUsername && model.Password == adminPassword)
-                {
-                    return RedirectToAction("AdminPage");
-                }
-                else if (model.Username == homeownerUsername && model.Password == homeownerPassword)
-                {
-                    return RedirectToAction("Home", "Home");
-                }
-
-                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                _logger.LogWarning("DEBUG: Model state is invalid.");
+                return View(model);
             }
 
-            return View(model);
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == model.Username);
+
+            if (user != null)
+            {
+                _logger.LogInformation($"DEBUG: User found - {user.Username}, Role - '{user.Role}'");
+
+                if (VerifyPassword(model.Password, user.PasswordHash))
+                {
+                    string role = user.Role?.Trim().ToUpper() ?? "UNKNOWN";
+
+                    _logger.LogInformation($"DEBUG: Logging in as {role}");
+
+                    var claims = new[]
+                    {
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, role)
+                    };
+
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                    _logger.LogInformation($"DEBUG: Redirecting user to {role} dashboard");
+
+                    return role switch
+                    {
+                        "ADMIN" => RedirectToAction("AdminPage"),
+                        "HOMEOWNER" => RedirectToAction("HomeOwner", "Account"),
+                        "STAFF" => RedirectToAction("Dashboard", "Staff"),
+                        _ => RedirectToAction("Index", "Home")
+                    };
+                }
+                else
+                {
+                    _logger.LogWarning("DEBUG: Password verification failed.");
+                }
+            }
+            else
+            {
+                _logger.LogWarning($"DEBUG: User '{model.Username}' not found.");
+            }
+
+            ModelState.AddModelError(string.Empty, "Invalid username or password.");
+            return View("~/Views/Home/Index.cshtml", model);
         }
 
         public IActionResult AdminPage()
         {
-            var model = new AdminPageModel(); // Ensure the model exists
-            return View("Admin", model); // Ensure the file exists: Views/Account/Admin.cshtml
+            return View("Admin");
         }
 
-        public IActionResult ForgotPassword()
+        public IActionResult HomeOwner()
         {
-            // Placeholder for forgot password functionality
-            return View();
+            var username = User.Identity?.Name;
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+
+            if (user == null)
+            {
+                _logger.LogWarning($"DEBUG: HomeOwner access failed. User '{username}' not found.");
+                return RedirectToAction("Index", "Home");
+            }
+
+            string role = "UNKNOWN";
+            string houseNumber = null;
+
+            if (_dbContext.Admins.Any(a => a.UserId == user.UserId))
+            {
+                role = "ADMIN";
+            }
+            else if (_dbContext.Staff.Any(s => s.UserId == user.UserId))
+            {
+                role = "STAFF";
+            }
+            else
+            {
+                var homeowner = _dbContext.Homeowners.FirstOrDefault(h => h.UserId == user.UserId);
+                if (homeowner != null)
+                {
+                    role = "HOMEOWNER";
+                    houseNumber = homeowner.HouseNumber;
+                }
+            }
+
+            var model = new UserProfileViewModel
+            {
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                HouseNumber = houseNumber ?? string.Empty,
+                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
+                Role = role,
+                CreatedAt = user.CreatedAt
+            };
+
+            ViewBag.UserName = $"{model.FirstName} {model.LastName}";
+            ViewBag.MemberSince = model.CreatedAt.ToString("MMMM d, yyyy");
+
+            _logger.LogInformation($"DEBUG: HomeOwner profile loaded for user {model.Username} with role {model.Role}");
+
+            return View(model);
         }
 
-        public IActionResult Contact()
-        {
-            // Placeholder for contact functionality
-            return View();
-        }
 
-        public IActionResult Logout()
-        {
-            // Clear the session or authentication data (if applicable)
-            HttpContext.SignOutAsync();  // This is for cookie-based authentication
 
-            // Redirect to the Login page (Index action of Home controller)
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            _logger.LogInformation("DEBUG: User logged out.");
             return RedirectToAction("Index", "Home");
         }
 
         public IActionResult Profile()
         {
-            // Mock user profile data
+            var username = User.Identity?.Name;
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+
+            if (user == null)
+            {
+                _logger.LogWarning($"DEBUG: Profile access failed. User '{username}' not found.");
+                return RedirectToAction("Index", "Home");
+            }
+
+            string role = "UNKNOWN";
+            string houseNumber = null;
+
+            if (_dbContext.Admins.Any(a => a.UserId == user.UserId))
+            {
+                role = "ADMIN";
+            }
+            else if (_dbContext.Staff.Any(s => s.UserId == user.UserId))
+            {
+                role = "STAFF";
+            }
+            else
+            {
+                var homeowner = _dbContext.Homeowners.FirstOrDefault(h => h.UserId == user.UserId);
+                if (homeowner != null)
+                {
+                    role = "HOMEOWNER";
+                    houseNumber = homeowner.HouseNumber;
+                }
+            }
+
             var userProfile = new UserProfileViewModel
             {
-                Username = "homeowner",
-                FirstName = "John",
-                LastName = "Doe",
-                Email = "homeowner@example.com",
-                PhoneNumber = "09053501976",
-                HouseNumber = "Lot 45",
-                ProfilePicture = "/images/profile/default.jpg",
-                Role = "Homeowner",
-                CreatedAt = new DateTime(2020, 1, 15)
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                HouseNumber = houseNumber ?? string.Empty,
+                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
+                Role = role,
+                CreatedAt = user.CreatedAt
             };
 
             ViewBag.UserName = $"{userProfile.FirstName} {userProfile.LastName}";
             ViewBag.MemberSince = userProfile.CreatedAt.ToString("MMMM d, yyyy");
+
+            _logger.LogInformation($"DEBUG: Profile loaded for user {userProfile.Username} with role {userProfile.Role}");
 
             return View(userProfile);
         }
@@ -95,48 +206,52 @@ namespace daebak_subdivision_website.Controllers
         [HttpPost]
         public IActionResult UpdateProfile(UserProfileViewModel model)
         {
-            // Remove password validation if not changing password
-            if (string.IsNullOrEmpty(model.CurrentPassword) && string.IsNullOrEmpty(model.NewPassword) &&
-                string.IsNullOrEmpty(model.ConfirmNewPassword))
-            {
-                ModelState.Remove("CurrentPassword");
-                ModelState.Remove("NewPassword");
-                ModelState.Remove("ConfirmNewPassword");
-            }
-            else if (!string.IsNullOrEmpty(model.NewPassword) || !string.IsNullOrEmpty(model.ConfirmNewPassword))
-            {
-                if (string.IsNullOrEmpty(model.CurrentPassword))
-                {
-                    ModelState.AddModelError("CurrentPassword", "Current password is required to set a new password");
-                }
+            var username = User.Identity?.Name;
+            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
 
-                if (!string.IsNullOrEmpty(model.NewPassword) && model.NewPassword.Length < 8)
-                {
-                    ModelState.AddModelError("NewPassword", "Password must be at least 8 characters");
-                }
+            if (user == null)
+            {
+                _logger.LogWarning($"DEBUG: UpdateProfile failed. User '{username}' not found.");
+                return RedirectToAction("Index", "Home");
             }
 
-            if (ModelState.IsValid)
+            user.Email = model.Email;
+            user.PhoneNumber = model.PhoneNumber;
+            user.ProfilePicture = model.ProfilePicture;
+            user.UpdatedAt = System.DateTime.Now;
+
+            if (!string.IsNullOrEmpty(model.NewPassword))
             {
-                List<string> changedFields = new List<string> { "profile" };
-
-                if (!string.IsNullOrEmpty(model.NewPassword) && !string.IsNullOrEmpty(model.CurrentPassword))
+                if (VerifyPassword(model.CurrentPassword, user.PasswordHash))
                 {
-                    changedFields.Add("password");
+                    user.PasswordHash = HashPassword(model.NewPassword);
+                    _logger.LogInformation("DEBUG: Password updated successfully.");
                 }
-
-                if (!string.IsNullOrEmpty(model.Email) && model.Email != "homeowner@example.com")
+                else
                 {
-                    changedFields.Add("email");
+                    _logger.LogWarning("DEBUG: Incorrect current password during profile update.");
+                    ModelState.AddModelError("CurrentPassword", "Current password is incorrect.");
+                    return View("Profile", model);
                 }
-
-                TempData["SuccessMessage"] = $"{string.Join(", ", changedFields.Take(changedFields.Count - 1))} and {changedFields.Last()} updated successfully!";
-                return RedirectToAction("Profile");
             }
 
-            ViewBag.UserName = $"{model.FirstName} {model.LastName}";
-            ViewBag.MemberSince = model.CreatedAt.ToString("MMMM d, yyyy") ?? "Unknown";
-            return View("Profile", model);
+            _dbContext.SaveChanges();
+            TempData["SuccessMessage"] = "Profile updated successfully!";
+            _logger.LogInformation($"DEBUG: Profile updated for user {user.Username}");
+
+            return RedirectToAction("Profile");
+        }
+
+        // FIXED: Use BCrypt for password hashing
+        private static string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        // FIXED: Use BCrypt for password verification
+        private static bool VerifyPassword(string inputPassword, string storedHash)
+        {
+            return BCrypt.Net.BCrypt.Verify(inputPassword, storedHash);
         }
     }
 }

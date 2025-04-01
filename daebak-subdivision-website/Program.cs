@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
 using daebak_subdivision_website.Models; // Adjust based on your project namespace
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,7 +8,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ✅ 2. Add Session Support
+// ✅ 2. Add Authentication & Cookie Authentication
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";   // Redirect to login page if not authenticated
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Redirect if access is denied
+        options.ExpireTimeSpan = TimeSpan.FromDays(7); // Keep user logged in for 7 days
+        options.SlidingExpiration = true;
+    });
+
+// ✅ 3. Add Authorization (for security)
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("ADMIN"));
+});
+
+// ✅ 4. Add Session Support
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
@@ -15,12 +32,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// ✅ 3. Add MVC Services
+// ✅ 5. Add MVC Services
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// ✅ 4. Configure HTTP Request Pipeline
+// ✅ 6. Configure HTTP Request Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -30,12 +47,15 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthorization();
-app.UseSession(); // ✅ Enable session management
 
-// ✅ 5. Ensure Correct Default Routing
+// ✅ 7. Enable Authentication & Authorization
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseSession();
+
+// ✅ 8. Ensure Correct Default Routing
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}"); // Default route set to Home/Index
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

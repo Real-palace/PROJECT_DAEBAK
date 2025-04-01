@@ -1,142 +1,244 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using daebak_subdivision_website.Models;
+﻿using System;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using daebak_subdivision_website.Models;
+using Microsoft.EntityFrameworkCore;
+using BCrypt.Net;
+using Microsoft.AspNetCore.Authorization;
 
-namespace DaebakRealEstate.Controllers
+namespace daebak_subdivision_website.Controllers
 {
+    [Authorize] // Ensures only authenticated users can access this controller
     public class UserManagementController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<UserManagementController> _logger;
 
-        public UserManagementController(ApplicationDbContext context)
+        public UserManagementController(ApplicationDbContext context, ILogger<UserManagementController> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public IActionResult Index(string search, string role)
+        // ✅ GET: Users List
+        public async Task<IActionResult> Index()
         {
-            var users = _context.Users.AsQueryable();
-
-            if (!string.IsNullOrEmpty(search))
-            {
-                users = users.Where(u =>
-                    (u.FirstName + " " + u.LastName).Contains(search) ||
-                    u.Email.Contains(search) ||
-                    u.HouseNumber.Contains(search));
-            }
-
-            if (!string.IsNullOrEmpty(role) && role != "All")
-            {
-                users = users.Where(u => u.Role == role);
-            }
+            var users = await _context.Users.ToListAsync();
 
             // Convert List<User> to List<UserViewModel>
             var userViewModels = users.Select(u => new UserViewModel
             {
-                Id = u.UserId,
+                Id = u.UserId, // Changed from UserId to Id
                 Username = u.Username,
-                FirstName = u.FirstName,
-                LastName = u.LastName,
                 Email = u.Email,
                 Role = u.Role,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
                 PhoneNumber = u.PhoneNumber,
-                HouseNumber = u.HouseNumber
+                HouseNumber = u.HouseNumber,
+                CreatedAt = u.CreatedAt,
+                UpdatedAt = u.UpdatedAt
             }).ToList();
 
             return View("~/Views/Management/UserList.cshtml", userViewModels);
         }
 
+        // ✅ GET: Add User Form
         public IActionResult AddUser()
         {
-            return View("~/Views/Management/AddUser.cshtml");
+            return View("~/Views/Management/AddUser.cshtml"); // Redirect to AddUser.cshtml
         }
 
+        // ✅ POST: Create User
         [HttpPost]
-        public IActionResult AddUser(UserViewModel newUser)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddUser(UserViewModel model)
         {
             if (ModelState.IsValid)
             {
                 var user = new User
                 {
-                    Username = newUser.Username,
-                    FirstName = newUser.FirstName,
-                    LastName = newUser.LastName,
-                    Email = newUser.Email,
-                    PasswordHash = HashPassword(newUser.Password),
-                    Role = newUser.Role,
-                    PhoneNumber = newUser.PhoneNumber,
-                    HouseNumber = newUser.HouseNumber
+                    Username = model.Username,
+                    Email = model.Email,
+                    Role = model.Role,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    PhoneNumber = model.PhoneNumber,
+                    HouseNumber = model.HouseNumber,
+                    PasswordHash = HashPassword(model.Password), // Hash password using bcrypt
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 };
 
-                _context.Users.Add(user);
-                _context.SaveChanges();
-                return RedirectToAction("Index");
+                _context.Add(user);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("User {Username} created successfully", user.Username);
+
+                return RedirectToAction(nameof(Index));
             }
-            return View("~/Views/Management/AddUser.cshtml", newUser);
+
+            return View("~/Views/Management/AddUser.cshtml", model); // Ensure it stays on AddUser.cshtml if invalid
         }
 
-        public IActionResult EditUser(int id)
+        // ✅ GET: Edit User
+        public async Task<IActionResult> Edit(int id)
         {
-            var user = _context.Users.Find(id);
-            if (user == null) return NotFound();
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
-            var viewModel = new UserViewModel
+            var model = new UserViewModel
             {
                 Id = user.UserId,
                 Username = user.Username,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
                 Email = user.Email,
                 Role = user.Role,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
                 PhoneNumber = user.PhoneNumber,
-                HouseNumber = user.HouseNumber
+                HouseNumber = user.HouseNumber,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
             };
 
-            return View("~/Views/Management/EditUser.cshtml", viewModel);
+            return View("~/Views/Management/EditUser.cshtml", model);
         }
 
+        // ✅ POST: Edit User
         [HttpPost]
-        public IActionResult EditUser(UserViewModel updatedUser)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(int id, UserViewModel model)
         {
-            var user = _context.Users.Find(updatedUser.Id);
-            if (user == null) return NotFound();
-
-            user.Username = updatedUser.Username;
-            user.FirstName = updatedUser.FirstName;
-            user.LastName = updatedUser.LastName;
-            user.Email = updatedUser.Email;
-            user.PhoneNumber = updatedUser.PhoneNumber;
-            user.HouseNumber = updatedUser.HouseNumber;
-
-            if (!string.IsNullOrEmpty(updatedUser.Password))
+            if (id != model.Id)
             {
-                user.PasswordHash = HashPassword(updatedUser.Password);
+                return BadRequest();
             }
 
-            user.Role = updatedUser.Role;
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            if (ModelState.IsValid)
+            {
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound();
+                }
+
+                user.Username = model.Username;
+                user.Email = model.Email;
+                user.Role = model.Role;
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.PhoneNumber = model.PhoneNumber;
+                user.HouseNumber = model.HouseNumber;
+                user.UpdatedAt = DateTime.UtcNow;
+
+                if (!string.IsNullOrEmpty(model.Password))
+                {
+                    user.PasswordHash = HashPassword(model.Password); // Hash new password using bcrypt
+                }
+
+                _context.Update(user);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User {Username} updated successfully", model.Username);
+                return RedirectToAction(nameof(Index));
+            }
+
+            return View("~/Views/Management/EditUser.cshtml", model);
         }
 
-        public IActionResult DeleteUser(int id)
+        // ✅ GET: Delete User (Show confirmation)
+        public async Task<IActionResult> Delete(int id)
         {
-            var user = _context.Users.Find(id);
-            if (user == null) return NotFound();
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            // Return confirmation page with user details
+            var model = new UserViewModel
+            {
+                Id = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Role = user.Role,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                HouseNumber = user.HouseNumber,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
+
+            return View("~/Views/Management/DeleteUser.cshtml", model);
+        }
+
+        // ✅ POST: Confirm Delete User
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
 
             _context.Users.Remove(user);
-            _context.SaveChanges();
-            return RedirectToAction("Index");
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("User {Username} deleted successfully", user.Username);
+
+            return RedirectToAction(nameof(Index));
         }
 
+        // ✅ GET: User Details
+        public async Task<IActionResult> Details(int id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+
+            var model = new UserViewModel
+            {
+                Id = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                Role = user.Role,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                PhoneNumber = user.PhoneNumber,
+                HouseNumber = user.HouseNumber,
+                CreatedAt = user.CreatedAt,
+                UpdatedAt = user.UpdatedAt
+            };
+
+            return View("~/Views/Management/UserDetails.cshtml", model);
+        }
+
+        // ✅ Check if user exists
+        private bool UserExists(int id)
+        {
+            return _context.Users.Any(e => e.UserId == id);
+        }
+
+        // ✅ Hash Password using bcrypt
         private string HashPassword(string password)
         {
-            using (SHA256 sha256 = SHA256.Create())
-            {
-                byte[] hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-                return BitConverter.ToString(hashedBytes).Replace("-", "").ToLower();
-            }
+            // Hash the password with bcrypt
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        // ✅ Verify Password using bcrypt
+        private bool VerifyPassword(string password, string storedHash)
+        {
+            return BCrypt.Net.BCrypt.Verify(password, storedHash);
         }
     }
 }
