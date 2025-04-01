@@ -1,10 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
-namespace daebak_subdivision_website.Models  // Ensure this matches your file structure
+namespace daebak_subdivision_website.Models
 {
     public class UserViewModel
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }  // ✅ Add this property
 
         [Required, StringLength(50)]
         public string Username { get; set; }
@@ -36,5 +37,8 @@ namespace daebak_subdivision_website.Models  // Ensure this matches your file st
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords do not match.")]
         public string ConfirmPassword { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
     }
 }
