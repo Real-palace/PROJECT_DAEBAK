@@ -9,9 +9,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
     <script>
         tailwind.config = {
             theme: {
@@ -32,88 +35,225 @@
                     },
                 },
             },
+            plugins: [require("daisyui")],
+            daisyui: {
+                themes: ["light"],
+            },
         };
     </script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        /* Hide scrollbar but maintain functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for Firefox */
+        * {
+            scrollbar-width: none;
+        }
+
+        /* Prevent horizontal scroll */
+        body {
+            overflow-x: hidden;
+            -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+        }
+
+        /* Fix dropdown positioning */
+        .dropdown-content {
+            left: 100%;
+            top: 0;
+        }
+
+        /* Improve nav item spacing */
+        .nav-item-spacing {
+            margin-bottom: 1.25rem;
+        }
+    </style>
 </head>
 <body class="font-sans bg-dashboard-bg min-h-screen text-gray-800">
-    <!-- Navigation Bar -->
-    <nav class="bg-secondary text-white w-full shadow-lg">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-10">
-                <h1 class="text-xl font-bold tracking-wide">Daebak Admin Dashboard</h1>
-            </div>
-            <div class="space-x-6 text-sm flex items-center">
-                <a asp-controller="Account" asp-action="AdminPage" class="hover:text-primary font-medium transition duration-200">Home</a>
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-[#356480] flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-12 h-auto">
+        </div>
 
-                <!-- Management Dropdown -->
-                <div class="relative">
-                    <button id="management-btn" class="hover:text-primary font-medium transition duration-200 flex items-center">
-                        Management <i class="fas fa-chevron-down ml-2"></i>
-                    </button>
-                    <div id="management-dropdown" class="absolute left-0 mt-2 w-56 bg-white text-gray-800 shadow-md rounded-md hidden transition-all duration-300 z-50">
-                        <a asp-controller="UserManagement" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">USERS</a>
-                        <a asp-controller="Community" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">COMMUNITY</a>
-                        <a asp-controller="ServiceRequests" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">SERVICES</a>
-                        <a asp-controller="Billing" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">BILLS AND PAYMENTS</a>
-                        <a asp-controller="Security" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">SECURITY</a>
-                        <a asp-controller="Documents" asp-action="Index" class="block px-4 py-2 hover:bg-gray-100">DOCUMENT</a>
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center space-y-6 py-4">
+            <a asp-controller="Account" asp-action="AdminPage"
+               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
+               title="Dashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                </svg>
+            </a>
+
+            <div class="dropdown dropdown-right w-full">
+                <button class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+                <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-0">
+                    <li>
+                        <a asp-controller="UserManagement" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            USERS
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Community" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            COMMUNITY
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="ServiceRequests" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            </svg>
+                            SERVICES
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Billing" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            BILLS AND PAYMENTS
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Security" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                            SECURITY
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Documents" asp-action="Index">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            DOCUMENT
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <a asp-controller="Notifications" asp-action="Index"
+               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
+               title="Notifications">
+                <div class="indicator">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="badge badge-xs badge-primary indicator-item">3</span>
+                </div>
+            </a>
+
+            <a asp-controller="Settings" asp-action="Index"
+               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
+               title="Settings">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                </svg>
+            </a>
+        </div>
+
+        <!-- Logout -->
+        <div class="flex flex-col items-center">
+            <a asp-controller="Account" asp-action="Logout" class="btn btn-ghost btn-circle text-white text-2xl hover:text-tertiary" title="Logout">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content Wrapper -->
+    <div class="ml-20 flex-1 min-h-screen bg-dashboard-bg">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">Admin Dashboard</div>
+
+                <div class="flex items-center gap-5">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+                    </div>
+
+                    <!-- Admin Profile -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-700">
+                            <span class="hidden md:block">Admin</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <a asp-controller="Notifications" asp-action="Index" class="hover:text-primary font-medium transition duration-200">Notifications</a>
-                <a asp-controller="Settings" asp-action="Index" class="hover:text-primary font-medium transition duration-200">Settings</a>
-                <a asp-controller="Account" asp-action="Logout" class="hover:text-primary font-medium transition duration-200">Logout</a>
             </div>
         </div>
-    </nav>
 
-    <!-- Interactive Cards Section -->
-    <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-primary/10 border-l-4 border-primary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                <i class="fas fa-bullhorn mr-2"></i> Total Announcements
-            </h3>
-            <p class="text-3xl font-bold text-tertiary">25</p>
+        <!-- Interactive Cards Section -->
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-primary/10 border-l-4 border-primary transition transform hover:scale-105">
+                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
+                    <i class="fas fa-bullhorn mr-2"></i> Total Announcements
+                </h3>
+                <p class="text-3xl font-bold text-tertiary">25</p>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-secondary/10 border-l-4 border-secondary transition transform hover:scale-105">
+                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
+                    <i class="fas fa-calendar-alt mr-2"></i> Active Events
+                </h3>
+                <p class="text-3xl font-bold text-tertiary">7</p>
+            </div>
+            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-tertiary/10 border-l-4 border-tertiary transition transform hover:scale-105">
+                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
+                    <i class="fas fa-tools mr-2"></i> Pending Service Requests
+                </h3>
+                <p class="text-3xl font-bold text-tertiary">12</p>
+            </div>
         </div>
-        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-secondary/10 border-l-4 border-secondary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                <i class="fas fa-calendar-alt mr-2"></i> Active Events
-            </h3>
-            <p class="text-3xl font-bold text-tertiary">7</p>
-        </div>
-        <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-tertiary/10 border-l-4 border-tertiary transition transform hover:scale-105">
-            <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                <i class="fas fa-tools mr-2"></i> Pending Service Requests
-            </h3>
-            <p class="text-3xl font-bold text-tertiary">12</p>
-        </div>
-    </div>
 
-    <!-- Main Charts Section -->
-    <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
-        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                <i class="fas fa-user-shield mr-2 text-gray-300"></i> User Role Distribution
-            </h2>
-            <div id="roleChart" class="h-[300px]"></div>
+        <!-- Main Charts Section -->
+        <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
+            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                    <i class="fas fa-user-shield mr-2 text-gray-300"></i> User Role Distribution
+                </h2>
+                <div id="roleChart" class="h-[300px]"></div>
+            </div>
+            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                    <i class="fas fa-wallet mr-2 text-gray-300"></i> Bill Payment Status
+                </h2>
+                <div id="billPaymentStatusChart" class="h-[300px]"></div>
+            </div>
         </div>
-        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                <i class="fas fa-wallet mr-2 text-gray-300"></i> Bill Payment Status
-            </h2>
-            <div id="billPaymentStatusChart" class="h-[300px]"></div>
-        </div>
-    </div>
 
-    <!-- User Growth Chart Section -->
-    <div class="container mx-auto py-8">
-        <div class="bg-[#2c343c] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-            <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                <i class="fas fa-chart-line mr-2 text-gray-300"></i> User Growth Over Time
-            </h2>
-            <div id="userGrowthChart" class="h-[400px]"></div>
+        <!-- User Growth Chart Section -->
+        <div class="container mx-auto py-8">
+            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
+                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
+                    <i class="fas fa-chart-line mr-2 text-gray-300"></i> User Growth Over Time
+                </h2>
+                <div id="userGrowthChart" class="h-[400px]"></div>
+            </div>
         </div>
     </div>
 
@@ -128,7 +268,7 @@
 
         // Role Distribution Chart Configuration
         const roleOption = {
-            backgroundColor: '#2c343c',
+            backgroundColor: '#356480', // Changed from #2c343c to secondary color
             title: {
                 left: 'center',
                 top: 20,
@@ -186,7 +326,7 @@
 
         // Bill Payment Chart Configuration
         const billOption = {
-            backgroundColor: '#2c343c',
+            backgroundColor: '#356480', // Changed from #2c343c to secondary color
             title: {
                 left: 'center',
                 top: 20,
@@ -244,7 +384,7 @@
 
         // User Growth Chart Configuration
         const userGrowthOption = {
-            backgroundColor: '#2c343c',
+            backgroundColor: '#356480', // Changed from #2c343c to secondary color
             color: colors,
             tooltip: {
                 trigger: 'axis',
@@ -333,6 +473,74 @@
             roleChart.resize();
             billChart.resize();
             userGrowthChart.resize();
+        });
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const navLinks = document.getElementById('nav-links');
+
+        mobileMenuButton.addEventListener('click', () => {
+            navLinks.classList.toggle('hidden');
+        });
+
+        // Management dropdown toggle
+        const managementBtn = document.getElementById('management-btn');
+        const managementDropdown = document.getElementById('management-dropdown');
+
+        managementBtn.addEventListener('click', () => {
+            managementDropdown.classList.toggle('hidden');
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!managementBtn.contains(e.target) && !managementDropdown.contains(e.target)) {
+                managementDropdown.classList.add('hidden');
+            }
+        });
+
+        // Add this to your existing script section
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const navLinks = document.getElementById('nav-links');
+            const managementBtn = document.getElementById('management-btn');
+            const managementDropdown = document.getElementById('management-dropdown');
+
+            // Mobile menu toggle
+            mobileMenuButton.addEventListener('click', () => {
+                navLinks.classList.toggle('hidden');
+            });
+
+            // Only handle dropdown on mobile
+            if (window.innerWidth < 1024) {
+                managementBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    managementDropdown.classList.toggle('hidden');
+                });
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const managementBtn = document.getElementById('management-btn');
+            const managementDropdown = document.getElementById('management-dropdown');
+
+            managementBtn.addEventListener('mouseenter', () => {
+                managementDropdown.classList.remove('hidden');
+            });
+
+            managementBtn.addEventListener('mouseleave', (e) => {
+                // Check if the mouse is not moving to the dropdown
+                if (!e.relatedTarget || !e.relatedTarget.closest('#management-dropdown')) {
+                    managementDropdown.classList.add('hidden');
+                }
+            });
+
+            managementDropdown.addEventListener('mouseleave', () => {
+                managementDropdown.classList.add('hidden');
+            });
+
+            managementDropdown.addEventListener('mouseenter', () => {
+                managementDropdown.classList.remove('hidden');
+            });
         });
     </script>
 </body>
