@@ -99,25 +99,11 @@ namespace daebak_subdivision_website.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            string role = "UNKNOWN";
-            string houseNumber = null;
-
-            if (_dbContext.Admins.Any(a => a.UserId == user.UserId))
+            // Case-insensitive role check
+            if (!string.Equals(user.Role, "HOMEOWNER", StringComparison.OrdinalIgnoreCase))
             {
-                role = "ADMIN";
-            }
-            else if (_dbContext.Staff.Any(s => s.UserId == user.UserId))
-            {
-                role = "STAFF";
-            }
-            else
-            {
-                var homeowner = _dbContext.Homeowners.FirstOrDefault(h => h.UserId == user.UserId);
-                if (homeowner != null)
-                {
-                    role = "HOMEOWNER";
-                    houseNumber = homeowner.HouseNumber;
-                }
+                _logger.LogWarning($"DEBUG: Access denied. User '{username}' is not a homeowner.");
+                return RedirectToAction("Index", "Home");
             }
 
             var model = new UserProfileViewModel
@@ -127,19 +113,20 @@ namespace daebak_subdivision_website.Controllers
                 LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
-                HouseNumber = houseNumber ?? string.Empty,
+                HouseNumber = user.HouseNumber ?? string.Empty,
                 ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
-                Role = role,
+                Role = user.Role,
                 CreatedAt = user.CreatedAt
             };
 
             ViewBag.UserName = $"{model.FirstName} {model.LastName}";
             ViewBag.MemberSince = model.CreatedAt.ToString("MMMM d, yyyy");
 
-            _logger.LogInformation($"DEBUG: HomeOwner profile loaded for user {model.Username} with role {model.Role}");
+            _logger.LogInformation($"DEBUG: HomeOwner profile loaded for user {model.Username} with house number {model.HouseNumber}");
 
             return View(model);
         }
+
 
 
 
@@ -161,25 +148,11 @@ namespace daebak_subdivision_website.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            string role = "UNKNOWN";
-            string houseNumber = null;
-
-            if (_dbContext.Admins.Any(a => a.UserId == user.UserId))
+            var homeowner = _dbContext.Homeowners.FirstOrDefault(h => h.UserId == user.UserId);
+            if (homeowner == null)
             {
-                role = "ADMIN";
-            }
-            else if (_dbContext.Staff.Any(s => s.UserId == user.UserId))
-            {
-                role = "STAFF";
-            }
-            else
-            {
-                var homeowner = _dbContext.Homeowners.FirstOrDefault(h => h.UserId == user.UserId);
-                if (homeowner != null)
-                {
-                    role = "HOMEOWNER";
-                    houseNumber = homeowner.HouseNumber;
-                }
+                _logger.LogWarning($"DEBUG: Profile access denied. User '{username}' is not a homeowner.");
+                return RedirectToAction("Index", "Home");
             }
 
             var userProfile = new UserProfileViewModel
@@ -189,19 +162,20 @@ namespace daebak_subdivision_website.Controllers
                 LastName = user.LastName,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
-                HouseNumber = houseNumber ?? string.Empty,
+                HouseNumber = homeowner.HouseNumber ?? string.Empty,
                 ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
-                Role = role,
+                Role = "Homeowner",
                 CreatedAt = user.CreatedAt
             };
 
             ViewBag.UserName = $"{userProfile.FirstName} {userProfile.LastName}";
             ViewBag.MemberSince = userProfile.CreatedAt.ToString("MMMM d, yyyy");
 
-            _logger.LogInformation($"DEBUG: Profile loaded for user {userProfile.Username} with role {userProfile.Role}");
+            _logger.LogInformation($"DEBUG: Profile loaded for homeowner {userProfile.Username}");
 
             return View(userProfile);
         }
+
 
         [HttpPost]
         public IActionResult UpdateProfile(UserProfileViewModel model)
