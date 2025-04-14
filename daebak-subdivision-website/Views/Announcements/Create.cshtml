@@ -1,0 +1,468 @@
+@model daebak_subdivision_website.Models.Announcement
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Announcement - DAEBAK</title>
+
+    <!-- Add Tailwind CSS and DaisyUI CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.2/dist/full.min.css" rel="stylesheet" type="text/css" />
+
+    <!-- Configure Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#356480',
+                        secondary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            },
+            plugins: [require("daisyui")],
+        }
+    </script>
+
+    <!-- Add Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        /* Hide scrollbar but maintain functionality */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Hide scrollbar for Firefox */
+        * {
+            scrollbar-width: none;
+        }
+
+        /* Prevent horizontal scroll */
+        body {
+            overflow-x: hidden;
+            -ms-overflow-style: none;
+        }
+
+        /* Fix dropdown positioning */
+        .dropdown-content {
+            left: 100%;
+            top: 0;
+        }
+
+        /* Improve nav item spacing */
+        .nav-item-spacing {
+            margin-bottom: 1.25rem;
+        }
+
+        /* Add dropdown animations */
+        .dropdown-content {
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:hover .dropdown-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        /* Add these styles to your existing <style> section */
+        .dropdown-content {
+            left: 100% !important;
+            top: 0 !important;
+            margin-left: 0.5rem !important;
+            transform: translateX(5px) !important;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(0);
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown:hover::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -20px;
+            width: 20px;
+            height: 100%;
+        }
+
+        .menu li {
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+        }
+
+        .dropdown:hover .menu li {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .menu li:nth-child(1) { transition-delay: 0.1s; }
+        .menu li:nth-child(2) { transition-delay: 0.2s; }
+    </style>
+</head>
+<body>
+    <div class="min-h-screen bg-dashboard-bg text-gray-800">
+        <!-- Sidebar -->
+        <div class="fixed top-0 left-0 h-screen w-20 bg-[#356480] flex flex-col items-center justify-between py-5 shadow-md z-10">
+            <!-- Logo -->
+            <div class="w-full flex justify-center py-4">
+                <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-12 h-auto">
+            </div>
+
+            <!-- Menu Items -->
+            <div class="flex flex-col items-center gap-5">
+                <!-- Announcements Dropdown -->
+                <div class="dropdown dropdown-right w-full group">
+                    <div class="w-full flex justify-center items-center h-14 text-white hover:text-tertiary transition-colors">
+                        <button class="w-full h-full flex justify-center items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 ml-4">
+                        <li><a href="@Url.Action("Index", "Announcements")">View All</a></li>
+                        <li><a href="@Url.Action("Create", "Announcements")">Create New</a></li>
+                    </ul>
+                </div>
+
+                <!-- Dashboard -->
+                <a asp-controller="Account" asp-action="AdminPage"
+                   class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
+                   title="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                </a>
+
+                <!-- Management Dropdown -->
+                <div class="dropdown dropdown-right w-full">
+                    <button class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 ml-4">
+                        <li>
+                            <a asp-controller="UserManagement" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                USERS
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Community" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                COMMUNITY
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="ServiceRequests" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                </svg>
+                                SERVICES
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Billing" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                                </svg>
+                                BILLS AND PAYMENTS
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Security" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                                </svg>
+                                SECURITY
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Documents" asp-action="Index">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                DOCUMENT
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Notifications -->
+                <a asp-controller="Notifications" asp-action="Index" class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors" title="Notifications">
+                    <div class="indicator">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="badge badge-xs badge-primary indicator-item">3</span>
+                    </div>
+                </a>
+
+                <!-- Settings -->
+                <a asp-controller="Settings" asp-action="Index" class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors" title="Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    </svg>
+                </a>
+            </div>
+
+            <!-- Logout -->
+            <div class="flex flex-col items-center">
+                <a asp-controller="Account" asp-action="Logout" class="btn btn-ghost btn-circle text-white text-2xl hover:text-tertiary" title="Logout">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="pl-20 min-h-screen bg-gradient-to-br from-blue-50 via-slate-50 to-blue-50">
+            <!-- Header -->
+            <div class="bg-white shadow-sm sticky top-0 z-10">
+                <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-semibold text-tertiary">Create Announcement</h1>
+                    </div>
+
+                    <div class="flex items-center gap-6">
+                        <!-- Search Bar -->
+                        <div class="relative w-96">
+                            <input type="text"
+                                   placeholder="Search..."
+                                   class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
+                            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </span>
+                        </div>
+
+                        <!-- Admin Profile -->
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-700">Administrator</span>
+                            <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Replace the Compact Form Section -->
+            <div class="max-w-3xl mx-auto p-4">
+                <div class="bg-white rounded-lg border border-[#356480]/10 shadow-sm overflow-hidden">
+                    <form id="createForm" asp-action="Create" method="post" class="divide-y divide-[#356480]/10">
+                        <!-- Form Header -->
+                        <div class="bg-[#356480] px-4 py-3">
+                            <h2 class="text-white font-medium">Create New Announcement</h2>
+                        </div>
+
+                        <!-- Form Fields -->
+                        <div class="p-4 space-y-4">
+                            <!-- Title Input -->
+                            <div>
+                                <label class="text-sm font-medium text-[#356480] flex items-center justify-between">
+                                    <span>Title</span>
+                                    <span class="text-xs text-gray-400" id="charCount">0/100</span>
+                                </label>
+                                <input asp-for="TITLE" 
+                                       type="text" 
+                                       maxlength="100"
+                                       class="mt-1 block w-full rounded-md border-gray-300 focus:ring-2 focus:ring-[#356480]/20 focus:border-[#356480] transition-colors" 
+                                       placeholder="Enter announcement title"
+                                       oninput="updateCharCount(this)"
+                                       required />
+                            </div>
+
+                            <!-- Category Select -->
+                            <div>
+                                <label class="text-sm font-medium text-[#356480]">Category</label>
+                                <select asp-for="Category" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 focus:ring-2 focus:ring-[#356480]/20 focus:border-[#356480] transition-colors">
+                                    <option value="NOTICE">📢 Notice</option>
+                                    <option value="EVENT">🎉 Event</option>
+                                    <option value="MAINTENANCE">🛠️ Maintenance</option>
+                                    <option value="SECURITY">🔒 Security</option>
+                                    <option value="EMERGENCY">⚠️ Emergency</option>
+                                </select>
+                            </div>
+
+                            <!-- Content Textarea -->
+                            <div>
+                                <label class="text-sm font-medium text-[#356480] flex items-center justify-between">
+                                    <span>Content</span>
+                                    <span class="text-xs text-gray-400" id="wordCount">0 words</span>
+                                </label>
+                                <textarea asp-for="CONTENT" 
+                                          rows="4" 
+                                          class="mt-1 block w-full rounded-md border-gray-300 focus:ring-2 focus:ring-[#356480]/20 focus:border-[#356480] transition-colors"
+                                          placeholder="Write your announcement content here..."
+                                          oninput="updateWordCount(this)"
+                                          required></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Preview Section -->
+                        <div class="bg-[#356480]/5 p-4">
+                            <div class="bg-white rounded border border-[#356480]/10 p-3">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span id="previewCategory" class="px-2 py-0.5 rounded-full text-xs font-medium bg-[#356480] text-white">
+                                        Notice
+                                    </span>
+                                    <span class="text-xs text-gray-500">@DateTime.Now.ToString("MMM dd, yyyy")</span>
+                                </div>
+                                <h4 id="previewTitle" class="font-medium text-[#356480] mb-1">Your announcement title</h4>
+                                <p id="previewContent" class="text-sm text-gray-600">Your content will appear here...</p>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="p-4 flex justify-end gap-3 bg-[#356480]/5">
+                            <a href="@Url.Action("Index", "Announcements")" 
+                               class="px-4 py-2 text-sm font-medium text-[#356480] hover:bg-[#356480]/10 rounded-md transition-colors">
+                                Cancel
+                            </a>
+                            <button type="submit" 
+                                    class="px-4 py-2 text-sm font-medium text-[#356480] hover:bg-[#356480]/10 rounded-md transition-colors flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Post Announcement
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update floating button -->
+    <div id="floatingButton" class="fixed bottom-6 right-6 transform scale-0 transition-transform duration-300">
+        <button type="submit" form="createForm"
+                class="group flex items-center gap-2 px-4 py-2 bg-[#356480] text-white rounded-full shadow-lg hover:bg-[#356480]/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#356480]/50 transition-all">
+            <span class="flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Post Announcement
+            </span>
+        </button>
+    </div>
+
+    @section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const titleInput = document.getElementById('TITLE');
+                const contentInput = document.getElementById('CONTENT');
+                const categorySelect = document.getElementById('Category');
+
+                const previewTitle = document.getElementById('previewTitle');
+                const previewContent = document.getElementById('previewContent');
+                const previewCategory = document.getElementById('previewCategory');
+
+                const categoryStyles = {
+                    'NOTICE': ['bg-blue-100', 'text-blue-800'],
+                    'EVENT': ['bg-green-100', 'text-green-800'],
+                    'MAINTENANCE': ['bg-yellow-100', 'text-yellow-800'],
+                    'SECURITY': ['bg-purple-100', 'text-purple-800'],
+                    'EMERGENCY': ['bg-red-100', 'text-red-800']
+                };
+
+                function updatePreview() {
+                    previewTitle.textContent = titleInput.value || 'Your announcement title will appear here';
+                    previewContent.textContent = contentInput.value || 'Your content will appear here...';
+
+                    const category = categorySelect.value;
+                    previewCategory.textContent = category.charAt(0) + category.slice(1).toLowerCase();
+
+                    Object.values(categoryStyles).flat().forEach(cls => {
+                        previewCategory.classList.remove(cls);
+                    });
+                    categoryStyles[category].forEach(cls => {
+                        previewCategory.classList.add(cls);
+                    });
+                }
+
+                titleInput.addEventListener('input', updatePreview);
+                contentInput.addEventListener('input', updatePreview);
+                categorySelect.addEventListener('change', updatePreview);
+            });
+
+            function updateCharCount(input) {
+                const charCount = document.getElementById('charCount');
+                charCount.textContent = `${input.value.length}/100`;
+
+                if (input.value.length >= 90) {
+                    charCount.classList.add('text-yellow-600');
+                } else {
+                    charCount.classList.remove('text-yellow-600');
+                }
+            }
+
+            function updateWordCount(textarea) {
+                const wordCount = document.getElementById('wordCount');
+                const words = textarea.value.trim().split(/\s+/).filter(Boolean).length;
+                wordCount.textContent = `${words} word${words === 1 ? '' : 's'}`;
+            }
+
+            window.addEventListener('scroll', () => {
+                const floatingButton = document.getElementById('floatingButton');
+                if (window.scrollY > 100) {
+                    floatingButton.classList.remove('scale-0');
+                    floatingButton.classList.add('scale-100');
+                } else {
+                    floatingButton.classList.remove('scale-100');
+                    floatingButton.classList.add('scale-0');
+                }
+            });
+
+            document.getElementById('createForm').addEventListener('submit', function(e) {
+                const submitButtons = this.querySelectorAll('button[type="submit"]');
+                submitButtons.forEach(button => {
+                    button.disabled = true;
+                    button.innerHTML = `
+                        <svg class="animate-spin h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Saving...
+                    `;
+                });
+            });
+        </script>
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
+</body>
+</html>

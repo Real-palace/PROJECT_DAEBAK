@@ -30,28 +30,16 @@ namespace daebak_subdivision_website.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                _logger.LogWarning("DEBUG: Model state is invalid.");
-                return View(model);
-            }
-
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == model.Username);
-
-            if (user != null)
-            {
-                _logger.LogInformation($"DEBUG: User found - {user.Username}, Role - '{user.Role}'");
-
-                if (VerifyPassword(model.Password, user.PasswordHash))
+                var user = _dbContext.Users.FirstOrDefault(u => u.Username == model.Username);
+                if (user != null && VerifyPassword(model.Password, user.PasswordHash))
                 {
-                    string role = user.Role?.Trim().ToUpper() ?? "UNKNOWN";
-
-                    _logger.LogInformation($"DEBUG: Logging in as {role}");
-
-                    var claims = new[]
+                    var claims = new List<Claim>
                     {
                         new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Role, role)
+                        new Claim(ClaimTypes.Role, user.Role.ToUpper()),
+                        new Claim("UserId", user.UserId.ToString())
                     };
 
                     var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -59,28 +47,22 @@ namespace daebak_subdivision_website.Controllers
 
                     await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                    _logger.LogInformation($"DEBUG: Redirecting user to {role} dashboard");
-
-                    return role switch
+                    // Redirect based on role
+                    switch (user.Role.ToUpper())
                     {
-                        "ADMIN" => RedirectToAction("AdminPage"),
-                        "HOMEOWNER" => RedirectToAction("HomeOwner", "Account"),
-                        "STAFF" => RedirectToAction("Dashboard", "Staff"),
-                        _ => RedirectToAction("Index", "Home")
-                    };
-                }
-                else
-                {
-                    _logger.LogWarning("DEBUG: Password verification failed.");
+                        case "ADMIN":
+                            return RedirectToAction("AdminPage", "Account");
+                        case "HOMEOWNER":
+                            return RedirectToAction("HomeOwner", "Account");
+                        case "STAFF":
+                            return RedirectToAction("StaffPage", "Account");
+                        default:
+                            return RedirectToAction("Index", "Home");
+                    }
                 }
             }
-            else
-            {
-                _logger.LogWarning($"DEBUG: User '{model.Username}' not found.");
-            }
-
-            ModelState.AddModelError(string.Empty, "Invalid username or password.");
-            return View("~/Views/Home/Index.cshtml", model);
+            ModelState.AddModelError(string.Empty, "Invalid login attempt");
+            return View(model);
         }
 
         public IActionResult AdminPage()

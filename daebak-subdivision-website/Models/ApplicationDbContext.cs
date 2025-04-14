@@ -15,6 +15,7 @@ namespace daebak_subdivision_website.Models
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
+        public DbSet<Announcement> ANNOUNCEMENTS { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<BillingItem> BillingItems { get; set; }
         public DbSet<UserBill> UserBills { get; set; }

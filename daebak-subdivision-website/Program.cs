@@ -1,12 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using daebak_subdivision_website.Models; // Adjust based on your project namespace
+using daebak_subdivision_website.Models;
+using daebak_subdivision_website.Controllers; // Add this line
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ✅ 1. Configure Database Connection (EF Core)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Remove or comment out this line:
+// builder.Services.AddScoped<AnnouncementsController>();
 
 // ✅ 2. Add Authentication & Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
