@@ -36,6 +36,36 @@
     </script>
     <!-- Fix Poppins font import for Razor syntax -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+
+    <style>
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+
+        /* Hide scrollbar when not hovering */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+            .custom-scrollbar:hover {
+                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+            }
+    </style>
 </head>
 <body class="font-sans bg-light flex min-h-screen">
     <!-- Sidebar -->
@@ -47,22 +77,19 @@
 
         <!-- Menu Items -->
         <div class="flex flex-col items-center gap-5">
-            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Dashboard">
+            <a href="@Url.Action("Dashboard", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Dashboard">
                 <i class="ph ph-house-simple"></i>
             </a>
-            <a href="@Url.Action("Index", "Announcements")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Announcements">
-                <i class="ph ph-megaphone"></i>
-            </a>
-            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
+            <a href="@Url.Action("Billing", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
                 <i class="ph ph-credit-card"></i>
             </a>
-            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+            <a href="@Url.Action("Facilities", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
                 <i class="ph ph-tree-structure"></i>
             </a>
-            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
+            <a href="@Url.Action("Services", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
                 <i class="ph ph-wrench"></i>
             </a>
-            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
                 <i class="ph ph-shield"></i>
             </a>
         </div>
@@ -83,98 +110,117 @@
                 <div class="text-lg font-medium text-tertiary">Dashboard</div>
 
                 <div class="flex items-center gap-5">
-                    <!-- Search Bar -->
-                    <div class="hidden md:flex relative">
-                        <input type="text" placeholder="Search..." class="bg-gray-100 rounded-full py-1.5 px-4 pr-10 w-56 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="ph ph-magnifying-glass"></i>
-                        </button>
-                    </div>
-
+                    <!-- Search Bar removed -->
                     <!-- Notifications -->
                     <div class="relative">
-                        <button class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
                             <i class="ph ph-bell text-2xl"></i>
                             <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
                         </button>
-                        
-                        <!-- Notification Dropdown -->
-                        <div class="notification-dropdown hidden">
+
+                        <!-- Notification Dropdown - Fixed scrolling issue -->
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
                             <div class="p-4 border-b border-gray-200">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-medium text-gray-700">Notifications</h3>
-                                    <a href="#" class="text-primary text-xs hover:underline">Mark all as read</a>
+                                    <button id="mark-all-read" class="text-primary text-xs hover:underline flex items-center gap-1">
+                                        <i class="ph ph-check-circle"></i> Mark all as read
+                                    </button>
                                 </div>
                             </div>
-                            <div class="max-h-96 overflow-y-auto">
+                            <div class="max-h-96 overflow-y-auto custom-scrollbar" id="notification-content">
                                 <!-- Unread Notification -->
-                                <div class="notification-item notification-unread notification-dot p-4">
+                                <div class="notification-item notification-unread border-l-4 border-blue-500 p-4 bg-blue-50/50 hover:bg-blue-50">
                                     <div class="flex items-start">
                                         <div class="bg-blue-100 p-2 rounded-full mr-3">
                                             <i class="ph ph-bell text-blue-500"></i>
                                         </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-800">Community Announcement</p>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Community Announcement</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
                                             <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
                                             <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Unread Notification -->
-                                <div class="notification-item notification-unread notification-dot p-4">
+                                <div class="notification-item notification-unread border-l-4 border-green-500 p-4 bg-green-50/50 hover:bg-green-50">
                                     <div class="flex items-start">
                                         <div class="bg-green-100 p-2 rounded-full mr-3">
                                             <i class="ph ph-check-circle text-green-500"></i>
                                         </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-800">Payment Confirmed</p>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Payment Confirmed</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
                                             <p class="text-xs text-gray-500 mt-1">Your payment of ₱2,500 for March dues has been received.</p>
                                             <p class="text-xs text-gray-400 mt-2">5 hours ago</p>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Unread Notification -->
-                                <div class="notification-item notification-unread notification-dot p-4">
+                                <div class="notification-item notification-unread border-l-4 border-yellow-500 p-4 bg-yellow-50/50 hover:bg-yellow-50">
                                     <div class="flex items-start">
                                         <div class="bg-yellow-100 p-2 rounded-full mr-3">
                                             <i class="ph ph-calendar text-yellow-500"></i>
                                         </div>
-                                        <div>
-                                            <p class="text-sm font-medium text-gray-800">New Community Event</p>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">New Community Event</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
                                             <p class="text-xs text-gray-500 mt-1">Easter Egg Hunt event scheduled for April 9 at the community park.</p>
                                             <p class="text-xs text-gray-400 mt-2">Yesterday</p>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Read Notification -->
-                                <div class="notification-item p-4">
+                                <div class="notification-item p-4 hover:bg-gray-50">
                                     <div class="flex items-start">
                                         <div class="bg-purple-100 p-2 rounded-full mr-3">
                                             <i class="ph ph-chat-text text-purple-500"></i>
                                         </div>
-                                        <div>
+                                        <div class="flex-1">
                                             <p class="text-sm font-medium text-gray-800">New Forum Post</p>
                                             <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
                                             <p class="text-xs text-gray-400 mt-2">2 days ago</p>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="p-3 border-t border-gray-200 bg-gray-50">
-                                <a href="#" class="block text-center text-primary text-sm hover:underline">
-                                    View all notifications
-                                </a>
+
+                                <!-- Additional Read Notification -->
+                                <div class="notification-item p-4 hover:bg-gray-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-info text-blue-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-800">Maintenance Complete</p>
+                                            <p class="text-xs text-gray-500 mt-1">The scheduled maintenance of the swimming pool has been completed. The facility is now open for use.</p>
+                                            <p class="text-xs text-gray-400 mt-2">3 days ago</p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- User Menu -->
                     <div class="relative">
-                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
-                            <span class="hidden md:block">@ViewBag.UserName</span>
+                        <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.FirstName</span>
                             <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                                 <i class="ph ph-user"></i>
                             </div>
@@ -189,40 +235,9 @@
             <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
                 <img src="~/images/subdivision_banner.jpg" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
                 <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.UserName</span>!</h2>
+                    <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.FirstName</span>!</h2>
                     <p class="text-gray-700 font-light mt-2">Stay updated with the latest announcements, events, and community discussions.</p>
                 </div>
-            </div>
-
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-                <a href="@Url.Action("CreateServiceRequest", "Home")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-500">
-                        <i class="ph ph-plus-circle"></i>
-                    </div>
-                    <span class="text-sm font-medium text-tertiary">New Request</span>
-                </a>
-
-                <a href="@Url.Action("CreateVisitorPass", "Security")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-500">
-                        <i class="ph ph-identification-card"></i>
-                    </div>
-                    <span class="text-sm font-medium text-tertiary">Visitor Pass</span>
-                </a>
-
-                <a href="@Url.Action("PayBill", "Billing")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-500">
-                        <i class="ph ph-currency-circle-dollar"></i>
-                    </div>
-                    <span class="text-sm font-medium text-tertiary">Pay Bill</span>
-                </a>
-
-                <a href="@Url.Action("BookFacility", "Facilities")" class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow flex flex-col items-center justify-center gap-2">
-                    <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-500">
-                        <i class="ph ph-calendar-plus"></i>
-                    </div>
-                    <span class="text-sm font-medium text-tertiary">Book Facility</span>
-                </a>
             </div>
 
             <!-- Quick Stats -->
@@ -472,7 +487,7 @@
                                         <span class="text-gray-400 text-sm">Feb 28, 2025</span>
                                     </div>
                                     <h4 class="font-medium text-lg">Community Gathering</h4>
-                                    <p class="text-gray-500">Join us for a BBQ night on March 20, 2025, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
+                                    <p class="text-gray-500">Join us for a BBQ night on March 20, 5, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
                                 </li>
                             }
                         </ul>
@@ -596,15 +611,252 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
     <script>
         // Logout confirmation function
         function confirmLogout() {
             const logoutModal = document.getElementById('logout-modal');
             logoutModal.classList.remove('hidden');
             document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+            // Directly set up logout modal buttons here to ensure they work
+            const cancelLogoutBtn = document.getElementById('cancel-logout');
+            const confirmLogoutBtn = document.getElementById('confirm-logout');
+
+            // Cancel logout - hide modal
+            cancelLogoutBtn.onclick = function() {
+                logoutModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+            };
+
+            // Confirm logout - redirect to logout action
+            confirmLogoutBtn.onclick = function() {
+                window.location.href = '@Url.Action("Logout", "Account")';
+            };
+
+            // Close modal when clicking outside
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', function() {
+            // Setup notification functionality
+            const notificationBtn = document.getElementById('notification-toggle-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            const markAllReadBtn = document.getElementById('mark-all-read');
+            const markReadBtns = document.querySelectorAll('.mark-read-btn');
+            const notificationCount = document.querySelector('.notification-count');
+
+            // Toggle notifications dropdown
+            notificationBtn.addEventListener('click', function() {
+                notificationDropdown.classList.toggle('hidden');
+            });
+
+            // Close notifications when clicking elsewhere
+            document.addEventListener('click', function(e) {
+                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+
+            // Prevent notification scrolling from affecting main page
+            const notificationContent = document.getElementById('notification-content');
+            notificationContent.addEventListener('wheel', function(event) {
+                const maxScrollTop = this.scrollHeight - this.clientHeight;
+                const currentScroll = this.scrollTop;
+
+                // If scrolling up and already at top
+                if (event.deltaY < 0 && currentScroll <= 0) {
+                    event.preventDefault();
+                }
+
+                // If scrolling down and already at bottom
+                if (event.deltaY > 0 && currentScroll >= maxScrollTop) {
+                    event.preventDefault();
+                }
+
+                // Otherwise prevent default to handle scroll internally
+                event.stopPropagation();
+            }, { passive: false });
+
+            // Mark all notifications as read
+            markAllReadBtn.addEventListener('click', function() {
+                const unreadNotifications = document.querySelectorAll('.notification-unread');
+                unreadNotifications.forEach(notification => {
+                    notification.classList.remove('notification-unread', 'border-l-4', 'bg-blue-50/50', 'bg-green-50/50', 'bg-yellow-50/50');
+                    notification.classList.add('bg-white');
+                });
+                notificationCount.textContent = '0';
+                // In a real app, you would send an AJAX request to update read status in the database
+            });
+
+            // Mark individual notification as read
+            markReadBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const notification = this.closest('.notification-item');
+                    if (notification.classList.contains('notification-unread')) {
+                        notification.classList.remove('notification-unread', 'border-l-4', 'bg-blue-50/50', 'bg-green-50/50', 'bg-yellow-50/50');
+                        notification.classList.add('bg-white');
+
+                        // Update counter
+                        const currentCount = parseInt(notificationCount.textContent);
+                        notificationCount.textContent = Math.max(0, currentCount - 1);
+                        // In a real app, you would send an AJAX request to update read status in the database
+                    }
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+
+            function performSearch() {
+                const query = searchInput.value.trim().toLowerCase();
+                if (query.length < 2) {
+                    alert('Please enter at least 2 characters to search.');
+                    return;
+                }
+
+                // Get all searchable content from the page
+                const searchableElements = document.querySelectorAll('h2, h3, h4, p, a, span:not(.notification-count)');
+                const results = [];
+
+                searchableElements.forEach(el => {
+                    const text = el.textContent.toLowerCase();
+                    if (text.includes(query)) {
+                        // Find the closest parent section or div that makes sense as a result
+                        let resultElement = el.closest('.bg-white') || el.closest('a') || el;
+
+                        // Don't duplicate results from the same container
+                        const alreadyIncluded = results.some(r => r.element === resultElement);
+                        if (!alreadyIncluded) {
+                            results.push({
+                                element: resultElement,
+                                text: el.textContent,
+                                originalPosition: getElementPosition(resultElement)
+                            });
+                        }
+                    }
+                });
+
+                if (results.length === 0) {
+                    alert('No results found for "' + query + '"');
+                } else {
+                    displaySearchResults(results, query);
+                }
+            }
+
+            function getElementPosition(element) {
+                let rect = element.getBoundingClientRect();
+                return {
+                    top: rect.top + window.pageYOffset,
+                    left: rect.left + window.pageXOffset
+                };
+            }
+
+            function displaySearchResults(results, query) {
+                // Create a search results modal
+                let modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.id = 'search-results-modal';
+
+                let modalContent = document.createElement('div');
+                modalContent.className = 'bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col';
+
+                let modalHeader = document.createElement('div');
+                modalHeader.className = 'p-6 border-b border-gray-100 flex items-center justify-between';
+                modalHeader.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <i class="ph ph-magnifying-glass text-xl text-tertiary"></i>
+                        <h3 class="font-semibold text-xl text-tertiary">Search Results for "${query}"</h3>
+                    </div>
+                    <button id="close-search-results" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                `;
+
+                let modalBody = document.createElement('div');
+                modalBody.className = 'p-6 overflow-y-auto';
+
+                let resultsList = document.createElement('ul');
+                resultsList.className = 'space-y-4';
+
+                results.forEach((result, index) => {
+                    let resultItem = document.createElement('li');
+                    resultItem.className = 'border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors';
+
+                    // Highlight the query in the text
+                    let highlightedText = result.text.replace(new RegExp(query, 'gi'), match => `<mark class="bg-yellow-200">${match}</mark>`);
+
+                    resultItem.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <div class="bg-blue-100 rounded-full p-2 text-blue-500">
+                                <i class="ph ph-${index + 1} text-lg"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">${highlightedText}</p>
+                            </div>
+                        </div>
+                    `;
+
+                    resultItem.addEventListener('click', () => {
+                        // Close the modal
+                        document.body.removeChild(modal);
+                        document.body.style.overflow = '';
+
+                        // Scroll to the result
+                        window.scrollTo({
+                            top: result.originalPosition.top - 100,
+                            behavior: 'smooth'
+                        });
+
+                        // Highlight the element temporarily
+                        result.element.style.transition = 'background-color 0.5s';
+                        result.element.style.backgroundColor = '#FEFCE8';
+                        setTimeout(() => {
+                            result.element.style.backgroundColor = '';
+                        }, 2000);
+                    });
+
+                    resultsList.appendChild(resultItem);
+                });
+
+                modalBody.appendChild(resultsList);
+                modalContent.appendChild(modalHeader);
+                modalContent.appendChild(modalBody);
+                modal.appendChild(modalContent);
+
+                document.body.style.overflow = 'hidden';
+                document.body.appendChild(modal);
+
+                // Setup close button
+                document.getElementById('close-search-results').addEventListener('click', () => {
+                    document.body.removeChild(modal);
+                    document.body.style.overflow = '';
+                });
+
+                // Close when clicking outside
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        document.body.removeChild(modal);
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Add event listeners for search
+            searchButton.addEventListener('click', performSearch);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
             // Setup logout modal buttons
             const logoutModal = document.getElementById('logout-modal');
             const cancelLogoutBtn = document.getElementById('cancel-logout');
@@ -627,67 +879,164 @@
                 }
             });
 
-            // Existing calendar code
-            var calendarEl = document.getElementById('calendar');
-            var eventListEl = document.getElementById('event-list');
+            // Define default events outside of any function so it's available in the global scope
+            var defaultEvents = [
+                { title: "Homeowners Meeting", start: "2025-04-15", color: "#FF9AA2" },
+                { title: "Facility Maintenance", start: "2025-04-20", color: "#B5EAD7" },
+                { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" },
+                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" },
+                { title: "Garden Committee", start: "2025-04-29", color: "#98D8AA" }
+            ];
 
-            var events = @Html.Raw(Json.Serialize(ViewBag.Events ?? new[] {
-                new { title = "Homeowners Meeting", start = "2025-03-15", color = "#FF9AA2" },
-                new { title = "Facility Maintenance", start = "2025-03-20", color = "#B5EAD7" },
-                new { title = "Community Clean-Up", start = "2025-03-25", color = "#C7CEEA" }
-            }));
+            // Calendar Setup - Completely rewritten for reliability
+            function initializeCalendar() {
+                var calendarEl = document.getElementById('calendar');
+                var eventListEl = document.getElementById('event-list');
 
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek'
-                },
-                height: 450,
-                events: events
-            });
-
-            // Render event list on the side with improved icon display
-            events.forEach(event => {
-                let li = document.createElement('li');
-
-                // Format the date nicely
-                const eventDate = new Date(event.start);
-                const formattedDate = eventDate.toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric'
-                });
-
-                // Determine icon based on event title
-                let icon = 'ph-calendar-check';
-                if (event.title.toLowerCase().includes('meeting')) {
-                    icon = 'ph-users';
-                } else if (event.title.toLowerCase().includes('maintenance')) {
-                    icon = 'ph-wrench';
-                } else if (event.title.toLowerCase().includes('clean')) {
-                    icon = 'ph-broom';
+                if (!calendarEl) {
+                    console.error('Calendar element not found');
+                    return;
                 }
 
-                li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
-                li.style.borderLeftColor = event.color;
-                li.innerHTML = `
-                    <div class="flex items-center">
-                        <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
-                            <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
-                        </div>
-                        <div>
-                            <p class="font-medium flex items-center">
-                                <i class="ph ${icon} mr-2" style="color: ${event.color}"></i>
-                                ${event.title}
-                            </p>
-                        </div>
-                    </div>
-                `;
-                eventListEl.appendChild(li);
-            });
+                // Make sure the calendar element is visible and has height
+                calendarEl.style.minHeight = '400px';
 
-            calendar.render();
+                try {
+                    // Get events from server with proper error handling
+                    var events = defaultEvents;
+
+        @if (ViewBag.Events != null)
+        {
+            <text>
+                            try {
+                                var serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                                if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                                    events = serverEvents;
+                                }
+                            } catch (e) {
+                                console.error("Error parsing server events:", e);
+                            }
+            </text>
+        }
+
+                    // Create calendar instance
+                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        initialDate: '2025-04-24',
+                        themeSystem: 'standard',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek'
+                        },
+                        height: 450,
+                        events: events,
+                        dayMaxEvents: true, // Show "more" link when too many events
+                        displayEventTime: false // Don't show event time
+                    });
+
+                    // Render calendar
+                    calendar.render();
+
+                    // Update the event list
+                    updateEventList(eventListEl, events);
+
+                } catch (error) {
+                    console.error('Calendar initialization failed:', error);
+                    // Show error message
+                    calendarEl.innerHTML = `
+                        <div class="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg p-4">
+                            <i class="ph ph-calendar-x text-4xl text-red-400 mb-2"></i>
+                            <p class="text-red-600">Could not load the calendar.</p>
+                            <button onclick="initializeCalendar()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                Try Again
+                            </button>
+                        </div>
+                    `;
+
+                    // Add fallback event list
+                    if (eventListEl) {
+                        eventListEl.innerHTML = `
+                            <li class="p-3 border border-gray-200 rounded-lg">
+                                <div class="text-center text-gray-500">
+                                    <i class="ph ph-calendar-x text-2xl mb-2"></i>
+                                    <p>Could not load events.</p>
+                                </div>
+                            </li>
+                        `;
+                    }
+                }
+            }
+
+            // Helper function to update event list
+            function updateEventList(eventListEl, events) {
+                if (!eventListEl) return;
+
+                // Clear existing events
+                eventListEl.innerHTML = '';
+
+                if (!events || events.length === 0) {
+                    eventListEl.innerHTML = `
+                        <li class="p-3 border border-gray-200 rounded-lg">
+                            <div class="text-center text-gray-500">
+                                <i class="ph ph-calendar text-2xl mb-2"></i>
+                                <p>No upcoming events.</p>
+                            </div>
+                        </li>
+                    `;
+                    return;
+                }
+
+                // Sort events by date
+                events.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                // Add events to the list
+                events.forEach(function(event) {
+                    let li = document.createElement('li');
+
+                    // Format date
+                    const eventDate = new Date(event.start);
+                    const formattedDate = eventDate.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric'
+                    });
+
+                    // Set icon based on event title
+                    let icon = 'ph-calendar-check';
+                    if (event.title.toLowerCase().includes('meeting')) {
+                        icon = 'ph-users';
+                    } else if (event.title.toLowerCase().includes('maintenance')) {
+                        icon = 'ph-wrench';
+                    } else if (event.title.toLowerCase().includes('clean')) {
+                        icon = 'ph-broom';
+                    } else if (event.title.toLowerCase().includes('easter')) {
+                        icon = 'ph-egg';
+                    } else if (event.title.toLowerCase().includes('garden')) {
+                        icon = 'ph-plant';
+                    }
+
+                    // Create event list item
+                    li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                    li.style.borderLeftColor = event.color || '#94B0DF';
+                    li.innerHTML = `
+                        <div class="flex items-center">
+                            <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
+                                <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
+                            </div>
+                            <div>
+                                <p class="font-medium flex items-center">
+                                    <i class="ph ${icon} mr-2" style="color: ${event.color || '#94B0DF'}"></i>
+                                    ${event.title}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    eventListEl.appendChild(li);
+                });
+            }
+
+            // Initialize the calendar
+            initializeCalendar();
 
             // Announcements Modal
             const announcementsModal = document.getElementById('announcements-modal');

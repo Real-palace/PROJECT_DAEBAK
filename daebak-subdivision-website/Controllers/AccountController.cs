@@ -21,96 +21,84 @@ namespace daebak_subdivision_website.Controllers
             _logger = logger;
         }
 
+        public IActionResult Index()
+        {
+            return View("~/Views/Login.cshtml", new LoginViewModel());
+        }
+
         [HttpGet]
         public IActionResult Login()
         {
-            return View();
+            return View("~/Views/Login.cshtml");
         }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
+            // Clear any existing errors
+            ModelState.Clear();
+
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(model.Username))
+            {
+                ModelState.AddModelError("Username", "Username is required");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.AddModelError("Password", "Password is required");
+                return View("~/Views/Login.cshtml", model);
+            }
+
             if (ModelState.IsValid)
             {
                 var user = _dbContext.Users.FirstOrDefault(u => u.Username == model.Username);
-                if (user != null && VerifyPassword(model.Password, user.PasswordHash))
+
+                if (user == null)
                 {
-                    var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.Username),
-                        new Claim(ClaimTypes.Role, user.Role.ToUpper()),
-                        new Claim("UserId", user.UserId.ToString())
-                    };
+                    _logger.LogWarning($"Login failed: Username '{model.Username}' not found");
+                    ModelState.AddModelError(string.Empty, "Username doesn't exist");
+                    return View("~/Views/Login.cshtml", model);
+                }
 
-                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                    var principal = new ClaimsPrincipal(identity);
+                if (!VerifyPassword(model.Password, user.PasswordHash))
+                {
+                    _logger.LogWarning($"Login failed: Invalid password for user '{model.Username}'");
+                    ModelState.AddModelError(string.Empty, "Incorrect password");
+                    return View("~/Views/Login.cshtml", model);
+                }
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, user.Role.ToUpper()),
+                    new Claim("UserId", user.UserId.ToString())
+                };
 
-                    // Redirect based on role
-                    switch (user.Role.ToUpper())
-                    {
-                        case "ADMIN":
-                            return RedirectToAction("AdminPage", "Account");
-                        case "HOMEOWNER":
-                            return RedirectToAction("HomeOwner", "Account");
-                        case "STAFF":
-                            return RedirectToAction("StaffPage", "Account");
-                        default:
-                            return RedirectToAction("Index", "Home");
-                    }
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                _logger.LogInformation($"User '{user.Username}' logged in successfully");
+
+                // Redirect based on role
+                switch (user.Role.ToUpper())
+                {
+                    case "ADMIN":
+                        return RedirectToAction("Dashboard", "Admin");
+                    case "HOMEOWNER":
+                        return RedirectToAction("Dashboard", "Homeowner");
+                    case "STAFF":
+                        return RedirectToAction("Dashboard", "Staff");
+                    default:
+                        return RedirectToAction("Index", "Home");
                 }
             }
-            ModelState.AddModelError(string.Empty, "Invalid login attempt");
-            return View(model);
+
+            // If we got this far, something failed
+            return View("~/Views/Login.cshtml", model);
         }
-
-        public IActionResult AdminPage()
-        {
-            return View("Admin");
-        }
-
-        public IActionResult HomeOwner()
-        {
-            var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
-
-            if (user == null)
-            {
-                _logger.LogWarning($"DEBUG: HomeOwner access failed. User '{username}' not found.");
-                return RedirectToAction("Index", "Home");
-            }
-
-            // Case-insensitive role check
-            if (!string.Equals(user.Role, "HOMEOWNER", StringComparison.OrdinalIgnoreCase))
-            {
-                _logger.LogWarning($"DEBUG: Access denied. User '{username}' is not a homeowner.");
-                return RedirectToAction("Index", "Home");
-            }
-
-            var model = new UserProfileViewModel
-            {
-                Username = user.Username,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber ?? string.Empty,
-                HouseNumber = user.HouseNumber ?? string.Empty,
-                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
-                Role = user.Role,
-                CreatedAt = user.CreatedAt
-            };
-
-            ViewBag.UserName = $"{model.FirstName} {model.LastName}";
-            ViewBag.MemberSince = model.CreatedAt.ToString("MMMM d, yyyy");
-
-            _logger.LogInformation($"DEBUG: HomeOwner profile loaded for user {model.Username} with house number {model.HouseNumber}");
-
-            return View(model);
-        }
-
-
-
 
         public async Task<IActionResult> Logout()
         {
@@ -158,53 +146,11 @@ namespace daebak_subdivision_website.Controllers
             return View(userProfile);
         }
 
-
-        [HttpPost]
-        public IActionResult UpdateProfile(UserProfileViewModel model)
-        {
-            var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
-
-            if (user == null)
-            {
-                _logger.LogWarning($"DEBUG: UpdateProfile failed. User '{username}' not found.");
-                return RedirectToAction("Index", "Home");
-            }
-
-            user.Email = model.Email;
-            user.PhoneNumber = model.PhoneNumber;
-            user.ProfilePicture = model.ProfilePicture;
-            user.UpdatedAt = System.DateTime.Now;
-
-            if (!string.IsNullOrEmpty(model.NewPassword))
-            {
-                if (VerifyPassword(model.CurrentPassword, user.PasswordHash))
-                {
-                    user.PasswordHash = HashPassword(model.NewPassword);
-                    _logger.LogInformation("DEBUG: Password updated successfully.");
-                }
-                else
-                {
-                    _logger.LogWarning("DEBUG: Incorrect current password during profile update.");
-                    ModelState.AddModelError("CurrentPassword", "Current password is incorrect.");
-                    return View("Profile", model);
-                }
-            }
-
-            _dbContext.SaveChanges();
-            TempData["SuccessMessage"] = "Profile updated successfully!";
-            _logger.LogInformation($"DEBUG: Profile updated for user {user.Username}");
-
-            return RedirectToAction("Profile");
-        }
-
-        // FIXED: Use BCrypt for password hashing
         private static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
-        // FIXED: Use BCrypt for password verification
         private static bool VerifyPassword(string inputPassword, string storedHash)
         {
             return BCrypt.Net.BCrypt.Verify(inputPassword, storedHash);
