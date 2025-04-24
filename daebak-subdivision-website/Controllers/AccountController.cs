@@ -81,6 +81,9 @@ namespace daebak_subdivision_website.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 _logger.LogInformation($"User '{user.Username}' logged in successfully");
+                
+                // Add success message
+                TempData["SuccessMessage"] = $"Welcome back, {user.FirstName}! You have successfully logged in!";
 
                 // Redirect based on role
                 switch (user.Role.ToUpper())
@@ -103,8 +106,8 @@ namespace daebak_subdivision_website.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            _logger.LogInformation("DEBUG: User logged out.");
-            return RedirectToAction("Index", "Home");
+            _logger.LogInformation("User logged out.");
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult Profile()

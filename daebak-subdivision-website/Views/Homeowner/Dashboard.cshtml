@@ -68,6 +68,18 @@
     </style>
 </head>
 <body class="font-sans bg-light flex min-h-screen">
+    <!-- Success Message Toast - Non-modal top-right notification -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="success-toast" class="fixed top-5 right-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md shadow-lg transition-all duration-300 z-50 flex items-center">
+            <i class="ph ph-check-circle text-xl mr-2"></i>
+            <p>@TempData["SuccessMessage"]</p>
+            <button class="ml-auto pl-4 text-green-700 hover:text-green-900 focus:outline-none" onclick="hideSuccessToast()">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+    }
+
     <!-- Sidebar -->
     <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
         <!-- Logo -->
@@ -849,13 +861,15 @@
                 });
             }
 
-            // Add event listeners for search
-            searchButton.addEventListener('click', performSearch);
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
+            // Check if search elements exist before setting up event listeners
+            if (searchInput && searchButton) {
+                searchButton.addEventListener('click', performSearch);
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        performSearch();
+                    }
+                });
+            }
 
             // Setup logout modal buttons
             const logoutModal = document.getElementById('logout-modal');
@@ -884,76 +898,157 @@
                 { title: "Homeowners Meeting", start: "2025-04-15", color: "#FF9AA2" },
                 { title: "Facility Maintenance", start: "2025-04-20", color: "#B5EAD7" },
                 { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" },
-                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" },
-                { title: "Garden Committee", start: "2025-04-29", color: "#98D8AA" }
+                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" }
             ];
-            
+
             // Initialize calendar directly
             initializeCalendar();
-            
+
             function initializeCalendar() {
                 console.log("Initializing calendar with default events");
                 const calendarEl = document.getElementById('calendar');
                 const eventListEl = document.getElementById('event-list');
-                
+
                 if (!calendarEl) {
                     console.error('Calendar element not found');
                     return;
                 }
 
-                // Ensure calendar is visible
+                // Check if FullCalendar is loaded
+                if (typeof FullCalendar === 'undefined') {
+                    console.error('FullCalendar is not defined. Script might not be loaded properly.');
+                    calendarEl.innerHTML = '<div class="p-4 text-red-500">Calendar could not be loaded. Please refresh the page.</div>';
+                    return;
+                }
+
+                // Ensure calendar is visible with explicit dimensions
                 calendarEl.style.minHeight = '450px';
+                calendarEl.style.height = '450px';
+                calendarEl.style.width = '100%';
                 calendarEl.style.display = 'block';
-                
+
                 try {
                     // Always start with default events
                     let events = defaultEvents;
                     console.log("Using default events:", events);
-                    
+
                     // Server events logic (if any)
-                    @if (ViewBag.Events != null)
-                    {
-                        <text>
-                        try {
-                            const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
-                            console.log("Server events available:", serverEvents);
-                            if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                                events = serverEvents;
-                                console.log("Using server events instead of defaults");
-                            }
-                        } catch (e) {
-                            console.error("Error with server events:", e);
-                        }
-                        </text>
-                    }
-                    
+        @if (ViewBag.Events != null)
+        {
+            <text>
+                                                        try {
+                                                            const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                                                            console.log("Server events available:", serverEvents);
+                                                            if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                                                                events = serverEvents;
+                                                                console.log("Using server events instead of defaults");
+                                                            }
+                                                        } catch (e) {
+                                                            console.error("Error with server events:", e);
+                                                        }
+            </text>
+        }
+
                     // Create the calendar with current date
                     const calendar = new FullCalendar.Calendar(calendarEl, {
                         initialView: 'dayGridMonth',
-                        initialDate: '2025-04-24', // Current date (April 24, 2025)
+                        initialDate: new Date(), // Use current date from client browser
                         themeSystem: 'standard',
                         headerToolbar: {
                             left: 'prev,next today',
                             center: 'title',
                             right: 'dayGridMonth,timeGridWeek'
                         },
-                        height: 450,
+                        height: 'auto',
+                        contentHeight: 450,
+                        aspectRatio: 1.35,
                         events: events,
                         dayMaxEvents: true,
-                        displayEventTime: false
+                        displayEventTime: false,
+                        fixedWeekCount: false, // Allow variable number of rows
+                        showNonCurrentDates: true, // Show dates from adjacent months
+                        firstDay: 1, // Start week on Monday instead of Sunday
+                        eventDidMount: function(info) {
+                            // Add tooltips to events
+                            info.el.title = info.event.title;
+                        },
+                        datesSet: function(dateInfo) {
+                            console.log("Calendar dates set to:", dateInfo.start, "to", dateInfo.end);
+
+                            // Get current month and year
+                            const currentMonth = dateInfo.view.currentStart.getMonth();
+                            const currentYear = dateInfo.view.currentStart.getFullYear();
+
+                            // Apply custom styling but don't hide dates from other months
+                            const allDateCells = calendarEl.querySelectorAll('.fc-daygrid-day');
+                            allDateCells.forEach(cell => {
+                                const cellDate = cell.getAttribute('data-date');
+                                if (cellDate) {
+                                    const dateParts = cellDate.split('-');
+                                    const cellYear = parseInt(dateParts[0], 10);
+                                    const cellMonth = parseInt(dateParts[1], 10) - 1; // JS months are 0-based
+
+                                    // Check if cell is from current month/year
+                                    if (cellMonth !== currentMonth || cellYear !== currentYear) {
+                                        // Style dates from other months differently but don't hide them
+                                        cell.style.visibility = 'visible'; // Make sure dates are visible
+                                        cell.style.opacity = '0.6'; // Make them slightly faded
+                                        cell.style.backgroundColor = '#f9fafb'; // Very light gray background
+
+                                        // Style the day number to be lighter
+                                        const dayNumber = cell.querySelector('.fc-daygrid-day-number');
+                                        if (dayNumber) {
+                                            dayNumber.style.color = '#9ca3af'; // Gray color for dates from other months
+                                        }
+                                    } else {
+                                        // Make current month dates very visible
+                                        cell.style.visibility = 'visible';
+                                        cell.style.opacity = '1';
+                                        cell.style.backgroundColor = 'white';
+
+                                        // Reset the day number style
+                                        const dayNumber = cell.querySelector('.fc-daygrid-day-number');
+                                        if (dayNumber) {
+                                            dayNumber.style.color = '';
+                                            dayNumber.style.fontWeight = 'normal';
+
+                                            // Add day of week hint
+                                            const date = new Date(cellYear, cellMonth, parseInt(dayNumber.textContent, 10));
+                                            const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' });
+                                            dayNumber.setAttribute('title', dayOfWeek);
+                                        }
+                                    }
+                                }
+                            });
+
+                            // Highlight today's date specially
+                            const today = new Date();
+                            const todayStr = today.toISOString().split('T')[0];
+                            const currentDateCell = calendarEl.querySelector(`[data-date="${todayStr}"]`);
+                            if (currentDateCell) {
+                                currentDateCell.style.backgroundColor = 'rgba(148, 176, 223, 0.3)'; // Light primary color
+                                currentDateCell.style.borderRadius = '4px';
+                                currentDateCell.style.border = '2px solid #356480';
+                                const currentDayNumber = currentDateCell.querySelector('.fc-daygrid-day-number');
+                                if (currentDayNumber) {
+                                    currentDayNumber.style.fontWeight = 'bold';
+                                    currentDayNumber.style.color = '#356480'; // Secondary color
+                                }
+                            }
+                        }
                     });
-                    
+
                     // Render the calendar
                     calendar.render();
                     console.log("Calendar rendered successfully");
-                    
+
                     // Update event list
                     if (eventListEl) {
                         updateEventList(eventListEl, events);
                     }
                 } catch (error) {
                     console.error("Calendar initialization failed:", error);
-                    
+
                     // Show fallback calendar
                     calendarEl.innerHTML = `
                         <div class="bg-white p-4 rounded-lg shadow">
@@ -969,59 +1064,59 @@
                             </div>
                         </div>
                     `;
-                    
+
                     // Add the fallback calendar days
                     createSimpleCalendar();
-                    
+
                     // Add event list even in fallback mode
                     if (eventListEl) {
                         updateEventList(eventListEl, defaultEvents);
                     }
                 }
             }
-            
+
             // Keep these helper functions
             function createSimpleCalendar() {
                 const simpleCalendar = document.getElementById('simple-calendar');
                 if (!simpleCalendar) return;
-                
+
                 const today = new Date();
                 const month = today.getMonth();
                 const year = today.getFullYear();
-                
+
                 // Get first day of month and total days
                 const firstDay = new Date(year, month, 1).getDay();
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
-                
+
                 // Add empty cells for days before the 1st of the month
                 for (let i = 0; i < firstDay; i++) {
                     const emptyDay = document.createElement('div');
                     emptyDay.className = 'p-2 bg-gray-50';
                     simpleCalendar.appendChild(emptyDay);
                 }
-                
+
                 // Add days of the month
                 for (let i = 1; i <= daysInMonth; i++) {
                     const day = document.createElement('div');
                     day.className = 'p-2 hover:bg-gray-100 cursor-pointer border';
-                    
+
                     // Highlight current day
                     if (i === today.getDate()) {
                         day.className += ' bg-blue-100 font-bold';
                     }
-                    
+
                     day.textContent = i;
                     simpleCalendar.appendChild(day);
                 }
             }
-            
+
             // Helper function to update event list
             function updateEventList(eventListEl, events) {
                 if (!eventListEl) return;
-                
+
                 // Clear existing events
                 eventListEl.innerHTML = '';
-                
+
                 if (!events || events.length === 0) {
                     eventListEl.innerHTML = `
                         <li class="p-3 border border-gray-200 rounded-lg">
@@ -1033,26 +1128,26 @@
                     `;
                     return;
                 }
-                
+
                 // Sort events by date
                 events.sort((a, b) => new Date(a.start) - new Date(b.start));
-                
+
                 // Filter to show only upcoming events
                 const today = new Date();
                 const upcomingEvents = events.filter(event => new Date(event.start) >= today);
                 const displayEvents = upcomingEvents.length > 0 ? upcomingEvents : events;
-                
+
                 // Add events to the list
                 displayEvents.forEach(function(event) {
                     let li = document.createElement('li');
-                    
+
                     // Format date
                     const eventDate = new Date(event.start);
                     const formattedDate = eventDate.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric'
                     });
-                    
+
                     // Set icon based on event title
                     let icon = 'ph-calendar-check';
                     if (event.title.toLowerCase().includes('meeting')) {
@@ -1066,7 +1161,7 @@
                     } else if (event.title.toLowerCase().includes('garden')) {
                         icon = 'ph-plant';
                     }
-                    
+
                     // Create event list item
                     li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
                     li.style.borderLeftColor = event.color || '#94B0DF';
@@ -1118,6 +1213,17 @@
                 }
             });
         });
+
+        // Function to hide success toast
+        function hideSuccessToast() {
+            const successToast = document.getElementById('success-toast');
+            if (successToast) {
+                successToast.classList.add('hidden');
+            }
+        }
+
+        // Automatically hide success toast after 5 seconds
+        setTimeout(hideSuccessToast, 5000);
     </script>
 </body>
 </html>

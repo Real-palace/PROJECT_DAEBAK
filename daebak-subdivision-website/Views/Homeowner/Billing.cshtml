@@ -46,26 +46,26 @@
 
         <!-- Menu Items -->
         <div class="flex flex-col items-center gap-5">
-            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Dashboard">
+            <a href="@Url.Action("Dashboard", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Dashboard">
                 <i class="ph ph-house-simple"></i>
             </a>
-            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Billing & Payments">
+            <a href="@Url.Action("Billing", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Billing & Payments">
                 <i class="ph ph-credit-card"></i>
             </a>
-            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+            <a href="@Url.Action("Facilities", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
                 <i class="ph ph-tree-structure"></i>
             </a>
-            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
+            <a href="@Url.Action("Services", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
                 <i class="ph ph-wrench"></i>
             </a>
-            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
                 <i class="ph ph-shield"></i>
             </a>
         </div>
 
         <!-- User Profile and Logout -->
         <div class="flex flex-col items-center gap-3">
-            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
                 <i class="ph ph-sign-out"></i>
             </a>
         </div>
@@ -81,16 +81,67 @@
                 <div class="flex items-center gap-5">
                     <!-- Notifications -->
                     <div class="relative">
-                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
                             <i class="ph ph-bell text-2xl"></i>
-                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
                         </button>
+
+                        <!-- Notification Dropdown - Using Dashboard style -->
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-medium text-gray-700">Notifications</h3>
+                                    <button id="mark-all-read" class="text-primary text-xs hover:underline flex items-center gap-1">
+                                        <i class="ph ph-check-circle"></i> Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto custom-scrollbar" id="notification-content">
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread border-l-4 border-blue-500 p-4 bg-blue-50/50 hover:bg-blue-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-bell text-blue-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Community Announcement</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
+                                            <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread border-l-4 border-green-500 p-4 bg-green-50/50 hover:bg-green-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-green-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-check-circle text-green-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Payment Confirmed</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">Your payment of ₱2,500 for March dues has been received.</p>
+                                            <p class="text-xs text-gray-400 mt-2">5 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- User Menu -->
                     <div class="relative">
-                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
-                            <span class="hidden md:block">@ViewBag.UserName</span>
+                        <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.FirstName</span>
                             <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                                 <i class="ph ph-user"></i>
                             </div>
@@ -108,14 +159,14 @@
                         <h2 class="text-2xl font-semibold text-tertiary mb-2">Billing Overview</h2>
                         <p class="text-gray-600">House #@ViewBag.HouseNumber</p>
                     </div>
-                    
+
                     <div class="mt-4 md:mt-0">
-                        <a href="#payment-section" class="bg-secondary hover:bg-primary text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center">
+                        <button onclick="switchToPaymentTab()" class="bg-secondary hover:bg-primary text-white font-medium py-2 px-6 rounded-lg transition-colors flex items-center justify-center">
                             <i class="ph ph-credit-card mr-2"></i> Make a Payment
-                        </a>
+                        </button>
                     </div>
                 </div>
-                
+
                 <!-- Quick Stats -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
                     <div class="bg-blue-50 p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow flex items-center border-l-4 border-blue-500">
@@ -180,13 +231,13 @@
                 <div class="bg-white rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-tertiary">Current Bills</h3>
-                        
+
                         <div class="flex gap-2">
                             <div class="relative">
                                 <input type="text" id="bill-search" placeholder="Search bills..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
                                 <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
-                            
+
                             <select id="bill-status-filter" class="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
                                 <option value="all">All Bills</option>
                                 <option value="pending">Pending</option>
@@ -195,7 +246,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -224,7 +275,7 @@
                                         <a href="#payment-section" onclick="prepopulateBill('BILL-2025-001', 'Monthly Association Dues', 2500)" class="hover:underline">Pay Now</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Row 2 -->
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-002</td>
@@ -240,7 +291,7 @@
                                         <a href="#payment-section" onclick="prepopulateBill('BILL-2025-002', 'Water Utilities', 1250)" class="hover:underline">Pay Now</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Row 3 -->
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-003</td>
@@ -256,7 +307,7 @@
                                         <a href="#payment-section" onclick="prepopulateBill('BILL-2025-003', 'Security Fee', 1500)" class="hover:underline">Pay Now</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Row 4 (Overdue) -->
                                 <tr class="hover:bg-gray-50 bg-red-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">BILL-2025-000</td>
@@ -277,19 +328,19 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Payment History Section -->
             <div id="payment-history" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow-md p-6 mb-8">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-tertiary">Payment History</h3>
-                        
+
                         <div class="flex gap-2">
                             <div class="relative">
                                 <input type="text" placeholder="Search payments..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
                                 <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             </div>
-                            
+
                             <select class="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
                                 <option value="all">All Time</option>
                                 <option value="this_month">This Month</option>
@@ -299,7 +350,7 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead class="bg-gray-50">
@@ -330,7 +381,7 @@
                                         <a href="#" onclick="viewReceipt('RCPT-2025-003')" class="hover:underline">View Receipt</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Row 2 -->
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RCPT-2025-002</td>
@@ -347,7 +398,7 @@
                                         <a href="#" onclick="viewReceipt('RCPT-2025-002')" class="hover:underline">View Receipt</a>
                                     </td>
                                 </tr>
-                                
+
                                 <!-- Row 3 -->
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">RCPT-2025-001</td>
@@ -369,12 +420,12 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Make Payment Section -->
             <div id="make-payment" class="tab-content hidden">
                 <div id="payment-section" class="bg-white rounded-xl shadow-md p-6 mb-8">
                     <h3 class="text-lg font-semibold text-tertiary mb-4">Make a Payment</h3>
-                    
+
                     <form id="payment-form" class="space-y-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Bill Selection -->
@@ -389,7 +440,7 @@
                                     <option value="multiple">Pay Multiple Bills</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Amount -->
                             <div>
                                 <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
@@ -400,7 +451,7 @@
                                     <input type="text" id="amount" name="amount" class="w-full pl-8 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="0.00">
                                 </div>
                             </div>
-                            
+
                             <!-- Payment Method -->
                             <div>
                                 <label for="payment_method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
@@ -411,37 +462,37 @@
                                     <option value="bank_transfer">Bank Transfer</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Payment Date -->
                             <div>
                                 <label for="payment_date" class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
                                 <input type="date" id="payment_date" name="payment_date" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
                             </div>
                         </div>
-                        
+
                         <!-- Credit Card Information (conditionally shown based on payment method) -->
                         <div id="credit-card-section" class="border-t pt-6 space-y-6">
                             <h4 class="font-medium text-gray-700">Credit Card Information</h4>
-                            
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Card Number -->
                                 <div>
                                     <label for="card_number" class="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
                                     <input type="text" id="card_number" name="card_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="1234 5678 9012 3456">
                                 </div>
-                                
+
                                 <!-- Card Name -->
                                 <div>
                                     <label for="card_name" class="block text-sm font-medium text-gray-700 mb-1">Name on Card</label>
                                     <input type="text" id="card_name" name="card_name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="John Doe">
                                 </div>
-                                
+
                                 <!-- Expiration Date -->
                                 <div>
                                     <label for="expiry_date" class="block text-sm font-medium text-gray-700 mb-1">Expiration Date</label>
                                     <input type="text" id="expiry_date" name="expiry_date" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="MM/YY">
                                 </div>
-                                
+
                                 <!-- CVV -->
                                 <div>
                                     <label for="cvv" class="block text-sm font-medium text-gray-700 mb-1">CVV</label>
@@ -449,18 +500,18 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- GCash Information (initially hidden) -->
                         <div id="gcash-section" class="border-t pt-6 space-y-6 hidden">
                             <h4 class="font-medium text-gray-700">GCash Information</h4>
-                            
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- GCash Number -->
                                 <div>
                                     <label for="gcash_number" class="block text-sm font-medium text-gray-700 mb-1">GCash Number</label>
                                     <input type="text" id="gcash_number" name="gcash_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="09XX XXX XXXX">
                                 </div>
-                                
+
                                 <!-- GCash Name -->
                                 <div>
                                     <label for="gcash_name" class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
@@ -468,18 +519,18 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Maya Information (initially hidden) -->
                         <div id="maya-section" class="border-t pt-6 space-y-6 hidden">
                             <h4 class="font-medium text-gray-700">Maya Information</h4>
-                            
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Maya Number -->
                                 <div>
                                     <label for="maya_number" class="block text-sm font-medium text-gray-700 mb-1">Maya Account Number</label>
                                     <input type="text" id="maya_number" name="maya_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="09XX XXX XXXX">
                                 </div>
-                                
+
                                 <!-- Maya Name -->
                                 <div>
                                     <label for="maya_name" class="block text-sm font-medium text-gray-700 mb-1">Account Name</label>
@@ -487,11 +538,11 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Bank Transfer Information (initially hidden) -->
                         <div id="bank-section" class="border-t pt-6 space-y-6 hidden">
                             <h4 class="font-medium text-gray-700">Bank Transfer Information</h4>
-                            
+
                             <div class="p-4 bg-blue-50 rounded-lg">
                                 <p class="text-sm text-gray-700">Please transfer the payment to our bank account and upload the proof of payment below:</p>
                                 <div class="mt-2 space-y-1">
@@ -500,24 +551,24 @@
                                     <p class="text-sm"><span class="font-medium">Account Number:</span> 1234-5678-9012-3456</p>
                                 </div>
                             </div>
-                            
+
                             <div>
                                 <label for="proof_of_payment" class="block text-sm font-medium text-gray-700 mb-1">Upload Proof of Payment</label>
                                 <input type="file" id="proof_of_payment" name="proof_of_payment" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
                             </div>
-                            
+
                             <div>
                                 <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
                                 <input type="text" id="reference_number" name="reference_number" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Bank Reference Number">
                             </div>
                         </div>
-                        
+
                         <!-- Additional Notes -->
                         <div>
                             <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Additional Notes (Optional)</label>
                             <textarea id="notes" name="notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" placeholder="Any additional information..."></textarea>
                         </div>
-                        
+
                         <!-- Terms and Conditions -->
                         <div class="flex items-start">
                             <div class="flex items-center h-5">
@@ -527,7 +578,7 @@
                                 <label for="terms" class="text-gray-700">I agree to the <a href="#" class="text-blue-600 hover:underline">Terms and Conditions</a> and acknowledge the <a href="#" class="text-blue-600 hover:underline">Privacy Policy</a>.</label>
                             </div>
                         </div>
-                        
+
                         <!-- Submit Button -->
                         <div class="flex justify-end">
                             <button type="submit" class="bg-secondary hover:bg-primary text-white font-medium py-2 px-6 rounded-lg transition-colors">
@@ -537,7 +588,7 @@
                     </form>
                 </div>
             </div>
-            
+
             <!-- Payment Reminder -->
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-8 rounded-md">
                 <div class="flex items-start">
@@ -552,7 +603,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Payment Methods Info -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
@@ -562,7 +613,7 @@
                     </div>
                     <p class="text-sm text-gray-600">Pay securely with Visa, Mastercard, or other major credit cards.</p>
                 </div>
-                
+
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div class="flex items-center mb-2">
                         <i class="ph ph-wallet text-xl text-green-500 mr-2"></i>
@@ -570,15 +621,7 @@
                     </div>
                     <p class="text-sm text-gray-600">Quick and easy mobile payments with GCash.</p>
                 </div>
-                
-                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                    <div class="flex items-center mb-2">
-                        <i class="ph ph-bank text-xl text-purple-500 mr-2"></i>
-                        <h4 class="font-medium">Bank Transfer</h4>
-                    </div>
-                    <p class="text-sm text-gray-600">Transfer directly from your bank account.</p>
-                </div>
-                
+
                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
                     <div class="flex items-center mb-2">
                         <i class="ph ph-currency-circle-dollar text-xl text-red-500 mr-2"></i>
@@ -586,12 +629,20 @@
                     </div>
                     <p class="text-sm text-gray-600">Quick payments using your Maya account.</p>
                 </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <div class="flex items-center mb-2">
+                        <i class="ph ph-bank text-xl text-purple-500 mr-2"></i>
+                        <h4 class="font-medium">Bank Transfer</h4>
+                    </div>
+                    <p class="text-sm text-gray-600">Transfer directly from your bank account.</p>
+                </div>
             </div>
-            
+
             <!-- FAQ Section -->
             <div class="bg-white rounded-xl shadow-md p-6 mb-8">
                 <h3 class="text-lg font-semibold text-tertiary mb-4">Frequently Asked Questions</h3>
-                
+
                 <div class="space-y-4">
                     <div class="border-b pb-4">
                         <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
@@ -602,7 +653,7 @@
                             <p>Association dues are typically due on the 15th of each month. Other utilities may have different due dates.</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-b pb-4">
                         <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
                             <span>What happens if I miss a payment?</span>
@@ -612,7 +663,7 @@
                             <p>Late payments may incur a penalty fee of 5% after the due date. Continued non-payment may result in additional penalties as outlined in the homeowner's agreement.</p>
                         </div>
                     </div>
-                    
+
                     <div class="border-b pb-4">
                         <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
                             <span>How do I download a receipt for my records?</span>
@@ -622,14 +673,14 @@
                             <p>After making a payment, receipts can be downloaded from the Payment History section. Simply click "View Receipt" next to any payment record.</p>
                         </div>
                     </div>
-                    
+
                     <div>
                         <button class="flex justify-between items-center w-full text-left font-medium text-gray-700 focus:outline-none">
                             <span>Who should I contact if I have questions about my bill?</span>
                             <i class="ph ph-caret-down text-gray-400"></i>
                         </button>
                         <div class="mt-2 text-sm text-gray-600">
-                            <p>For billing inquiries, please contact our treasury department at <a href="mailto:treasury@daebak.com" class="text-blue-600 hover:underline">treasury@daebak.com</a> or call (555) 123-4567 during office hours.</p>
+                            <p>For billing inquiries, please contact our treasury department at <a href="mailto:treasury@daebak.com" class="text-blue-600 hover:underline">treasury@daebak.com</a> or call (032) 345-6789 during office hours.</p>
                         </div>
                     </div>
                 </div>
@@ -638,6 +689,26 @@
             <!-- Footer -->
             <div class="text-center mt-10 mb-4 text-sm text-gray-500">
                 © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <button id="confirm-logout" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
+                        Yes, Logout
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -652,7 +723,7 @@
                         <i class="ph ph-x text-xl"></i>
                     </button>
                 </div>
-                
+
                 <div id="receipt-content" class="border rounded-lg p-4">
                     <!-- Receipt content will be inserted here by JS -->
                     <div class="text-center mb-4">
@@ -660,7 +731,7 @@
                         <h4 class="font-bold text-lg">DAEBAK SUBDIVISION</h4>
                         <p class="text-sm text-gray-600">Official Payment Receipt</p>
                     </div>
-                    
+
                     <div class="border-t border-b py-4 my-4">
                         <div class="flex justify-between py-1">
                             <span class="text-gray-600">Receipt No:</span>
@@ -679,7 +750,7 @@
                             <span id="receipt-method">Credit Card</span>
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <div class="flex justify-between font-medium py-1">
                             <span>Description</span>
@@ -690,20 +761,20 @@
                             <span id="receipt-amount">₱2,500.00</span>
                         </div>
                     </div>
-                    
+
                     <div class="border-t pt-4">
                         <div class="flex justify-between font-bold py-1">
                             <span>TOTAL PAID</span>
                             <span id="receipt-total">₱2,500.00</span>
                         </div>
                     </div>
-                    
+
                     <div class="text-center mt-6 text-sm text-gray-600">
                         <p>Thank you for your payment!</p>
                         <p>If you have any questions, please contact the administration office.</p>
                     </div>
                 </div>
-                
+
                 <div class="mt-6 flex justify-end space-x-3">
                     <button onclick="downloadReceipt()" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-md transition-colors">
                         <i class="ph ph-download mr-1"></i> Download
@@ -724,20 +795,20 @@
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.add('hidden');
             });
-            
+
             // Show selected tab content
             document.getElementById(tabId).classList.remove('hidden');
-            
+
             // Reset all tab buttons
             document.querySelectorAll('[id$="-tab"]').forEach(button => {
                 button.classList.remove('border-secondary', 'text-secondary');
                 button.classList.add('border-transparent', 'text-gray-500');
             });
-            
+
             // Highlight selected tab button
             document.getElementById(tabId + '-tab').classList.remove('border-transparent', 'text-gray-500');
             document.getElementById(tabId + '-tab').classList.add('border-secondary', 'text-secondary');
-            
+
             // If "Make a Payment" tab is selected, scroll to the payment form
             if (tabId === 'make-payment') {
                 setTimeout(() => {
@@ -745,7 +816,15 @@
                 }, 100);
             }
         }
-        
+
+        // Function to switch to the payment tab and scroll to the payment section
+        function switchToPaymentTab() {
+            switchTab('make-payment');
+            setTimeout(() => {
+                document.getElementById('payment-section').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
         // Payment method selection handling
         document.getElementById('payment_method').addEventListener('change', function() {
             // Hide all payment method sections
@@ -753,7 +832,7 @@
             document.getElementById('gcash-section').classList.add('hidden');
             document.getElementById('maya-section').classList.add('hidden');
             document.getElementById('bank-section').classList.add('hidden');
-            
+
             // Show selected payment method section
             switch (this.value) {
                 case 'credit_card':
@@ -770,11 +849,11 @@
                     break;
             }
         });
-        
+
         // Bill selection handling
         document.getElementById('bill_id').addEventListener('change', function() {
             const amount = document.getElementById('amount');
-            
+
             // Prepopulate amount based on selected bill
             switch (this.value) {
                 case 'BILL-2025-000':
@@ -796,55 +875,55 @@
                     amount.value = '';
             }
         });
-        
+
         // Function to prepopulate bill details from the My Bills table
         function prepopulateBill(billId, description, amount) {
             // Switch to Make Payment tab
             switchTab('make-payment');
-            
+
             // Select the bill in dropdown
             document.getElementById('bill_id').value = billId;
-            
+
             // Set amount
             document.getElementById('amount').value = amount.toFixed(2);
-            
+
             // Set today's date as default payment date
             const today = new Date();
             const formattedDate = today.toISOString().substr(0, 10);
             document.getElementById('payment_date').value = formattedDate;
         }
-        
+
         // Form submission handling
         document.getElementById('payment-form').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // Validate form
             const amount = document.getElementById('amount').value;
             const terms = document.getElementById('terms').checked;
-            
+
             if (!amount || parseFloat(amount) <= 0) {
                 alert('Please enter a valid payment amount.');
                 return;
             }
-            
+
             if (!terms) {
                 alert('Please agree to the terms and conditions.');
                 return;
             }
-            
+
             // Show confirmation dialog
             if (confirm('Are you sure you want to proceed with this payment?')) {
                 // In a real application, you would submit the form to the server
                 // For this demo, we'll simulate a successful payment
                 alert('Payment successful! A receipt has been sent to your email.');
-                
+
                 // Redirect to Home page or refresh the current page
                 setTimeout(() => {
                     window.location.href = '@Url.Action("Home", "Home")';
                 }, 1000);
             }
         });
-        
+
         // Receipt modal handling
         function viewReceipt(receiptId) {
             // In a real application, you would fetch the receipt details from the server
@@ -858,7 +937,7 @@
                 amount: '₱2,500.00',
                 total: '₱2,500.00'
             };
-            
+
             // If receiptId includes "002", change the data
             if (receiptId.includes('002')) {
                 receiptData = {
@@ -881,7 +960,7 @@
                     total: '₱1,500.00'
                 };
             }
-            
+
             // Update receipt content
             document.getElementById('receipt-number').textContent = receiptData.number;
             document.getElementById('receipt-date').textContent = receiptData.date;
@@ -890,30 +969,30 @@
             document.getElementById('receipt-description').textContent = receiptData.description;
             document.getElementById('receipt-amount').textContent = receiptData.amount;
             document.getElementById('receipt-total').textContent = receiptData.total;
-            
+
             // Show modal
             document.getElementById('receipt-modal').classList.remove('hidden');
         }
-        
+
         function closeReceiptModal() {
             document.getElementById('receipt-modal').classList.add('hidden');
         }
-        
+
         function downloadReceipt() {
             alert('Receipt download started. The file will be saved to your downloads folder.');
             // In a real application, you would generate a PDF and trigger a download
         }
-        
+
         function printReceipt() {
             window.print();
         }
-        
+
         // Set today's date as default payment date
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const formattedDate = today.toISOString().substr(0, 10);
             document.getElementById('payment_date').value = formattedDate;
-            
+
             // Check if URL has hash for direct access to a specific tab
             const hash = window.location.hash;
             if (hash) {
@@ -929,14 +1008,14 @@
             const searchInput = document.getElementById('bill-search');
             const statusFilter = document.getElementById('bill-status-filter');
             const billRows = document.querySelectorAll('#my-bills table tbody tr');
-            
+
             function filterBills() {
                 const searchTerm = searchInput.value.toLowerCase();
                 const selectedStatus = statusFilter.value;
-                
+
                 billRows.forEach(row => {
                     let showRow = true;
-                    
+
                     // Text search filtering
                     if (searchTerm) {
                         const textContent = row.textContent.toLowerCase();
@@ -944,31 +1023,31 @@
                             showRow = false;
                         }
                     }
-                    
+
                     // Status filtering
                     if (selectedStatus !== 'all') {
                         const statusCell = row.querySelector('td:nth-child(5) span');
                         const rowStatus = statusCell.textContent.trim().toLowerCase();
-                        
+
                         if (rowStatus !== selectedStatus) {
                             showRow = false;
                         }
                     }
-                    
+
                     // Show or hide the row
                     row.style.display = showRow ? '' : 'none';
                 });
             }
-            
+
             // Add event listeners
             if (searchInput) {
                 searchInput.addEventListener('input', filterBills);
             }
-            
+
             if (statusFilter) {
                 statusFilter.addEventListener('change', filterBills);
             }
-            
+
             // Check URL hash for direct access to specific tab and status filter
             const hash = window.location.hash;
             if (hash && hash.includes('status=')) {
@@ -978,6 +1057,19 @@
                     filterBills();
                 }
             }
+        });
+
+        // Logout confirmation
+        function confirmLogout() {
+            document.getElementById('logout-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('cancel-logout').addEventListener('click', function() {
+            document.getElementById('logout-modal').classList.add('hidden');
+        });
+
+        document.getElementById('confirm-logout').addEventListener('click', function() {
+            window.location.href = '@Url.Action("Logout", "Account")';
         });
     </script>
 </body>

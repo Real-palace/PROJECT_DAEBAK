@@ -55,7 +55,12 @@ namespace daebak_subdivision_website.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.UserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.FirstName = $"{user.FirstName}";
+            ViewBag.HouseNumber = user.HouseNumber ?? "N/A";
+            ViewBag.CurrentBalance = "5,250.00";
+            ViewBag.DueDate = "March 15, 2025";
+            ViewBag.LastPayment = "2,500.00";
+            ViewBag.LastPaymentDate = "February 15, 2025";
 
             return View();
         }
