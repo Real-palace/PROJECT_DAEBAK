@@ -879,50 +879,58 @@
                 }
             });
 
-            // Define default events outside of any function so it's available in the global scope
-            var defaultEvents = [
+            // Define default events once at the beginning
+            const defaultEvents = [
                 { title: "Homeowners Meeting", start: "2025-04-15", color: "#FF9AA2" },
                 { title: "Facility Maintenance", start: "2025-04-20", color: "#B5EAD7" },
                 { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" },
                 { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" },
                 { title: "Garden Committee", start: "2025-04-29", color: "#98D8AA" }
             ];
-
-            // Calendar Setup - Completely rewritten for reliability
+            
+            // Initialize calendar directly
+            initializeCalendar();
+            
             function initializeCalendar() {
-                var calendarEl = document.getElementById('calendar');
-                var eventListEl = document.getElementById('event-list');
-
+                console.log("Initializing calendar with default events");
+                const calendarEl = document.getElementById('calendar');
+                const eventListEl = document.getElementById('event-list');
+                
                 if (!calendarEl) {
                     console.error('Calendar element not found');
                     return;
                 }
 
-                // Make sure the calendar element is visible and has height
-                calendarEl.style.minHeight = '400px';
-
+                // Ensure calendar is visible
+                calendarEl.style.minHeight = '450px';
+                calendarEl.style.display = 'block';
+                
                 try {
-                    // Get events from server with proper error handling
-                    var events = defaultEvents;
-
-        @if (ViewBag.Events != null)
-        {
-            <text>
-                            try {
-                                var serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
-                                if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                                    events = serverEvents;
-                                }
-                            } catch (e) {
-                                console.error("Error parsing server events:", e);
+                    // Always start with default events
+                    let events = defaultEvents;
+                    console.log("Using default events:", events);
+                    
+                    // Server events logic (if any)
+                    @if (ViewBag.Events != null)
+                    {
+                        <text>
+                        try {
+                            const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                            console.log("Server events available:", serverEvents);
+                            if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                                events = serverEvents;
+                                console.log("Using server events instead of defaults");
                             }
-            </text>
-        }
-
-                    // Create calendar instance
-                    var calendar = new FullCalendar.Calendar(calendarEl, {
+                        } catch (e) {
+                            console.error("Error with server events:", e);
+                        }
+                        </text>
+                    }
+                    
+                    // Create the calendar with current date
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
                         initialView: 'dayGridMonth',
-                        initialDate: '2025-04-24',
+                        initialDate: '2025-04-24', // Current date (April 24, 2025)
                         themeSystem: 'standard',
                         headerToolbar: {
                             left: 'prev,next today',
@@ -931,50 +939,89 @@
                         },
                         height: 450,
                         events: events,
-                        dayMaxEvents: true, // Show "more" link when too many events
-                        displayEventTime: false // Don't show event time
+                        dayMaxEvents: true,
+                        displayEventTime: false
                     });
-
-                    // Render calendar
+                    
+                    // Render the calendar
                     calendar.render();
-
-                    // Update the event list
-                    updateEventList(eventListEl, events);
-
+                    console.log("Calendar rendered successfully");
+                    
+                    // Update event list
+                    if (eventListEl) {
+                        updateEventList(eventListEl, events);
+                    }
                 } catch (error) {
-                    console.error('Calendar initialization failed:', error);
-                    // Show error message
+                    console.error("Calendar initialization failed:", error);
+                    
+                    // Show fallback calendar
                     calendarEl.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg p-4">
-                            <i class="ph ph-calendar-x text-4xl text-red-400 mb-2"></i>
-                            <p class="text-red-600">Could not load the calendar.</p>
-                            <button onclick="initializeCalendar()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                                Try Again
-                            </button>
+                        <div class="bg-white p-4 rounded-lg shadow">
+                            <p class="text-red-600 mb-4">Full calendar couldn't load properly. Showing simple calendar instead.</p>
+                            <div id="simple-calendar" class="grid grid-cols-7 gap-1 text-center">
+                                <div class="font-bold bg-gray-100 p-2">Sun</div>
+                                <div class="font-bold bg-gray-100 p-2">Mon</div>
+                                <div class="font-bold bg-gray-100 p-2">Tue</div>
+                                <div class="font-bold bg-gray-100 p-2">Wed</div>
+                                <div class="font-bold bg-gray-100 p-2">Thu</div>
+                                <div class="font-bold bg-gray-100 p-2">Fri</div>
+                                <div class="font-bold bg-gray-100 p-2">Sat</div>
+                            </div>
                         </div>
                     `;
-
-                    // Add fallback event list
+                    
+                    // Add the fallback calendar days
+                    createSimpleCalendar();
+                    
+                    // Add event list even in fallback mode
                     if (eventListEl) {
-                        eventListEl.innerHTML = `
-                            <li class="p-3 border border-gray-200 rounded-lg">
-                                <div class="text-center text-gray-500">
-                                    <i class="ph ph-calendar-x text-2xl mb-2"></i>
-                                    <p>Could not load events.</p>
-                                </div>
-                            </li>
-                        `;
+                        updateEventList(eventListEl, defaultEvents);
                     }
                 }
             }
-
+            
+            // Keep these helper functions
+            function createSimpleCalendar() {
+                const simpleCalendar = document.getElementById('simple-calendar');
+                if (!simpleCalendar) return;
+                
+                const today = new Date();
+                const month = today.getMonth();
+                const year = today.getFullYear();
+                
+                // Get first day of month and total days
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                
+                // Add empty cells for days before the 1st of the month
+                for (let i = 0; i < firstDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'p-2 bg-gray-50';
+                    simpleCalendar.appendChild(emptyDay);
+                }
+                
+                // Add days of the month
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const day = document.createElement('div');
+                    day.className = 'p-2 hover:bg-gray-100 cursor-pointer border';
+                    
+                    // Highlight current day
+                    if (i === today.getDate()) {
+                        day.className += ' bg-blue-100 font-bold';
+                    }
+                    
+                    day.textContent = i;
+                    simpleCalendar.appendChild(day);
+                }
+            }
+            
             // Helper function to update event list
             function updateEventList(eventListEl, events) {
                 if (!eventListEl) return;
-
+                
                 // Clear existing events
                 eventListEl.innerHTML = '';
-
+                
                 if (!events || events.length === 0) {
                     eventListEl.innerHTML = `
                         <li class="p-3 border border-gray-200 rounded-lg">
@@ -986,21 +1033,26 @@
                     `;
                     return;
                 }
-
+                
                 // Sort events by date
                 events.sort((a, b) => new Date(a.start) - new Date(b.start));
-
+                
+                // Filter to show only upcoming events
+                const today = new Date();
+                const upcomingEvents = events.filter(event => new Date(event.start) >= today);
+                const displayEvents = upcomingEvents.length > 0 ? upcomingEvents : events;
+                
                 // Add events to the list
-                events.forEach(function(event) {
+                displayEvents.forEach(function(event) {
                     let li = document.createElement('li');
-
+                    
                     // Format date
                     const eventDate = new Date(event.start);
                     const formattedDate = eventDate.toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric'
                     });
-
+                    
                     // Set icon based on event title
                     let icon = 'ph-calendar-check';
                     if (event.title.toLowerCase().includes('meeting')) {
@@ -1014,7 +1066,7 @@
                     } else if (event.title.toLowerCase().includes('garden')) {
                         icon = 'ph-plant';
                     }
-
+                    
                     // Create event list item
                     li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
                     li.style.borderLeftColor = event.color || '#94B0DF';
@@ -1034,9 +1086,6 @@
                     eventListEl.appendChild(li);
                 });
             }
-
-            // Initialize the calendar
-            initializeCalendar();
 
             // Announcements Modal
             const announcementsModal = document.getElementById('announcements-modal');
