@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using daebak_subdivision_website.Models;
 using System.Linq;
+using System;
 
 namespace daebak_subdivision_website.Controllers
 {
@@ -20,7 +22,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Dashboard()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -48,7 +52,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Billing()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -68,7 +74,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Facilities()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -83,7 +91,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Services()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -98,7 +108,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Security()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -113,7 +125,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Profile()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -147,7 +161,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult UpdateProfile(UserProfileViewModel model)
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -259,6 +275,7 @@ namespace daebak_subdivision_website.Controllers
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.PhoneNumber = model.PhoneNumber;
+            user.HouseNumber = model.HouseNumber; // Update HouseNumber using the virtual property
             user.UpdatedAt = DateTime.Now;
 
             try

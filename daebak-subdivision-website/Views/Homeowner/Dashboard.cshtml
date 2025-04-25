@@ -122,7 +122,6 @@
                 <div class="text-lg font-medium text-tertiary">Dashboard</div>
 
                 <div class="flex items-center gap-5">
-                    <!-- Search Bar removed -->
                     <!-- Notifications -->
                     <div class="relative">
                         <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
@@ -130,7 +129,7 @@
                             <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
                         </button>
 
-                        <!-- Notification Dropdown - Fixed scrolling issue -->
+                        <!-- Notification Dropdown -->
                         <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
                             <div class="p-4 border-b border-gray-200">
                                 <div class="flex justify-between items-center">
@@ -201,26 +200,26 @@
                                 <!-- Read Notification -->
                                 <div class="notification-item p-4 hover:bg-gray-50">
                                     <div class="flex items-start">
-                                        <div class="bg-purple-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-chat-text text-purple-500"></i>
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-chat-text text-blue-500"></i>
                                         </div>
                                         <div class="flex-1">
                                             <p class="text-sm font-medium text-gray-800">New Forum Post</p>
                                             <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
-                                            <p class="text-xs text-gray-400 mt-2">2 days ago</p>
+                                            <p class="text-xs text-gray-400 mt-2">3 days ago</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Additional Read Notification -->
+                                <!-- Read Notification -->
                                 <div class="notification-item p-4 hover:bg-gray-50">
                                     <div class="flex items-start">
                                         <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-info text-blue-500"></i>
+                                            <i class="ph ph-check-circle text-blue-500"></i>
                                         </div>
                                         <div class="flex-1">
                                             <p class="text-sm font-medium text-gray-800">Maintenance Complete</p>
-                                            <p class="text-xs text-gray-500 mt-1">The scheduled maintenance of the swimming pool has been completed. The facility is now open for use.</p>
+                                            <p class="text-xs text-gray-500 mt-1">Maintenance of the swimming pool has been completed. The facility is now open for use.</p>
                                             <p class="text-xs text-gray-400 mt-2">3 days ago</p>
                                         </div>
                                     </div>
@@ -242,7 +241,7 @@
             </div>
         </div>
 
-        <div class="p-6">
+        <div class="max-w-7xl mx-auto p-6">
             <!-- Welcome Card -->
             <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
                 <img src="~/images/subdivision_banner.jpg" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
@@ -471,6 +470,7 @@
                             }
                             else
                             {
+                                <!-- Sample announcements if no data provided -->
                                 <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
                                     <div class="flex justify-between items-start">
                                         <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
@@ -499,7 +499,7 @@
                                         <span class="text-gray-400 text-sm">Feb 28, 2025</span>
                                     </div>
                                     <h4 class="font-medium text-lg">Community Gathering</h4>
-                                    <p class="text-gray-500">Join us for a BBQ night on March 20, 5, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
+                                    <p class="text-gray-500">Join us for a BBQ night on March 20, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
                                 </li>
                             }
                         </ul>
@@ -936,16 +936,16 @@
         @if (ViewBag.Events != null)
         {
             <text>
-                                                        try {
-                                                            const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
-                                                            console.log("Server events available:", serverEvents);
-                                                            if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                                                                events = serverEvents;
-                                                                console.log("Using server events instead of defaults");
+                                                            try {
+                                                                const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                                                                console.log("Server events available:", serverEvents);
+                                                                if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                                                                    events = serverEvents;
+                                                                    console.log("Using server events instead of defaults");
+                                                                }
+                                                            } catch (e) {
+                                                                console.error("Error with server events:", e);
                                                             }
-                                                        } catch (e) {
-                                                            console.error("Error with server events:", e);
-                                                        }
             </text>
         }
 
@@ -960,12 +960,12 @@
                             right: 'dayGridMonth,timeGridWeek'
                         },
                         height: 'auto',
-                        contentHeight: 450,
-                        aspectRatio: 1.35,
+                        contentHeight: 'auto',
+                        aspectRatio: 1.8, // Increased from 1.35 to provide more vertical space
                         events: events,
-                        dayMaxEvents: true,
+                        dayMaxEvents: 3, // Limit visible events per day before showing "+more"
                         displayEventTime: false,
-                        fixedWeekCount: false, // Allow variable number of rows
+                        fixedWeekCount: false, // Allow variable number of rows (5 instead of 6)
                         showNonCurrentDates: true, // Show dates from adjacent months
                         firstDay: 1, // Start week on Monday instead of Sunday
                         eventDidMount: function(info) {

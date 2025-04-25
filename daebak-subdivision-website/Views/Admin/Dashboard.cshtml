@@ -1,6 +1,7 @@
 ﻿@model daebak_subdivision_website.Models.AdminPageModel
 @{
     ViewData["Title"] = "Admin Dashboard";
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -9,11 +10,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.7.3/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <!-- Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -24,144 +26,168 @@
                         secondary: '#356480',
                         tertiary: '#2c3e50',
                         light: '#FCFDFF',
-                        accent: '#FF6B6B',
-                        dashboard: {
-                            bg: '#F3F4F6',
-                            card: '#FFFFFF'
-                        }
                     },
                     fontFamily: {
                         sans: ['Poppins', 'sans-serif'],
                     },
                 },
             },
-            plugins: [require("daisyui")],
-            daisyui: {
-                themes: ["light"],
-            },
         };
     </script>
 
     <style>
-        /* Hide scrollbar but maintain functionality */
-        ::-webkit-scrollbar {
-            display: none;
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
         }
 
-        /* Hide scrollbar for Firefox */
-        * {
-            scrollbar-width: none;
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        /* Prevent horizontal scroll */
-        body {
-            overflow-x: hidden;
-            -ms-overflow-style: none; /* Hide scrollbar for IE and Edge */
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
-        /* Fix dropdown positioning */
-        .dropdown-content {
-            left: 100%;
-            top: 0;
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+
+        /* Hide scrollbar when not hovering */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
         }
 
-        /* Improve nav item spacing */
-        .nav-item-spacing {
-            margin-bottom: 1.25rem;
+            .custom-scrollbar:hover {
+                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+            }
+
+        /* Calendar Styles from Homeowner Dashboard */
+        .fc {
+            font-family: 'Poppins', sans-serif;
         }
 
-        /* Add to the existing style section */
-        .dropdown-content {
-            left: 100% !important;
-            top: 0 !important;
-            margin-left: 0.5rem !important;
-            transform: translateX(5px) !important;
-        }
-
-        /* Add to your existing <style> section */
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            left: 100% !important;
-            top: 0 !important;
-            margin-left: 0.5rem !important;
-            z-index: 50;
-        }
-
-        .menu li > a {
-            padding: 0.75rem 1rem;
-            display: flex;
-            align-items: center;
-            transition: all 0.2s;
-        }
-
-            .menu li > a:hover {
-                background-color: #f3f4f6;
+            .fc .fc-toolbar-title {
+                font-size: 1.25em;
+                font-weight: 500;
                 color: #356480;
             }
 
-        /* Update dropdown styles */
-        .dropdown-content {
+            .fc .fc-button-primary {
+                background-color: #356480;
+                border-color: #356480;
+                font-family: 'Poppins', sans-serif;
+                font-weight: 500;
+            }
+
+                .fc .fc-button-primary:hover {
+                    background-color: #94B0DF;
+                    border-color: #94B0DF;
+                }
+
+                .fc .fc-button-primary:disabled {
+                    background-color: #94B0DF;
+                    border-color: #94B0DF;
+                    opacity: 0.7;
+                }
+
+            .fc .fc-daygrid-day.fc-day-today {
+                background-color: rgba(148, 176, 223, 0.2);
+            }
+
+            .fc .fc-daygrid-day-number {
+                font-weight: 500;
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+
+            .fc .fc-event {
+                border-radius: 4px;
+                font-size: 0.85em;
+                border: none;
+                padding: 2px 4px;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .fc .fc-col-header-cell-cushion {
+                font-weight: 500;
+                color: #4b5563;
+                padding: 8px 4px;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+            }
+
+            .fc .fc-event-main {
+                padding: 2px 4px;
+            }
+
+            .fc .fc-button {
+                font-size: 0.85rem;
+                padding: 0.3rem 0.6rem;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .fc .fc-view-harness {
+                background-color: #ffffff;
+                border-radius: 0.5rem;
+            }
+
+        /* Management dropdown menu styling - updated for stability and centering */
+        .management-dropdown {
             display: none;
             position: absolute;
-            left: 100% !important;
-            top: 0 !important;
-            margin-left: 0.5rem !important;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%); /* Center vertically */
+            margin-left: 10px; /* Increased margin for better visibility */
             z-index: 50;
+            transition: all 0.2s ease; /* Smooth transition */
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            pointer-events: none; /* Initially don't capture mouse events */
         }
 
-        .dropdown:hover .dropdown-content {
-            display: block;
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(0);
-        }
-
-        /* Add hover intent */
-        .dropdown {
+        .management-item {
             position: relative;
         }
 
-            .dropdown:hover::after {
-                content: '';
-                position: absolute;
-                top: 0;
-                right: -20px;
-                width: 20px;
-                height: 100%;
+            /* Show dropdown on hover with delay for stability */
+            .management-item:hover .management-dropdown {
+                display: block;
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto; /* Re-enable mouse events when visible */
             }
 
-        /* Animation for dropdown items */
-        .menu li {
-            opacity: 0;
-            transform: translateX(-10px);
-            transition: all 0.3s ease;
+        /* Add a hover-out delay to prevent accidental closing */
+        .management-dropdown:after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -15px; /* Invisible bridge between menu and dropdown */
+            width: 15px;
+            height: 100%;
+            background: transparent;
         }
 
-        .dropdown:hover .menu li {
-            opacity: 1;
-            transform: translateX(0);
+        .management-dropdown-item {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
         }
 
-        .menu li:nth-child(1) {
-            transition-delay: 0.1s;
-        }
-
-        .menu li:nth-child(2) {
-            transition-delay: 0.2s;
-        }
+            .management-dropdown-item:hover {
+                background-color: rgba(148, 176, 223, 0.1);
+            }
     </style>
 </head>
-<body class="font-sans bg-dashboard-bg min-h-screen text-gray-800">
+<body class="font-sans bg-light flex min-h-screen">
     <!-- Sidebar -->
-    <div class="fixed top-0 left-0 h-screen w-20 bg-[#356480] flex flex-col items-center justify-between py-5 shadow-md z-10">
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
         <!-- Logo -->
         <div class="w-full flex justify-center py-4">
             <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-12 h-auto">
@@ -169,638 +195,1948 @@
 
         <!-- Menu Items -->
         <div class="flex flex-col items-center gap-5">
-            <div class="dropdown dropdown-right w-full group">
-                <div class="w-full flex justify-center items-center h-14 text-white hover:text-tertiary transition-colors">
-                    <button class="w-full h-full flex justify-center items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-6 w-6"
-                             fill="none"
-                             viewBox="0 0 24 24"
-                             stroke="currentColor">
-                            <path stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                        </svg>
-                    </button>
-                </div>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 ml-4">
-                    <li>
-                        <a href="@Url.Action("Index", "Announcements")" class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2 2 0 00-2-2h-2m-4 0h2m-6 0h2M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2h-2m2 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v2m-2-2h-2a2 2 0 00-2 2v3m2 4H7m14-8l2 2m0 0l2-2m-2 2V4" />
-                            </svg>
-                            View All
-                        </a>
-                    </li>
-                    <li>
-                        <a href="@Url.Action("Create", "Announcements")" class="flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                            </svg>
-                            Create New
-                        </a>
-                    </li>
-                </ul>
-            </div>
-
-            <a asp-controller="Account" asp-action="AdminPage"
-               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
-               title="Dashboard">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                </svg>
+            <!-- Home Link -->
+            <a href="@Url.Action("Dashboard", "Admin")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Home">
+                <i class="ph ph-house-simple"></i>
             </a>
 
-            <div class="dropdown dropdown-right w-full">
-                <button class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
-                    </svg>
+            <!-- Management Link with Dropdown -->
+            <div class="management-item relative w-full h-14 group">
+                <button class="w-full h-full flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Management">
+                    <i class="ph ph-sliders-horizontal"></i>
                 </button>
-                <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 ml-4">
-                    <li>
-                        <a asp-controller="UserManagement" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            USERS
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Community" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                            </svg>
-                            COMMUNITY
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="ServiceRequests" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            </svg>
-                            SERVICES
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Billing" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                            BILLS AND PAYMENTS
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Security" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
-                            SECURITY
-                        </a>
-                    </li>
-                    <li>
-                        <a asp-controller="Documents" asp-action="Index">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
-                            DOCUMENT
-                        </a>
-                    </li>
-                </ul>
+
+                <!-- Management Dropdown Menu -->
+                <div class="management-dropdown bg-white rounded-lg shadow-lg py-2 min-w-60">
+                    <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item">
+                        <i class="ph ph-users text-secondary mr-3"></i>
+                        <span>User Management</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item">
+                        <i class="ph ph-megaphone text-secondary mr-3"></i>
+                        <span>Announcements & Notifications</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Billing")" class="management-dropdown-item">
+                        <i class="ph ph-credit-card text-secondary mr-3"></i>
+                        <span>Billing & Payment</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Facilities")" class="management-dropdown-item">
+                        <i class="ph ph-tree-structure text-secondary mr-3"></i>
+                        <span>Facilities</span>
+                    </a>
+                    <a href="@Url.Action("Index", "ServiceRequests")" class="management-dropdown-item">
+                        <i class="ph ph-wrench text-secondary mr-3"></i>
+                        <span>Services</span>
+                    </a>
+                    <a href="@Url.Action("Documents", "Admin")" class="management-dropdown-item">
+                        <i class="ph ph-file-text text-secondary mr-3"></i>
+                        <span>Documents</span>
+                    </a>
+                </div>
             </div>
 
-            <a asp-controller="Notifications" asp-action="Index"
-               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
-               title="Notifications">
-                <div class="indicator">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span class="badge badge-xs badge-primary indicator-item">3</span>
-                </div>
-            </a>
-
-            <a asp-controller="Settings" asp-action="Index"
-               class="w-full flex justify-center items-center h-12 text-white hover:text-tertiary transition-colors"
-               title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                </svg>
+            <!-- Reports Link -->
+            <a href="@Url.Action("Reports", "Admin")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Reports">
+                <i class="ph ph-chart-line"></i>
             </a>
         </div>
 
         <!-- Logout -->
-        <div class="flex flex-col items-center">
-            <a asp-controller="Account" asp-action="Logout" class="btn btn-ghost btn-circle text-white text-2xl hover:text-tertiary" title="Logout">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
+        <div class="flex flex-col items-center gap-3">
+            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
             </a>
         </div>
     </div>
 
-    <!-- Main Content Wrapper -->
-    <div class="ml-20 flex-1 min-h-screen bg-dashboard-bg">
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
         <!-- Top Navigation Bar -->
         <div class="bg-white shadow-sm sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="flex items-center">
-                    <h1 class="text-2xl font-semibold text-tertiary">Admin Dashboard</h1>
-                </div>
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">Admin Dashboard</div>
 
-                <div class="flex items-center gap-6">
-                    <!-- Search Bar -->
-                    <div class="relative w-96">
-                        <input type="text"
-                               placeholder="Search..."
-                               class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary focus:border-primary">
-                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </span>
-                    </div>
-
+                <div class="flex items-center gap-5">
                     <!-- Notifications -->
                     <div class="relative">
-                        <button class="relative p-2 text-gray-700 hover:bg-gray-100 rounded-full transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
                         </button>
                     </div>
 
-                    <!-- Admin Profile -->
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-medium text-gray-700">Administrator</span>
-                        <div class="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <a href="#" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">Administrator</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <!-- Interactive Cards Section -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+                <!-- Announcements Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-primary">
+                    <div class="bg-primary/20 p-3 rounded-full mr-4">
+                        <i class="ph ph-megaphone text-2xl text-primary"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Announcements</p>
+                        <p class="text-xl font-semibold">25</p>
+                    </div>
+                </div>
+
+                <!-- Active Events Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-secondary">
+                    <div class="bg-secondary/20 p-3 rounded-full mr-4">
+                        <i class="ph ph-calendar text-2xl text-secondary"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Active Events</p>
+                        <p class="text-xl font-semibold">7</p>
+                    </div>
+                </div>
+
+                <!-- Service Requests Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-tertiary">
+                    <div class="bg-tertiary/20 p-3 rounded-full mr-4">
+                        <i class="ph ph-wrench text-2xl text-tertiary"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Pending Service Requests</p>
+                        <p class="text-xl font-semibold">12</p>
+                    </div>
+                </div>
+
+                <!-- Pending Reservations Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-blue-500">
+                    <div class="bg-blue-100 p-3 rounded-full mr-4">
+                        <i class="ph ph-calendar-check text-2xl text-blue-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Pending Reservations</p>
+                        <p class="text-xl font-semibold">15</p>
+                    </div>
+                </div>
+
+                <!-- Total Users Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-green-500">
+                    <div class="bg-green-100 p-3 rounded-full mr-4">
+                        <i class="ph ph-users text-2xl text-green-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Users</p>
+                        <p class="text-xl font-semibold">1,234</p>
+                    </div>
+                </div>
+
+                <!-- Total Revenue Card -->
+                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-purple-500">
+                    <div class="bg-purple-100 p-3 rounded-full mr-4">
+                        <i class="ph ph-currency-circle-dollar text-2xl text-purple-500"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Revenue Collected</p>
+                        <p class="text-xl font-semibold">₱ 250,000</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-check text-lg text-tertiary"></i>
+                            <h3 class="font-semibold text-lg text-tertiary">Event Calendar</h3>
+                        </div>
+                        <button id="add-event-btn" class="flex items-center gap-1 px-3 py-1 bg-secondary text-white rounded-md hover:bg-secondary/80 transition-colors">
+                            <i class="ph ph-plus"></i>
+                            Add Event
+                        </button>
+                    </div>
+                    <div id="admin-calendar"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
+                            <h3 class="font-semibold text-lg text-tertiary">Upcoming Events</h3>
+                        </div>
+                        <button id="view-history-events-btn" class="text-sm text-secondary hover:underline flex items-center">
+                            <i class="ph ph-clock-counter-clockwise mr-1"></i>
+                            History
+                        </button>
+                    </div>
+                    <div id="upcoming-events-container">
+                        <ul id="event-list" class="space-y-3">
+                            <!-- Events will be populated by JS -->
+                        </ul>
+                    </div>
+                    <div id="events-history-container" class="hidden">
+                        <ul id="events-history-list" class="space-y-3">
+                            <!-- Past Events will be populated by JS -->
+                        </ul>
+                        <button id="back-to-upcoming-btn" class="w-full mt-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center">
+                            <i class="ph ph-arrow-left mr-1"></i>
+                            Back to Upcoming
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Charts Section -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-users text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">User Role Distribution</h3>
+                    </div>
+                    <div id="roleChart" class="h-[300px]"></div>
+                </div>
+
+                <!-- User Growth Chart -->
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-chart-line text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">User Growth Over Time</h3>
+                    </div>
+                    <div id="userGrowthChart" class="h-[300px]"></div>
+                </div>
+            </div>
+
+            <!-- Billing & Facility Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-wallet text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">Bill Payment Status</h3>
+                    </div>
+                    <div id="billPaymentStatusChart" class="h-[300px]"></div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i class="ph ph-building text-lg text-tertiary"></i>
+                        <h3 class="font-semibold text-lg text-tertiary">Most Booked Facilities</h3>
+                    </div>
+                    <div id="facilityBookingChart" class="h-[300px]"></div>
+                </div>
+            </div>
+
+            <!-- Logout Confirmation Modal -->
+            <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                        <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div class="flex justify-end gap-4">
+                            <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button id="confirm-logout" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
+                                Yes, Logout
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Interactive Cards Section -->
-        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            <!-- Announcements Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-primary/10 border-l-4 border-primary transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
-                    </svg>
-                    Total Announcements
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">25</p>
+            <!-- Event Creation Modal -->
+            <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto my-auto flex flex-col max-h-[90vh] overflow-hidden">
+                    <!-- Fixed Header -->
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-plus text-xl text-white"></i>
+                            <h3 class="font-semibold text-xl text-white">Add New Event</h3>
+                        </div>
+                        <button id="close-event-modal" class="text-white hover:text-gray-200 focus:outline-none">
+                            <i class="ph ph-x text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Content -->
+                    <div class="overflow-y-auto px-6 py-4 custom-scrollbar flex-1">
+                        <form id="event-form" class="space-y-4">
+                            @Html.AntiForgeryToken()
+                            <div id="form-error-alert" class="hidden bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                                <div class="flex items-center">
+                                    <i class="ph ph-warning-circle mr-2 text-lg"></i>
+                                    <span id="error-message">Please correct the errors below.</span>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="eventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
+                                <input type="text" id="eventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
+                                <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="eventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
+                                    <div class="flex flex-col space-y-2">
+                                        <input type="date" id="eventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
+                                        <input type="time" id="eventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.ToString("HH:mm")" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="eventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
+                                    <div class="flex flex-col space-y-2">
+                                        <input type="date" id="eventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.AddHours(2).ToString("yyyy-MM-dd")" required>
+                                        <input type="time" id="eventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.AddHours(2).ToString("HH:mm")" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="eventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
+                                <input type="text" id="eventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
+                                <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
+                            </div>
+
+                            <!-- Description field - optional -->
+                            <div class="mb-4">
+                                <label for="eventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
+                                <textarea id="eventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
+                                <div class="text-xs text-gray-500 mt-1">Information about the event (optional)</div>
+                            </div>
+
+                            <!-- Hidden color field with default value -->
+                            <input type="hidden" name="Color" id="eventColor" value="#356480">
+                        </form>
+                    </div>
+
+                    <!-- Fixed Footer with Button Controls -->
+                    <div class="p-4 border-t border-gray-100 bg-gray-50 sticky bottom-0 flex justify-end">
+                        <button type="button" id="cancel-event" class="mr-3 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" form="event-form" id="submit-event-btn" class="px-6 py-2 bg-gradient-to-r from-secondary to-primary text-white font-medium rounded-md hover:opacity-90 transition-colors">
+                            <i class="ph ph-plus-circle mr-1"></i>
+                            Create Event
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Active Events Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-secondary/10 border-l-4 border-secondary transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm4-6h6m-6 4h6" />
-                    </svg>
-                    Active Events
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">7</p>
+            <!-- Event Details Modal -->
+            <div id="event-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto flex flex-col max-h-[90vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-calendar-check text-xl text-white"></i>
+                            <h3 class="font-semibold text-xl text-white" id="event-details-title">Event Details</h3>
+                        </div>
+                        <div class="flex items-center">
+                            <button id="close-event-details" class="text-white hover:text-gray-200 focus:outline-none">
+                                <i class="ph ph-x text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Content -->
+                    <div id="event-details-view" class="px-6 py-5 flex-1 overflow-y-auto">
+                        <div class="mb-6">
+                            <div class="flex items-center gap-3 mb-5">
+                                <div class="bg-secondary/20 p-3 rounded-full">
+                                    <i id="event-details-icon" class="ph ph-calendar-check text-2xl text-secondary"></i>
+                                </div>
+                                <div>
+                                    <h4 id="event-details-name" class="text-xl font-semibold text-gray-800">Event Name</h4>
+                                    <p class="text-sm text-gray-500" id="event-details-date">April 25, 2025</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div class="flex items-start">
+                                    <i class="ph ph-clock text-lg text-secondary mt-0.5 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-700">Time</p>
+                                        <p id="event-details-time" class="text-gray-600">9:00 AM - 11:00 AM</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <i class="ph ph-map-pin text-lg text-secondary mt-0.5 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-700">Location</p>
+                                        <p id="event-details-location" class="text-gray-600">Clubhouse</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <i class="ph ph-text-align-left text-lg text-secondary mt-0.5 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-700">Description</p>
+                                        <p id="event-details-description" class="text-gray-600">No description available</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <i class="ph ph-user-circle text-lg text-secondary mt-0.5 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-700">Created By</p>
+                                        <p id="event-details-created-by" class="text-gray-600">Administrator</p>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-start">
+                                    <i class="ph ph-calendar text-lg text-secondary mt-0.5 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm font-medium text-gray-700">Created On</p>
+                                        <p id="event-details-created-on" class="text-gray-600">April 20, 2025</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Edit form (initially hidden) -->
+                    <div id="event-edit-form" class="px-6 py-5 flex-1 overflow-y-auto hidden">
+                        <form id="edit-event-form" class="space-y-4">
+                            <input type="hidden" id="edit-event-id">
+                            <div class="mb-4">
+                                <label for="editEventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
+                                <input type="text" id="editEventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="editEventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
+                                    <div class="flex flex-col space-y-2">
+                                        <input type="date" id="editEventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <input type="time" id="editEventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label for="editEventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
+                                    <div class="flex flex-col space-y-2">
+                                        <input type="date" id="editEventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        <input type="time" id="editEventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="editEventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
+                                <input type="text" id="editEventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="editEventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
+                                <textarea id="editEventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Footer for viewing mode -->
+                    <div id="event-details-footer" class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                        <button id="close-event-details-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                            Close
+                        </button>
+                    </div>
+
+                    <!-- Footer for editing mode -->
+                    <div id="event-edit-footer" class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between hidden">
+                        <div class="flex gap-2">
+                            <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button id="save-edit-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+                                <i class="ph ph-floppy-disk mr-1"></i>
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Service Requests Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-tertiary/10 border-l-4 border-tertiary transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                    </svg>
-                    Pending Service Requests
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">12</p>
+            <!-- Event History Modal -->
+            <div id="event-history-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto flex flex-col max-h-[90vh] overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
+                        <div class="flex items-center gap-2">
+                            <i class="ph ph-clock-counter-clockwise text-xl text-white"></i>
+                            <h3 class="font-semibold text-xl text-white">Event History</h3>
+                        </div>
+                        <button id="close-event-history" class="text-white hover:text-gray-200 focus:outline-none">
+                            <i class="ph ph-x text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="p-6 flex-1 overflow-y-auto">
+                        <div id="event-history-content" class="space-y-4">
+                            <div class="relative pl-8 pb-5 border-l-2 border-secondary">
+                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-secondary"></div>
+                                <div class="mb-1">
+                                    <span class="text-xs font-medium bg-secondary/10 text-secondary px-2 py-1 rounded">Created</span>
+                                    <span class="text-sm text-gray-500 ml-2">April 20, 2025 - 10:15 AM</span>
+                                </div>
+                                <p class="text-sm text-gray-700">Event was created by <span class="font-medium">Administrator</span></p>
+                            </div>
+
+                            <div class="relative pl-8 pb-5 border-l-2 border-blue-400">
+                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-blue-400"></div>
+                                <div class="mb-1">
+                                    <span class="text-xs font-medium bg-blue-100 text-blue-600 px-2 py-1 rounded">Updated</span>
+                                    <span class="text-sm text-gray-500 ml-2">April 21, 2025 - 3:30 PM</span>
+                                </div>
+                                <p class="text-sm text-gray-700">Event description was updated by <span class="font-medium">Administrator</span></p>
+                            </div>
+
+                            <div class="relative pl-8 pb-0 border-l-2 border-gray-300">
+                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-gray-300"></div>
+                                <div class="mb-1">
+                                    <span class="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">Updated</span>
+                                    <span class="text-sm text-gray-500 ml-2">April 22, 2025 - 9:45 AM</span>
+                                </div>
+                                <p class="text-sm text-gray-700">Event time was changed from <span class="font-medium">9:00 AM - 11:00 AM</span> to <span class="font-medium">10:00 AM - 12:00 PM</span> by <span class="font-medium">Administrator</span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
+                        <button id="close-history-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
             </div>
 
-            <!-- Pending Reservations Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-blue-50 border-l-4 border-blue-500 transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2zm4-6h6m-6 4h6" />
-                    </svg>
-                    Pending Reservations
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">15</p>
-                <p class="text-sm text-gray-500 mt-1">Awaiting approval</p>
+            <!-- Event Delete Confirmation Modal -->
+            <div id="delete-confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                    <div class="p-6 border-b border-gray-100">
+                        <h3 class="font-semibold text-xl text-red-600">Delete Event</h3>
+                    </div>
+                    <div class="p-6">
+                        <p class="text-gray-600 mb-2">Are you sure you want to delete this event?</p>
+                        <p class="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
+                        <div class="flex justify-end gap-4">
+                            <button id="cancel-delete" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                                Cancel
+                            </button>
+                            <button id="confirm-delete" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
+                                Yes, Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Total Users Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-green-50 border-l-4 border-green-500 transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                    </svg>
-                    Total Users
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">1,234</p>
-                <p class="text-sm text-gray-500 mt-1">+12% from last month</p>
-            </div>
-
-            <!-- Total Revenue Card -->
-            <div class="bg-white shadow-lg rounded-lg p-6 hover:bg-purple-50 border-l-4 border-purple-500 transition transform hover:scale-105">
-                <h3 class="text-lg font-semibold mb-2 flex items-center text-secondary">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Total Revenue Collected
-                </h3>
-                <p class="text-3xl font-bold text-tertiary">₱ 250,000</p>
-                <p class="text-sm text-gray-500 mt-1">Revenue this month</p>
-            </div>
-        </div>
-
-        <!-- Main Charts Section -->
-        <div class="container mx-auto py-8 grid grid-cols-2 gap-8">
-            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                    <i class="fas fa-user-shield mr-2 text-gray-300"></i> User Role Distribution
-                </h2>
-                <div id="roleChart" class="h-[300px]"></div>
-            </div>
-            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                    <i class="fas fa-wallet mr-2 text-gray-300"></i> Bill Payment Status
-                </h2>
-                <div id="billPaymentStatusChart" class="h-[300px]"></div>
-            </div>
-        </div>
-
-        <!-- User Growth Chart Section -->
-        <div class="container mx-auto py-8">
-            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                    <i class="fas fa-chart-line mr-2 text-gray-300"></i> User Growth Over Time
-                </h2>
-                <div id="userGrowthChart" class="h-[400px]"></div>
-            </div>
-        </div>
-
-        <!-- Most Booked Facilities Section -->
-        <div class="container mx-auto py-8">
-            <div class="bg-[#356480] shadow-lg rounded-lg p-6 hover:shadow-xl transition duration-300">
-                <h2 class="text-md font-semibold text-gray-100 mb-4 text-center">
-                    <i class="fas fa-building mr-2 text-gray-300"></i> Most Booked Facilities
-                </h2>
-                <div id="facilityBookingChart" class="h-[400px]"></div>
+            <!-- Footer with copyright -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
             </div>
         </div>
     </div>
 
-    <!-- ECharts Initialization -->
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
     <script>
-        const colors = ['#5470C6', '#EE6666'];
+        // Logout confirmation function
+        function confirmLogout() {
+            const logoutModal = document.getElementById('logout-modal');
+            logoutModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
 
-        // Initialize charts
-        const roleChart = echarts.init(document.getElementById('roleChart'));
-        const billChart = echarts.init(document.getElementById('billPaymentStatusChart'));
-        const userGrowthChart = echarts.init(document.getElementById('userGrowthChart'));
-        const facilityBookingChart = echarts.init(document.getElementById('facilityBookingChart'));
+            // Directly set up logout modal buttons here to ensure they work
+            const cancelLogoutBtn = document.getElementById('cancel-logout');
+            const confirmLogoutBtn = document.getElementById('confirm-logout');
 
-        // Role Distribution Chart Configuration
-        const roleOption = {
-            backgroundColor: '#356480', // Changed from #2c343c to secondary color
-            title: {
-                left: 'center',
-                top: 20,
-                textStyle: {
-                    color: '#ccc'
-                }
-            },
-            tooltip: {
-                trigger: 'item'
-            },
-            visualMap: {
-                show: false,
-                min: 80,
-                max: 600,
-                inRange: {
-                    colorLightness: [0, 1]
-                }
-            },
-            series: [
-                {
-                    name: 'Role Distribution',
-                    type: 'pie',
-                    radius: '90%',
-                    center: ['50%', '50%'],
-                    data: [
-                        { value: 335, name: 'Admin' },
-                        { value: 310, name: 'Homeowner' },
-                        { value: 274, name: 'Staff' }
-                    ].sort((a, b) => a.value - b.value),
-                    roseType: 'radius',
-                    label: {
-                        color: 'rgba(255, 255, 255, 0.3)'
-                    },
-                    labelLine: {
-                        lineStyle: {
-                            color: 'rgba(255, 255, 255, 0.3)'
-                        },
-                        smooth: 0.2,
-                        length: 10,
-                        length2: 20
-                    },
-                    itemStyle: {
-                        color: '#c23531',
-                        shadowBlur: 200,
-                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                    },
-                    animationType: 'scale',
-                    animationEasing: 'elasticOut',
-                    animationDelay: function (idx) {
-                        return Math.random() * 200;
-                    }
-                }
-            ]
-        };
+            // Cancel logout - hide modal
+            cancelLogoutBtn.onclick = function() {
+                logoutModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+            };
 
-        // Bill Payment Chart Configuration
-        const billOption = {
-            backgroundColor: '#356480', // Changed from #2c343c to secondary color
-            title: {
-                left: 'center',
-                top: 20,
-                textStyle: {
-                    color: '#ccc'
-                }
-            },
-            tooltip: {
-                trigger: 'item'
-            },
-            visualMap: {
-                show: false,
-                min: 80,
-                max: 600,
-                inRange: {
-                    colorLightness: [0, 1]
-                }
-            },
-            series: [
-                {
-                    name: 'Payment Status',
-                    type: 'pie',
-                    radius: '90%',
-                    center: ['50%', '50%'],
-                    data: [
-                        { value: 500, name: 'Paid' },
-                        { value: 300, name: 'Pending' },
-                        { value: 200, name: 'Overdue' }
-                    ].sort((a, b) => a.value - b.value),
-                    roseType: 'radius',
-                    label: {
-                        color: 'rgba(255, 255, 255, 0.3)'
-                    },
-                    labelLine: {
-                        lineStyle: {
-                            color: 'rgba(255, 255, 255, 0.3)'
-                        },
-                        smooth: 0.2,
-                        length: 10,
-                        length2: 20
-                    },
-                    itemStyle: {
-                        color: '#61a0a8',
-                        shadowBlur: 200,
-                        shadowColor: 'rgba(0, 0, 0, 0.5)'
-                    },
-                    animationType: 'scale',
-                    animationEasing: 'elasticOut',
-                    animationDelay: function (idx) {
-                        return Math.random() * 200;
-                    }
-                }
-            ]
-        };
+            // Confirm logout - redirect to logout action
+            confirmLogoutBtn.onclick = function() {
+                window.location.href = '@Url.Action("Logout", "Account")';
+            };
 
-        // User Growth Chart Configuration
-        const userGrowthOption = {
-            backgroundColor: '#356480', // Changed from #2c343c to secondary color
-            color: colors,
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'cross'
+            // Close modal when clicking outside
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = '';
                 }
-            },
-            legend: {
-                data: ['2024 Growth', '2025 Growth'],
-                textStyle: {
-                    color: '#ccc'
-                },
-                top: 20
-            },
-            grid: {
-                top: 70,
-                bottom: 50,
-                left: '3%',
-                right: '4%',
-                containLabel: true
-            },
-            xAxis: [
-                {
-                    type: 'category',
-                    axisTick: {
-                        alignWithLabel: true
-                    },
-                    axisLine: {
-                        onZero: false,
-                        lineStyle: {
-                            color: colors[1]
-                        }
-                    },
-                    axisLabel: {
-                        color: '#ccc'
-                    },
-                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-                }
-            ],
-            yAxis: [
-                {
-                    type: 'value',
-                    name: 'New Users',
-                    nameTextStyle: {
-                        color: '#ccc'
-                    },
-                    axisLabel: {
-                        color: '#ccc'
-                    },
-                    splitLine: {
-                        lineStyle: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    }
-                }
-            ],
-            series: [
-                {
-                    name: '2024 Growth',
-                    type: 'line',
-                    smooth: true,
-                    emphasis: {
-                        focus: 'series'
-                    },
-                    data: [15, 25, 30, 45, 55, 65, 75, 85, 95, 100, 110, 120]
-                },
-                {
-                    name: '2025 Growth',
-                    type: 'line',
-                    smooth: true,
-                    emphasis: {
-                        focus: 'series'
-                    },
-                    data: [20, 35, 45, 60, 70, 80, 90, 100, 110, 120, 130, 140]
-                }
-            ]
-        };
+            });
+        }
 
-        // Facility Booking Chart Configuration
-        const facilityBookingOption = {
-            backgroundColor: '#356480',
-            tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                    type: 'shadow'
-                }
-            },
-            legend: {
-                textStyle: {
-                    color: '#ccc'
-                },
-                top: 20
-            },
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                containLabel: true
-            },
-            xAxis: {
-                type: 'value',
-                boundaryGap: [0, 0.01],
-                axisLabel: {
-                    color: '#ccc'
-                },
-                splitLine: {
-                    lineStyle: {
-                        color: 'rgba(255, 255, 255, 0.1)'
-                    }
-                }
-            },
-            yAxis: {
-                type: 'category',
-                data: ['Basketball Court', 'Function Hall', 'Swimming Pool', 'Gym', 'Tennis Court'],
-                axisLabel: {
-                    color: '#ccc'
-                }
-            },
-            series: [
-                {
-                    name: 'Monthly Bookings',
-                    type: 'bar',
-                    data: [85, 65, 45, 35, 25],
-                    itemStyle: {
-                        color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
-                            { offset: 0, color: '#83bff6' },
-                            { offset: 0.5, color: '#94B0DF' },
-                            { offset: 1, color: '#356480' }
-                        ])
-                    }
-                }
-            ]
-        };
+        document.addEventListener('DOMContentLoaded', function() {
+            // Setup notification functionality
+            const notificationBtn = document.getElementById('notification-toggle-btn');
 
-        // Apply configurations
-        roleChart.setOption(roleOption);
-        billChart.setOption(billOption);
-        userGrowthChart.setOption(userGrowthOption);
-        facilityBookingChart.setOption(facilityBookingOption);
+            // Event Details Modal Functionality
+            const eventDetailsModal = document.getElementById('event-details-modal');
+            const closeEventDetailsBtn = document.getElementById('close-event-details');
+            const deleteEventBtn = document.getElementById('delete-event-btn');
+            const editEventBtn = document.getElementById('edit-event-btn');
+            const viewHistoryBtn = document.getElementById('view-history-btn');
 
-        // Handle window resize
-        window.addEventListener('resize', () => {
-            roleChart.resize();
-            billChart.resize();
-            userGrowthChart.resize();
-            facilityBookingChart.resize();
-        });
+            // Event History Modal Functionality
+            const eventHistoryModal = document.getElementById('event-history-modal');
+            const closeEventHistoryBtn = document.getElementById('close-event-history');
+            const closeHistoryBtn = document.getElementById('close-history-btn');
 
-        // Mobile menu toggle
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const navLinks = document.getElementById('nav-links');
+            // Delete Confirmation Modal
+            const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+            const confirmDeleteBtn = document.getElementById('confirm-delete');
 
-        mobileMenuButton.addEventListener('click', () => {
-            navLinks.classList.toggle('hidden');
-        });
-
-        // Management dropdown toggle
-        const managementBtn = document.getElementById('management-btn');
-        const managementDropdown = document.getElementById('management-dropdown');
-
-        managementBtn.addEventListener('click', () => {
-            managementDropdown.classList.toggle('hidden');
-        });
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!managementBtn.contains(e.target) && !managementDropdown.contains(e.target)) {
-                managementDropdown.classList.add('hidden');
+            // Close Event Details Modal
+            if (closeEventDetailsBtn) {
+                closeEventDetailsBtn.addEventListener('click', function() {
+                    eventDetailsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
             }
-        });
 
-        // Add this to your existing script section
-        document.addEventListener('DOMContentLoaded', () => {
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const navLinks = document.getElementById('nav-links');
-            const managementBtn = document.getElementById('management-btn');
-            const managementDropdown = document.getElementById('management-dropdown');
+            // Close when clicking outside
+            if (eventDetailsModal) {
+                eventDetailsModal.addEventListener('click', function(e) {
+                    if (e.target === eventDetailsModal) {
+                        eventDetailsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
 
-            // Mobile menu toggle
-            mobileMenuButton.addEventListener('click', () => {
-                navLinks.classList.toggle('hidden');
+            // Handle Delete Event Button
+            if (deleteEventBtn) {
+                deleteEventBtn.addEventListener('click', function() {
+                    // Show delete confirmation dialog
+                    deleteConfirmationModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                    // Store the event ID in the delete confirmation modal
+                    deleteConfirmationModal.dataset.eventId = eventDetailsModal.dataset.eventId;
+                });
+            }
+
+            // Handle Edit Event Button
+            if (editEventBtn) {
+                editEventBtn.addEventListener('click', function() {
+                    const eventId = eventDetailsModal.dataset.eventId;
+                    // Close details modal
+                    eventDetailsModal.classList.add('hidden');
+
+                    // In a real implementation, you would fetch event details and populate the edit form
+                    // For now, we'll just show a notification
+                    showNotification('Edit functionality will be implemented soon', 'info');
+                });
+            }
+
+            // Handle View History Button
+            if (viewHistoryBtn) {
+                viewHistoryBtn.addEventListener('click', function() {
+                    // Show history modal
+                    eventHistoryModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+
+                    // In a real implementation, you would fetch event history from the server
+                    // For now, we'll use the sample data already in the HTML
+                });
+            }
+
+            // Close History Modal handlers
+            if (closeEventHistoryBtn) {
+                closeEventHistoryBtn.addEventListener('click', function() {
+                    eventHistoryModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (closeHistoryBtn) {
+                closeHistoryBtn.addEventListener('click', function() {
+                    eventHistoryModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            // Close when clicking outside
+            if (eventHistoryModal) {
+                eventHistoryModal.addEventListener('click', function(e) {
+                    if (e.target === eventHistoryModal) {
+                        eventHistoryModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Delete Confirmation Modal handlers
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', function() {
+                    deleteConfirmationModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+            }
+
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', function() {
+                    const eventId = deleteConfirmationModal.dataset.eventId;
+
+                    // In a real implementation, you would send a DELETE request to the server
+                    // For now, we'll simulate success and remove the event from the calendar
+                    const event = calendar.getEventById(eventId);
+                    if (event) {
+                        event.remove();
+                    }
+
+                    // Close both modals
+                    deleteConfirmationModal.classList.add('hidden');
+                    eventDetailsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+
+                    // Refresh upcoming events list
+                    loadUpcomingEvents();
+
+                    // Show success notification
+                    showNotification('Event deleted successfully!', 'success');
+                });
+            }
+
+            // Close when clicking outside
+            if (deleteConfirmationModal) {
+                deleteConfirmationModal.addEventListener('click', function(e) {
+                    if (e.target === deleteConfirmationModal) {
+                        deleteConfirmationModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+
+            // Toggle notifications dropdown if implemented
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', function() {
+                    alert("Notifications feature to be implemented");
+                });
+            }
+
+            // Event Modal Functionality
+            const eventModal = document.getElementById('event-modal');
+            const addEventBtn = document.getElementById('add-event-btn');
+            const closeEventModalBtn = document.getElementById('close-event-modal');
+            const cancelEventBtn = document.getElementById('cancel-event');
+            const eventForm = document.getElementById('event-form');
+
+            // Show event modal when Add Event button is clicked
+            if (addEventBtn) {
+                addEventBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    eventModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+                    // Set default dates (today and tomorrow)
+                    const today = new Date();
+                    const tomorrow = new Date();
+                    tomorrow.setDate(today.getDate() + 1);
+
+                    document.getElementById('eventStartDate').value = formatDate(today);
+                    document.getElementById('eventEndDate').value = formatDate(tomorrow);
+                });
+            }
+
+            // Helper function to format date as YYYY-MM-DD
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            // Close event modal functions
+            function closeEventModal() {
+                eventModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+                eventForm.reset(); // Reset form fields
+            }
+
+            // Close modal when close button is clicked
+            if (closeEventModalBtn) {
+                closeEventModalBtn.addEventListener('click', closeEventModal);
+            }
+
+            // Close modal when cancel button is clicked
+            if (cancelEventBtn) {
+                cancelEventBtn.addEventListener('click', closeEventModal);
+            }
+
+            // Close modal when clicking outside
+            if (eventModal) {
+                eventModal.addEventListener('click', function(e) {
+                    if (e.target === eventModal) {
+                        closeEventModal();
+                    }
+                });
+            }
+
+            // Handle form submission
+            if (eventForm) {
+                eventForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+
+                    // Basic form validation
+                    const title = document.getElementById('eventTitle').value.trim();
+                    const startDate = document.getElementById('eventStartDate').value;
+                    const startTime = document.getElementById('eventStartTime').value;
+                    const endDate = document.getElementById('eventEndDate').value;
+                    const endTime = document.getElementById('eventEndTime').value;
+                    const location = document.getElementById('eventLocation').value.trim();
+                    const description = document.getElementById('eventDescription').value.trim();
+                    const color = document.getElementById('eventColor').value;
+
+                    // Show error if required fields are empty
+                    if (!title || !startDate || !startTime || !endDate || !endTime || !location) {
+                        document.getElementById('form-error-alert').classList.remove('hidden');
+                        document.getElementById('error-message').textContent = 'Please fill in all required fields.';
+                        return;
+                    }
+
+                    // Create event data object from form
+                    const eventData = {
+                        Title: title,
+                        Description: description,
+                        StartDate: startDate,
+                        StartTime: startTime,
+                        EndDate: endDate,
+                        EndTime: endTime,
+                        Location: location,
+                        Color: color
+                    };
+
+                    // Get the anti-forgery token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    // Show loading state
+                    const submitBtn = document.getElementById('submit-event-btn');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Creating...';
+
+                    // Submit event data to server via AJAX with proper headers
+                    fetch('@Url.Action("CreateEvent", "Events")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(eventData)
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server returned ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Reset submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+
+                        if (data.success) {
+                            // Add the new event to the calendar
+                            calendar.addEvent({
+                                id: data.id,
+                                title: data.title,
+                                start: data.start,
+                                end: data.end,
+                                backgroundColor: eventData.Color,
+                                borderColor: eventData.Color,
+                                extendedProps: {
+                                    location: data.location,
+                                    description: data.description
+                                }
+                            });
+
+                            // Refresh upcoming events list
+                            loadUpcomingEvents();
+
+                            // Close the modal and show success message
+                            closeEventModal();
+                            showNotification('Event created successfully!', 'success');
+                        } else {
+                            // Show error message
+                            document.getElementById('form-error-alert').classList.remove('hidden');
+                            document.getElementById('error-message').textContent = data.message || 'Failed to create event. Please try again.';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error creating event:', error);
+                        // Reset submit button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+
+                        // Show error notification
+                        document.getElementById('form-error-alert').classList.remove('hidden');
+                        document.getElementById('error-message').textContent = 'Failed to create event. Please try again.';
+                    });
+                });
+            }
+
+            // Notification helper function
+            function showNotification(message, type = 'info') {
+                // Create notification element
+                const notification = document.createElement('div');
+                notification.className = `fixed top-5 right-5 p-4 rounded-md shadow-lg z-50 flex items-center ${
+                    type === 'success' ? 'bg-green-100 border-l-4 border-green-500 text-green-700' :
+                    type === 'error' ? 'bg-red-100 border-l-4 border-red-500 text-red-700' :
+                    'bg-blue-100 border-l-4 border-blue-500 text-blue-700'
+                }`;
+
+                // Icon based on type
+                const icon = type === 'success' ? 'ph-check-circle' :
+                             type === 'error' ? 'ph-warning-circle' : 'ph-info';
+
+                notification.innerHTML = `
+                    <i class="ph ${icon} text-xl mr-2"></i>
+                    <p>${message}</p>
+                    <button class="ml-auto pl-4 text-gray-500 hover:text-gray-700 focus:outline-none" onclick="this.parentElement.remove()">
+                        <i class="ph ph-x"></i>
+                    </button>
+                `;
+
+                document.body.appendChild(notification);
+
+                // Auto remove after 5 seconds
+                setTimeout(() => {
+                    notification.classList.add('opacity-0', 'transition-opacity');
+                    setTimeout(() => notification.remove(), 300);
+                }, 5000);
+            }
+
+            // Add visual feedback for color selection
+            document.querySelectorAll('.event-color-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    // Remove active class from all options
+                    document.querySelectorAll('.event-color-option').forEach(opt => {
+                        opt.classList.remove('bg-gray-100', 'border-2', 'border-secondary');
+                    });
+
+                    // Add active class to selected option
+                    this.classList.add('bg-gray-100', 'border-2', 'border-secondary');
+
+                    // Check the radio input
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                });
             });
 
-            // Only handle dropdown on mobile
-            if (window.innerWidth < 1024) {
-                managementBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    managementDropdown.classList.toggle('hidden');
+            // Initialize calendar
+            const calendarEl = document.getElementById('admin-calendar');
+            const eventListEl = document.getElementById('event-list');
+
+            // Create calendar with 5-row display
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                initialDate: '@DateTime.Now.ToString("yyyy-MM-dd")',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek'
+                },
+                height: 'auto', // Auto height for month view
+                views: {
+                    dayGridMonth: {
+                        dayMaxEventRows: 3, // Adjust for fewer rows
+                        fixedWeekCount: false, // Allow showing 5 or 6 rows as needed
+                        aspectRatio: 1.8, // Wider month view
+                    },
+                    timeGridWeek: {
+                        height: 600, // Fixed height for week view to enable scrolling
+                        slotDuration: '01:00:00', // 1-hour slots
+                        slotLabelInterval: '01:00', // 1-hour labels
+                        allDaySlot: true, // Show all-day slot at the top
+                    }
+                },
+                // Other settings remain the same
+                events: '@Url.Action("GetEvents", "Events")',
+                eventClick: function(info) {
+                    showEventDetails(info.event);
+                },
+                eventDisplay: 'block',
+                eventTimeFormat: {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: 'short'
+                },
+                // Add spacing between events on the same date
+                eventDidMount: function(info) {
+                    info.el.style.margin = "1px 0"; // Add vertical margin between events
+                }
+            });
+
+            calendar.render();
+
+            // Show event details in a modal
+            function showEventDetails(event) {
+                const eventDetailsModal = document.getElementById('event-details-modal');
+                const eventDetailsTitle = document.getElementById('event-details-title');
+                const eventDetailsName = document.getElementById('event-details-name');
+                const eventDetailsDate = document.getElementById('event-details-date');
+                const eventDetailsTime = document.getElementById('event-details-time');
+                const eventDetailsLocation = document.getElementById('event-details-location');
+                const eventDetailsDescription = document.getElementById('event-details-description');
+                const eventDetailsCreatedBy = document.getElementById('event-details-created-by');
+                const eventDetailsCreatedOn = document.getElementById('event-details-created-on');
+                const eventDetailsIcon = document.getElementById('event-details-icon');
+
+                // Make sure the edit button in the event details view is visible
+                const editEventDetailsBtn = document.getElementById('edit-event-details-btn');
+                if (editEventDetailsBtn) {
+                    editEventDetailsBtn.style.display = 'flex'; // Changed from 'none' to 'flex' to make the button visible
+                }
+
+                // Set the current event ID for delete operations
+                eventDetailsModal.dataset.eventId = event.id || '';
+
+                // Populate modal with event details
+                eventDetailsTitle.textContent = 'Event Details';
+                eventDetailsName.textContent = event.title;
+
+                // Format date
+                const startDate = event.start ? new Date(event.start) : null;
+                const endDate = event.end ? new Date(event.end) : null;
+
+                if (startDate) {
+                    const formattedStartDate = startDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    eventDetailsDate.textContent = formattedStartDate;
+                } else {
+                    eventDetailsDate.textContent = 'Date not specified';
+                }
+
+                // Format time
+                if (startDate && endDate) {
+                    const startTime = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const endTime = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    eventDetailsTime.textContent = `${startTime} - ${endTime}`;
+                } else {
+                    eventDetailsTime.textContent = 'Time not specified';
+                }
+
+                eventDetailsLocation.textContent = event.extendedProps?.location || 'No location specified';
+                eventDetailsDescription.textContent = event.extendedProps?.description || 'No description available';
+                eventDetailsCreatedBy.textContent = event.extendedProps?.createdBy || 'Administrator';
+                eventDetailsCreatedOn.textContent = event.extendedProps?.createdAt ?
+                    new Date(event.extendedProps.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : 'Not available';
+
+                // Set icon based on event title
+                let iconClass = 'ph-calendar-check';
+                if (event.title.toLowerCase().includes('meeting')) {
+                    iconClass = 'ph-users';
+                } else if (event.title.toLowerCase().includes('maintenance')) {
+                    iconClass = 'ph-wrench';
+                } else if (event.title.toLowerCase().includes('clean')) {
+                    iconClass = 'ph-broom';
+                } else if (event.title.toLowerCase().includes('due')) {
+                    iconClass = 'ph-currency-circle-dollar';
+                }
+
+                eventDetailsIcon.className = `ph ${iconClass} text-2xl text-secondary`;
+
+                // Show the modal
+                eventDetailsModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            }
+
+            // Function to show event edit form
+            function showEventEditForm(event) {
+                const eventDetailsModal = document.getElementById('event-details-modal');
+                const eventDetailsView = document.getElementById('event-details-view');
+                const eventEditForm = document.getElementById('event-edit-form');
+                const eventDetailsFooter = document.getElementById('event-details-footer');
+                const eventEditFooter = document.getElementById('event-edit-footer');
+
+                // Set modal title to Edit Event
+                document.getElementById('event-details-title').textContent = 'Edit Event';
+
+                // Store the event ID in the modal dataset
+                eventDetailsModal.dataset.eventId = event.id || '';
+
+                // Show edit form, hide details view
+                eventDetailsView.classList.add('hidden');
+                eventEditForm.classList.remove('hidden');
+                eventDetailsFooter.classList.add('hidden');
+                eventEditFooter.classList.remove('hidden');
+
+                // Set form values
+                document.getElementById('edit-event-id').value = event.id;
+                document.getElementById('editEventTitle').value = event.title;
+
+                // Format dates and times for the form
+                const startDate = event.start ? new Date(event.start) : new Date();
+                const endDate = event.end ? new Date(event.end) : new Date();
+
+                document.getElementById('editEventStartDate').value = formatDate(startDate);
+                document.getElementById('editEventEndDate').value = formatDate(endDate);
+
+                document.getElementById('editEventStartTime').value = formatTime(startDate);
+                document.getElementById('editEventEndTime').value = formatTime(endDate);
+
+                document.getElementById('editEventLocation').value = event.extendedProps?.location || '';
+                document.getElementById('editEventDescription').value = event.extendedProps?.description || '';
+
+                // Show the modal
+                eventDetailsModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            }
+
+            // Add event button functionality
+            document.getElementById('add-event-btn').addEventListener('click', function() {
+                // Show the event modal form instead of redirecting
+                eventModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+                // Set default dates (today and tomorrow)
+                const today = new Date();
+                const tomorrow = new Date();
+                tomorrow.setDate(today.getDate() + 1);
+
+                document.getElementById('eventStartDate').value = formatDate(today);
+                document.getElementById('eventEndDate').value = formatDate(tomorrow);
+            });
+
+            // View all events button functionality
+            document.getElementById('view-history-events-btn').addEventListener('click', function() {
+                window.location.href = '@Url.Action("Index", "Events")';
+            });
+
+            // Update event list with real events
+            loadUpcomingEvents();
+
+            function loadUpcomingEvents() {
+                fetch('@Url.Action("GetEvents", "Events")')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server returned ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(events => {
+                        const eventListEl = document.getElementById('event-list');
+
+                        if (!eventListEl) {
+                            console.error('Event list element not found');
+                            return;
+                        }
+
+                        // Clear existing events
+                        eventListEl.innerHTML = '';
+
+                        if (!events || events.length === 0) {
+                            eventListEl.innerHTML = '<p class="text-gray-500 italic text-center py-4">No events scheduled</p>';
+                            return;
+                        }
+
+                        // Sort events by date
+                        events.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                        // Get today's date to filter upcoming events
+                        const today = new Date();
+
+                        // Show ALL events, not just upcoming ones
+                        // Show events in the list - ALL events, not just a limited number
+                        events.forEach(function(event) {
+                            const eventDate = new Date(event.start);
+                            const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                            const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                            // Set icon based on event title
+                            let icon = 'ph-calendar-check';
+                            let color = event.backgroundColor || '#356480'; // Use event color or default
+
+                            if (event.title.toLowerCase().includes('meeting')) {
+                                icon = 'ph-users';
+                            } else if (event.title.toLowerCase().includes('maintenance')) {
+                                icon = 'ph-wrench';
+                            } else if (event.title.toLowerCase().includes('clean')) {
+                                icon = 'ph-broom';
+                            } else if (event.title.toLowerCase().includes('due')) {
+                                icon = 'ph-currency-circle-dollar';
+                            }
+
+                            const li = document.createElement('li');
+                            li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                            li.style.borderLeftColor = color;
+                            li.innerHTML = `
+                                <div class="flex items-center justify-between">
+                                    <div class="flex-1 event-info cursor-pointer">
+                                        <div class="flex items-start">
+                                            <i class="ph ${icon} text-lg mr-3 mt-0.5" style="color: ${color}"></i>
+                                            <div>
+                                                <h4 class="font-medium">${event.title}</h4>
+                                                <div class="text-sm text-gray-600">
+                                                    <div class="flex items-center gap-1">
+                                                        <i class="ph ph-calendar text-xs"></i>
+                                                        <span>${formattedDate}</span>
+                                                    </div>
+                                                    <div class="flex items-center gap-1">
+                                                        <i class="ph ph-clock text-xs"></i>
+                                                        <span>${formattedTime}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <button class="edit-event-btn p-1 text-gray-600 hover:bg-gray-100 rounded" title="Edit" data-event-id="${event.id || ''}">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-event-btn p-1 text-red-600 hover:bg-red-50 rounded" title="Delete" data-event-id="${event.id || ''}">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+
+                            // Add click event to show details
+                            const eventInfoEl = li.querySelector('.event-info');
+                            eventInfoEl.addEventListener('click', function() {
+                                showEventDetails({
+                                    id: event.id,
+                                    title: event.title,
+                                    start: event.start,
+                                    end: event.end,
+                                    extendedProps: {
+                                        description: event.description,
+                                        location: event.location
+                                    }
+                                });
+                            });
+
+                            // Add edit event handler
+                            const editBtn = li.querySelector('.edit-event-btn');
+                            editBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const eventId = this.getAttribute('data-event-id');
+
+                                // Find the event in the calendar
+                                const calendarEvent = calendar.getEventById(eventId);
+
+                                if (calendarEvent) {
+                                    // Show edit form
+                                    showEventEditForm(calendarEvent);
+                                }
+                            });
+
+                            // Add delete event handler
+                            const deleteBtn = li.querySelector('.delete-event-btn');
+                            deleteBtn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                const eventId = this.getAttribute('data-event-id');
+
+                                // Show delete confirmation dialog
+                                deleteConfirmationModal.classList.remove('hidden');
+                                document.body.style.overflow = 'hidden';
+                                // Store the event ID in the delete confirmation modal
+                                deleteConfirmationModal.dataset.eventId = eventId;
+                            });
+
+                            eventListEl.appendChild(li);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        const eventListEl = document.getElementById('event-list');
+                        if (eventListEl) {
+                            eventListEl.innerHTML = '<p class="text-red-500 italic text-center py-4">Failed to load events</p>';
+                        }
+                    });
+            }
+
+            // View history events button functionality
+            const viewHistoryEventsBtn = document.getElementById('view-history-events-btn');
+            const upcomingEventsContainer = document.getElementById('upcoming-events-container');
+            const eventsHistoryContainer = document.getElementById('events-history-container');
+            const backToUpcomingBtn = document.getElementById('back-to-upcoming-btn');
+            const eventsHistoryList = document.getElementById('events-history-list');
+
+            if (viewHistoryEventsBtn) {
+                viewHistoryEventsBtn.addEventListener('click', function() {
+                    // Toggle between upcoming events and history view
+                    upcomingEventsContainer.classList.add('hidden');
+                    eventsHistoryContainer.classList.remove('hidden');
+
+                    // Load past events
+                    loadPastEvents();
+                });
+            }
+
+            if (backToUpcomingBtn) {
+                backToUpcomingBtn.addEventListener('click', function() {
+                    // Toggle back to upcoming events
+                    eventsHistoryContainer.classList.add('hidden');
+                    upcomingEventsContainer.classList.remove('hidden');
+                });
+            }
+
+            // Function to load past events
+            function loadPastEvents() {
+                // Fetch events from the controller
+                fetch('@Url.Action("GetEvents", "Events")')
+                    .then(response => response.json())
+                    .then(events => {
+                        if (eventsHistoryList) {
+                            eventsHistoryList.innerHTML = '';
+
+                            // Sort events by date (descending - most recent first)
+                            events.sort((a, b) => new Date(b.start) - new Date(a.start));
+
+                            // Filter to show only past events
+                            const today = new Date();
+                            const pastEvents = events.filter(event => new Date(event.end) < today);
+
+                            if (pastEvents.length === 0) {
+                                eventsHistoryList.innerHTML = '<p class="text-gray-500 italic text-center">No past events</p>';
+                                return;
+                            }
+
+                            pastEvents.forEach(function(event) {
+                                const eventDate = new Date(event.start);
+                                const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                                // Set icon based on event title
+                                let icon = 'ph-calendar-check';
+                                let color = '#95a5a6'; // Gray for past events
+
+                                if (event.title.toLowerCase().includes('meeting')) {
+                                    icon = 'ph-users';
+                                } else if (event.title.toLowerCase().includes('maintenance')) {
+                                    icon = 'ph-wrench';
+                                } else if (event.title.toLowerCase().includes('clean')) {
+                                    icon = 'ph-broom';
+                                } else if (event.title.toLowerCase().includes('due')) {
+                                    icon = 'ph-currency-circle-dollar';
+                                }
+
+                                const li = document.createElement('li');
+                                li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                                li.style.borderLeftColor = color;
+                                li.innerHTML = `
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center">
+                                            <div class="text-center mr-3 bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center">
+                                                <span class="block text-xs font-medium text-gray-600">${formattedDate}</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium flex items-center text-gray-500">
+                                                    <i class="ph ${icon} mr-2" style="color: ${color}"></i>
+                                                    ${event.title}
+                                                </p>
+                                                <p class="text-xs text-gray-400">${event.location || ''}</p>
+                                            </div>
+                                        </div>
+                                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">Completed</span>
+                                    </div>
+                                `;
+
+                                // Add click event to show details
+                                li.addEventListener('click', function() {
+                                    showEventDetails({
+                                        id: event.id,
+                                        title: event.title,
+                                        start: event.start,
+                                        end: event.end,
+                                        extendedProps: {
+                                            description: event.description,
+                                            location: event.location
+                                        }
+                                    });
+                                });
+
+                                eventsHistoryList.appendChild(li);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching past events:', error);
+                        if (eventsHistoryList) {
+                            eventsHistoryList.innerHTML = '<p class="text-red-500 italic text-center">Failed to load past events</p>';
+                        }
+                    });
+            }
+
+            // Update event list with real events
+            loadUpcomingEvents();
+
+            // Initialize charts
+            const roleChart = echarts.init(document.getElementById('roleChart'));
+            const billChart = echarts.init(document.getElementById('billPaymentStatusChart'));
+            const userGrowthChart = echarts.init(document.getElementById('userGrowthChart'));
+            const facilityBookingChart = echarts.init(document.getElementById('facilityBookingChart'));
+
+            // Role Distribution Chart Configuration
+            const roleOption = {
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [
+                    {
+                        name: 'Role Distribution',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 335, name: 'Admin', itemStyle: { color: '#356480' } },
+                            { value: 1048, name: 'Homeowner', itemStyle: { color: '#94B0DF' } },
+                            { value: 580, name: 'Staff', itemStyle: { color: '#2c3e50' } }
+                        ]
+                    }
+                ]
+            };
+
+            // Bill Payment Chart Configuration
+            const billOption = {
+                tooltip: {
+                    trigger: 'item'
+                },
+                series: [
+                    {
+                        name: 'Payment Status',
+                        type: 'pie',
+                        radius: ['40%', '70%'],
+                        avoidLabelOverlap: false,
+                        itemStyle: {
+                            borderRadius: 10,
+                            borderColor: '#fff',
+                            borderWidth: 2
+                        },
+                        label: {
+                            show: false,
+                            position: 'center'
+                        },
+                        emphasis: {
+                            label: {
+                                show: true,
+                                fontSize: 16,
+                                fontWeight: 'bold'
+                            }
+                        },
+                        labelLine: {
+                            show: false
+                        },
+                        data: [
+                            { value: 500, name: 'Paid', itemStyle: { color: '#4ade80' } },
+                            { value: 300, name: 'Pending', itemStyle: { color: '#facc15' } },
+                            { value: 200, name: 'Overdue', itemStyle: { color: '#f87171' } }
+                        ]
+                    }
+                ]
+            };
+
+            // User Growth Chart Configuration
+            const userGrowthOption = {
+                tooltip: {
+                    trigger: 'axis'
+                },
+                xAxis: {
+                    type: 'category',
+                    data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                },
+                yAxis: {
+                    type: 'value'
+                },
+                series: [
+                    {
+                        name: '2024 Growth',
+                        type: 'line',
+                        smooth: true,
+                        data: [15, 25, 30, 45, 55, 65, 75, 85, 95, 100, 110, 120],
+                        itemStyle: { color: '#94B0DF' }
+                    },
+                    {
+                        name: '2025 Growth',
+                        type: 'line',
+                        smooth: true,
+                        data: [20, 35, 45, 60, 70, 80, 90, 100, 110, 120, 130, 140],
+                        itemStyle: { color: '#356480' }
+                    }
+                ]
+            };
+
+            // Facility Booking Chart Configuration
+            const facilityBookingOption = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                xAxis: {
+                    type: 'value'
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['Basketball Court', 'Function Hall', 'Swimming Pool', 'Gym', 'Tennis Court']
+                },
+                series: [
+                    {
+                        name: 'Monthly Bookings',
+                        type: 'bar',
+                        data: [85, 65, 45, 35, 25],
+                        itemStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 1, 0, [
+                                { offset: 0, color: '#94B0DF' },
+                                { offset: 1, color: '#356480' }
+                            ])
+                        }
+                    }
+                ]
+            };
+
+            // Apply chart configurations
+            roleChart.setOption(roleOption);
+            billChart.setOption(billOption);
+            userGrowthChart.setOption(userGrowthOption);
+            facilityBookingChart.setOption(facilityBookingOption);
+
+            // Handle window resize for charts and calendar
+            window.addEventListener('resize', () => {
+                roleChart.resize();
+                billChart.resize();
+                userGrowthChart.resize();
+                facilityBookingChart.resize();
+                calendar.updateSize();
+            });
+
+            // Setup logout modal buttons
+            const logoutModal = document.getElementById('logout-modal');
+            const cancelLogoutBtn = document.getElementById('cancel-logout');
+            const confirmLogoutBtn = document.getElementById('confirm-logout');
+
+            if (cancelLogoutBtn && confirmLogoutBtn) {
+                cancelLogoutBtn.addEventListener('click', function() {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = ''; // Re-enable scrolling
+                });
+
+                confirmLogoutBtn.addEventListener('click', function() {
+                    window.location.href = '@Url.Action("Logout", "Account")';
+                });
+
+                // Close modal when clicking outside
+                logoutModal.addEventListener('click', function(e) {
+                    if (e.target === logoutModal) {
+                        logoutModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
                 });
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const managementBtn = document.getElementById('management-btn');
-            const managementDropdown = document.getElementById('management-dropdown');
+        // Enhancement for management dropdown stability
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing code remains...
 
-            managementBtn.addEventListener('mouseenter', () => {
-                managementDropdown.classList.remove('hidden');
-            });
+            // Management dropdown enhancement
+            const managementItem = document.querySelector('.management-item');
+            const managementDropdown = document.querySelector('.management-dropdown');
 
-            managementBtn.addEventListener('mouseleave', (e) => {
-                // Check if the mouse is not moving to the dropdown
-                if (!e.relatedTarget || !e.relatedTarget.closest('#management-dropdown')) {
-                    managementDropdown.classList.add('hidden');
+            if (managementItem && managementDropdown) {
+                let timeout;
+
+                // Show dropdown with a slight delay to prevent accidental triggering
+                managementItem.addEventListener('mouseenter', function() {
+                    clearTimeout(timeout);
+                    managementDropdown.classList.add('active');
+                });
+
+                // Hide dropdown with a delay to prevent accidental closing
+                managementItem.addEventListener('mouseleave', function() {
+                    timeout = setTimeout(function() {
+                        managementDropdown.classList.remove('active');
+                    }, 300); // 300ms delay before hiding
+                });
+
+                // When entering the dropdown itself, clear the timeout to prevent closing
+                managementDropdown.addEventListener('mouseenter', function() {
+                    clearTimeout(timeout);
+                });
+
+                // When leaving the dropdown, set a timeout to hide it with delay
+                managementDropdown.addEventListener('mouseleave', function() {
+                    timeout = setTimeout(function() {
+                        managementDropdown.classList.remove('active');
+                    }, 300); // 300ms delay before hiding
+                });
+
+                // Click handler for touch devices
+                managementItem.addEventListener('click', function(e) {
+                    // Prevent click from immediately closing the menu
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Toggle active class
+                    if (managementDropdown.classList.contains('active')) {
+                        managementDropdown.classList.remove('active');
+                    } else {
+                        managementDropdown.classList.add('active');
+                    }
+                });
+            }
+        });
+
+        // Function to load upcoming events
+        function loadUpcomingEvents() {
+            fetch('@Url.Action("GetEvents", "Events")')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server returned ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(events => {
+                    const eventListEl = document.getElementById('event-list');
+
+                    if (!eventListEl) {
+                        console.error('Event list element not found');
+                        return;
+                    }
+
+                    // Clear existing events
+                    eventListEl.innerHTML = '';
+
+                    if (!events || events.length === 0) {
+                        eventListEl.innerHTML = '<p class="text-gray-500 italic text-center py-4">No events scheduled</p>';
+                        return;
+                    }
+
+                    // Sort events by date
+                    events.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+                    // Get today's date to filter upcoming events
+                    const today = new Date();
+
+                    // Show ALL events, not just upcoming ones
+                    // Show events in the list - ALL events, not just a limited number
+                    events.forEach(function(event) {
+                        const eventDate = new Date(event.start);
+                        const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        // Set icon based on event title
+                        let icon = 'ph-calendar-check';
+                        let color = event.backgroundColor || '#356480'; // Use event color or default
+
+                        if (event.title.toLowerCase().includes('meeting')) {
+                            icon = 'ph-users';
+                        } else if (event.title.toLowerCase().includes('maintenance')) {
+                            icon = 'ph-wrench';
+                        } else if (event.title.toLowerCase().includes('clean')) {
+                            icon = 'ph-broom';
+                        } else if (event.title.toLowerCase().includes('due')) {
+                            icon = 'ph-currency-circle-dollar';
+                        }
+
+                        const li = document.createElement('li');
+                        li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                        li.style.borderLeftColor = color;
+                        li.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1 event-info cursor-pointer">
+                                    <div class="flex items-start">
+                                        <i class="ph ${icon} text-lg mr-3 mt-0.5" style="color: ${color}"></i>
+                                        <div>
+                                            <h4 class="font-medium">${event.title}</h4>
+                                            <div class="text-sm text-gray-600">
+                                                <div class="flex items-center gap-1">
+                                                    <i class="ph ph-calendar text-xs"></i>
+                                                    <span>${formattedDate}</span>
+                                                </div>
+                                                <div class="flex items-center gap-1">
+                                                    <i class="ph ph-clock text-xs"></i>
+                                                    <span>${formattedTime}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button class="edit-event-btn p-1 text-gray-600 hover:bg-gray-100 rounded" title="Edit" data-event-id="${event.id || ''}">
+                                        <i class="ph ph-pencil-simple"></i>
+                                    </button>
+                                    <button class="delete-event-btn p-1 text-red-600 hover:bg-red-50 rounded" title="Delete" data-event-id="${event.id || ''}">
+                                        <i class="ph ph-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Add click event to show details
+                        const eventInfoEl = li.querySelector('.event-info');
+                        eventInfoEl.addEventListener('click', function() {
+                            showEventDetails({
+                                id: event.id,
+                                title: event.title,
+                                start: event.start,
+                                end: event.end,
+                                extendedProps: {
+                                    description: event.description,
+                                    location: event.location
+                                }
+                            });
+                        });
+
+                        // Add edit event handler
+                        const editBtn = li.querySelector('.edit-event-btn');
+                        editBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const eventId = this.getAttribute('data-event-id');
+
+                            // Find the event in the calendar
+                            const calendarEvent = calendar.getEventById(eventId);
+
+                            if (calendarEvent) {
+                                // Show edit form
+                                showEventEditForm(calendarEvent);
+                            }
+                        });
+
+                        // Add delete event handler
+                        const deleteBtn = li.querySelector('.delete-event-btn');
+                        deleteBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const eventId = this.getAttribute('data-event-id');
+
+                            // Show delete confirmation dialog
+                            deleteConfirmationModal.classList.remove('hidden');
+                            document.body.style.overflow = 'hidden';
+                            // Store the event ID in the delete confirmation modal
+                            deleteConfirmationModal.dataset.eventId = eventId;
+                        });
+
+                        eventListEl.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                    const eventListEl = document.getElementById('event-list');
+                    if (eventListEl) {
+                        eventListEl.innerHTML = '<p class="text-red-500 italic text-center py-4">Failed to load events</p>';
+                    }
+                });
+        }
+
+        // Event Details and Edit Functionality
+        const eventDetailsView = document.getElementById('event-details-view');
+        const eventEditForm = document.getElementById('event-edit-form');
+        const eventDetailsFooter = document.getElementById('event-details-footer');
+        const eventEditFooter = document.getElementById('event-edit-footer');
+        const editEventDetailsBtn = document.getElementById('edit-event-details-btn');
+        const cancelEditBtn = document.getElementById('cancel-edit-btn');
+        const saveEditBtn = document.getElementById('save-edit-btn');
+        const closeDetailsBtn = document.getElementById('close-details-btn');
+
+        // Switch to edit mode
+        if (editEventDetailsBtn) {
+            editEventDetailsBtn.addEventListener('click', function() {
+                // Get the current event ID
+                const eventId = eventDetailsModal.dataset.eventId;
+
+                // Find the event in the calendar
+                const event = calendar.getEventById(eventId);
+
+                if (event) {
+                    // Hide details view, show edit form
+                    eventDetailsView.classList.add('hidden');
+                    eventEditForm.classList.remove('hidden');
+                    eventDetailsFooter.classList.add('hidden');
+                    eventEditFooter.classList.remove('hidden');
+
+                    // Set form values
+                    document.getElementById('edit-event-id').value = eventId;
+                    document.getElementById('editEventTitle').value = event.title;
+
+                    // Format dates and times for the form
+                    const startDate = event.start ? new Date(event.start) : new Date();
+                    const endDate = event.end ? new Date(event.end) : new Date();
+
+                    document.getElementById('editEventStartDate').value = formatDate(startDate);
+                    document.getElementById('editEventEndDate').value = formatDate(endDate);
+
+                    document.getElementById('editEventStartTime').value = formatTime(startDate);
+                    document.getElementById('editEventEndTime').value = formatTime(endDate);
+
+                    document.getElementById('editEventLocation').value = event.extendedProps?.location || '';
+                    document.getElementById('editEventDescription').value = event.extendedProps?.description || '';
                 }
             });
+        }
 
-            managementDropdown.addEventListener('mouseleave', () => {
-                managementDropdown.classList.add('hidden');
+        // Cancel edit - return to details view
+        if (cancelEditBtn) {
+            cancelEditBtn.addEventListener('click', function() {
+                eventEditForm.classList.add('hidden');
+                eventDetailsView.classList.remove('hidden');
+                eventEditFooter.classList.add('hidden');
+                eventDetailsFooter.classList.remove('hidden');
             });
+        }
 
-            managementDropdown.addEventListener('mouseenter', () => {
-                managementDropdown.classList.remove('hidden');
+        // Close button in details view
+        if (closeDetailsBtn) {
+            closeDetailsBtn.addEventListener('click', function() {
+                eventDetailsModal.classList.add('hidden');
+                document.body.style.overflow = '';
             });
-        });
+        }
+
+        // Save edited event
+        if (saveEditBtn) {
+            saveEditBtn.addEventListener('click', function() {
+                const eventId = document.getElementById('edit-event-id').value;
+                const title = document.getElementById('editEventTitle').value.trim();
+                const startDate = document.getElementById('editEventStartDate').value;
+                const startTime = document.getElementById('editEventStartTime').value;
+                const endDate = document.getElementById('editEventEndDate').value;
+                const endTime = document.getElementById('editEventEndTime').value;
+                const location = document.getElementById('editEventLocation').value.trim();
+                const description = document.getElementById('editEventDescription').value.trim();
+
+                // Basic validation
+                if (!title || !startDate || !startTime || !endDate || !endTime || !location) {
+                    showNotification('Please fill in all required fields.', 'error');
+                    return;
+                }
+
+                // Create updated event data
+                const updatedEventData = {
+                    Id: eventId,
+                    Title: title,
+                    StartDate: startDate,
+                    StartTime: startTime,
+                    EndDate: endDate,
+                    EndTime: endTime,
+                    Location: location,
+                    Description: description
+                };
+
+                // Get the anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                // Show loading state
+                saveEditBtn.disabled = true;
+                saveEditBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Saving...';
+
+                // Send update request to server
+                fetch(`@Url.Action("Edit", "Events")/${eventId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(updatedEventData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Server returned ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button
+                    saveEditBtn.disabled = false;
+                    saveEditBtn.innerHTML = '<i class="ph ph-floppy-disk mr-1"></i> Save Changes';
+
+                    if (data.success) {
+                        // Update the event in the calendar
+                        const event = calendar.getEventById(eventId);
+                        if (event) {
+                            // Format dates with time
+                            const startDateTime = new Date(`${startDate}T${startTime}`);
+                            const endDateTime = new Date(`${endDate}T${endTime}`);
+
+                            event.setProp('title', title);
+                            event.setDates(startDateTime, endDateTime);
+                            event.setExtendedProp('description', description);
+                            event.setExtendedProp('location', location);
+                        }
+
+                        // Refresh upcoming events list
+                        loadUpcomingEvents();
+
+                        // Close edit mode and modal
+                        eventDetailsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+
+                        // Show success message
+                        showNotification('Event updated successfully!', 'success');
+                    } else {
+                        // Show error message
+                        showNotification(data.message || 'Failed to update event.', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating event:', error);
+
+                    // Reset button
+                    saveEditBtn.disabled = false;
+                    saveEditBtn.innerHTML = '<i class="ph ph-floppy-disk mr-1"></i> Save Changes';
+
+                    // Show error notification
+                    showNotification('Failed to update event. Please try again.', 'error');
+                });
+            });
+        }
+
+        // Helper function to format date as YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Helper function to format time as HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
     </script>
 </body>
 </html>

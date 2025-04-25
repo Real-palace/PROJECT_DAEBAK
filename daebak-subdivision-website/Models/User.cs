@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace daebak_subdivision_website.Models
 {
@@ -40,10 +41,6 @@ namespace daebak_subdivision_website.Models
         [Column("PHONE_NUMBER")]
         public string? PhoneNumber { get; set; }
 
-        [StringLength(10)]
-        [Column("HOUSE_NUMBER")]
-        public string? HouseNumber { get; set; }
-
         [StringLength(255)]
         [Column("PROFILE_PICTURE")]
         public string? ProfilePicture { get; set; }
@@ -53,5 +50,24 @@ namespace daebak_subdivision_website.Models
 
         [Column("UPDATED_AT")]
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
+
+        // Navigation property for Homeowner
+        public virtual Homeowner? Homeowner { get; set; }
+
+        // Virtual property to get HouseNumber from Homeowner
+        [NotMapped]
+        public string? HouseNumber
+        {
+            get => Homeowner?.HouseNumber;
+            set
+            {
+                // If Homeowner exists, update its HouseNumber
+                if (Homeowner != null)
+                {
+                    Homeowner.HouseNumber = value ?? string.Empty;
+                }
+                // Property setter needed for model binding in form submissions
+            }
+        }
     }
 }
