@@ -8,7 +8,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" ="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"]</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
@@ -267,12 +267,12 @@
 
                     <!-- User Menu -->
                     <div class="relative">
-                        <a href="#" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                        <div class="flex items-center gap-2 text-gray-700 transition-colors">
                             <span class="hidden md:block">Administrator</span>
                             <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
                                 <i class="ph ph-user"></i>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -548,7 +548,7 @@
 
                     <!-- Content -->
                     <div id="event-details-view" class="px-6 py-5 flex-1 overflow-y-auto">
-                        <div class="mb-6">
+                        <div class="mb-3">
                             <div class="flex items-center gap-3 mb-5">
                                 <div class="bg-secondary/20 p-3 rounded-full">
                                     <i id="event-details-icon" class="ph ph-calendar-check text-2xl text-secondary"></i>
@@ -559,7 +559,7 @@
                                 </div>
                             </div>
 
-                            <div class="space-y-4">
+                            <div class="space-y-1">
                                 <div class="flex items-start">
                                     <i class="ph ph-clock text-lg text-secondary mt-0.5 mr-3"></i>
                                     <div>
@@ -604,59 +604,74 @@
                     </div>
 
                     <!-- Edit form (initially hidden) -->
-                    <div id="event-edit-form" class="px-6 py-5 flex-1 overflow-y-auto hidden">
-                        <form id="edit-event-form" class="space-y-4">
-                            <input type="hidden" id="edit-event-id">
-                            <div class="mb-4">
-                                <label for="editEventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
-                                <input type="text" id="editEventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
-                            </div>
+                    <div id="event-edit-form" class="hidden flex-1 flex flex-col overflow-hidden">
+                        <!-- Scrollable Content -->
+                        <div class="overflow-y-auto px-6 py-4 custom-scrollbar flex-1">
+                            <form id="edit-event-form" class="space-y-4">
+                                <input type="hidden" id="edit-event-id">
+                                @Html.AntiForgeryToken()
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="editEventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
-                                    <div class="flex flex-col space-y-2">
-                                        <input type="date" id="editEventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                        <input type="time" id="editEventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                <div id="edit-form-error-alert" class="hidden bg-red-50 text-red-600 p-3 rounded-md mb-4">
+                                    <div class="flex items-center">
+                                        <i class="ph ph-warning-circle mr-2 text-lg"></i>
+                                        <span id="edit-error-message">Please correct the errors below.</span>
                                     </div>
                                 </div>
-                                <div>
-                                    <label for="editEventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
-                                    <div class="flex flex-col space-y-2">
-                                        <input type="date" id="editEventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                        <input type="time" id="editEventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+
+                                <div class="mb-4">
+                                    <label for="editEventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editEventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
+                                    <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label for="editEventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
+                                        <div class="flex flex-col space-y-2">
+                                            <input type="date" id="editEventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                            <input type="time" id="editEventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label for="editEventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
+                                        <div class="flex flex-col space-y-2">
+                                            <input type="date" id="editEventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                            <input type="time" id="editEventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="mb-4">
-                                <label for="editEventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
-                                <input type="text" id="editEventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
-                            </div>
+                                <div class="mb-4">
+                                    <label for="editEventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
+                                    <input type="text" id="editEventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
+                                </div>
 
-                            <div class="mb-4">
-                                <label for="editEventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
-                                <textarea id="editEventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
+                                <div class="mb-4">
+                                    <label for="editEventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
+                                    <textarea id="editEventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Footer for editing mode - these are the Cancel and Save Changes buttons -->
+                        <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end" id="event-edit-footer">
+                            <div class="flex gap-2">
+                                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                    Cancel
+                                </button>
+                                <button id="save-edit-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
+                                    <i class="ph ph-floppy-disk mr-1"></i>
+                                    Save Changes
+                                </button>
                             </div>
-                        </form>
+                        </div>
                     </div>
 
-                    <!-- Footer for viewing mode -->
-                    <div id="event-details-footer" class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-                        <button id="close-event-details-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                            Close
-                        </button>
-                    </div>
-
-                    <!-- Footer for editing mode -->
-                    <div id="event-edit-footer" class="p-4 border-t border-gray-100 bg-gray-50 flex justify-between hidden">
+                    <!-- Footer for details view - initially visible -->
+                    <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end" id="event-details-footer">
                         <div class="flex gap-2">
-                            <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                Cancel
-                            </button>
-                            <button id="save-edit-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
-                                <i class="ph ph-floppy-disk mr-1"></i>
-                                Save Changes
+                            <button id="close-details-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                Close
                             </button>
                         </div>
                     </div>
@@ -834,12 +849,17 @@
             if (editEventBtn) {
                 editEventBtn.addEventListener('click', function() {
                     const eventId = eventDetailsModal.dataset.eventId;
-                    // Close details modal
-                    eventDetailsModal.classList.add('hidden');
 
-                    // In a real implementation, you would fetch event details and populate the edit form
-                    // For now, we'll just show a notification
-                    showNotification('Edit functionality will be implemented soon', 'info');
+                    // Find the event in the calendar
+                    const event = calendar.getEventById(eventId);
+
+                    if (event) {
+                        // Show edit form for the event
+                        showEventEditForm(event, true);
+                    } else {
+                        // Show error if event not found
+                        showNotification('Event not found. Please try again.', 'error');
+                    }
                 });
             }
 
@@ -892,23 +912,63 @@
                 confirmDeleteBtn.addEventListener('click', function() {
                     const eventId = deleteConfirmationModal.dataset.eventId;
 
-                    // In a real implementation, you would send a DELETE request to the server
-                    // For now, we'll simulate success and remove the event from the calendar
-                    const event = calendar.getEventById(eventId);
-                    if (event) {
-                        event.remove();
-                    }
+                    // Get the anti-forgery token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
 
-                    // Close both modals
-                    deleteConfirmationModal.classList.add('hidden');
-                    eventDetailsModal.classList.add('hidden');
-                    document.body.style.overflow = '';
+                    // Show loading state
+                    confirmDeleteBtn.disabled = true;
+                    confirmDeleteBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Deleting...';
 
-                    // Refresh upcoming events list
-                    loadUpcomingEvents();
+                    // Send delete request to the server
+                    fetch(`@Url.Action("DeleteEvent", "Events")?id=${eventId}`, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': token
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Server returned ' + response.status);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Reset button
+                        confirmDeleteBtn.disabled = false;
+                        confirmDeleteBtn.innerHTML = 'Yes, Delete';
 
-                    // Show success notification
-                    showNotification('Event deleted successfully!', 'success');
+                        if (data.success) {
+                            // Remove event from calendar
+                            const event = calendar.getEventById(eventId);
+                            if (event) {
+                                event.remove();
+                            }
+
+                            // Close both modals
+                            deleteConfirmationModal.classList.add('hidden');
+                            eventDetailsModal.classList.add('hidden');
+                            document.body.style.overflow = '';
+
+                            // Refresh upcoming events list
+                            loadUpcomingEvents();
+
+                            // Show success notification
+                            showNotification('Event deleted successfully!', 'success');
+                        } else {
+                            // Show error message
+                            showNotification(data.message || 'Failed to delete event.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting event:', error);
+
+                        // Reset button
+                        confirmDeleteBtn.disabled = false;
+                        confirmDeleteBtn.innerHTML = 'Yes, Delete';
+
+                        // Show error notification
+                        showNotification('Failed to delete event. Please try again.', 'error');
+                    });
                 });
             }
 
@@ -1057,11 +1117,13 @@
                                 title: data.title,
                                 start: data.start,
                                 end: data.end,
-                                backgroundColor: eventData.Color,
-                                borderColor: eventData.Color,
+                                backgroundColor: data.backgroundColor,
+                                borderColor: data.borderColor,
                                 extendedProps: {
                                     location: data.location,
-                                    description: data.description
+                                    description: data.description,
+                                    createdAt: data.createdAt,
+                                    createdBy: data.createdBy
                                 }
                             });
 
@@ -1197,13 +1259,18 @@
                 const eventDetailsCreatedOn = document.getElementById('event-details-created-on');
                 const eventDetailsIcon = document.getElementById('event-details-icon');
 
-                // Make sure the edit button in the event details view is visible
-                const editEventDetailsBtn = document.getElementById('edit-event-details-btn');
-                if (editEventDetailsBtn) {
-                    editEventDetailsBtn.style.display = 'flex'; // Changed from 'none' to 'flex' to make the button visible
-                }
+                // Make sure we're showing the details view, not the edit form
+                const eventDetailsView = document.getElementById('event-details-view');
+                const eventEditForm = document.getElementById('event-edit-form');
+                const eventDetailsFooter = document.getElementById('event-details-footer');
+                const eventEditFooter = document.getElementById('event-edit-footer');
 
-                // Set the current event ID for delete operations
+                if(eventDetailsView) eventDetailsView.classList.remove('hidden');
+                if(eventEditForm) eventEditForm.classList.add('hidden');
+                if(eventDetailsFooter) eventDetailsFooter.classList.remove('hidden');
+                if(eventEditFooter) eventEditFooter.classList.add('hidden');
+
+                // Set the current event ID for operations
                 eventDetailsModal.dataset.eventId = event.id || '';
 
                 // Populate modal with event details
@@ -1238,12 +1305,18 @@
                 eventDetailsLocation.textContent = event.extendedProps?.location || 'No location specified';
                 eventDetailsDescription.textContent = event.extendedProps?.description || 'No description available';
                 eventDetailsCreatedBy.textContent = event.extendedProps?.createdBy || 'Administrator';
-                eventDetailsCreatedOn.textContent = event.extendedProps?.createdAt ?
-                    new Date(event.extendedProps.createdAt).toLocaleDateString('en-US', {
+
+                // Format the Created On date using the actual createdAt value from the event
+                if (event.extendedProps?.createdAt) {
+                    const createdDate = new Date(event.extendedProps.createdAt);
+                    eventDetailsCreatedOn.textContent = createdDate.toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                    }) : 'Not available';
+                    });
+                } else {
+                    eventDetailsCreatedOn.textContent = 'Not available';
+                }
 
                 // Set icon based on event title
                 let iconClass = 'ph-calendar-check';
@@ -1265,7 +1338,7 @@
             }
 
             // Function to show event edit form
-            function showEventEditForm(event) {
+            function showEventEditForm(event, fromDetailsView = false) {
                 const eventDetailsModal = document.getElementById('event-details-modal');
                 const eventDetailsView = document.getElementById('event-details-view');
                 const eventEditForm = document.getElementById('event-edit-form');
@@ -1278,11 +1351,16 @@
                 // Store the event ID in the modal dataset
                 eventDetailsModal.dataset.eventId = event.id || '';
 
+                // Track if editing was started from details view
+                eventDetailsModal.dataset.fromDetailsView = fromDetailsView.toString();
+
                 // Show edit form, hide details view
-                eventDetailsView.classList.add('hidden');
-                eventEditForm.classList.remove('hidden');
-                eventDetailsFooter.classList.add('hidden');
-                eventEditFooter.classList.remove('hidden');
+                if(eventDetailsView) eventDetailsView.classList.add('hidden');
+                if(eventEditForm) eventEditForm.classList.remove('hidden');
+
+                // Toggle footers - hide details footer, show edit footer
+                if(eventDetailsFooter) eventDetailsFooter.classList.add('hidden');
+                if(eventEditFooter) eventEditFooter.classList.remove('hidden');
 
                 // Set form values
                 document.getElementById('edit-event-id').value = event.id;
@@ -1323,7 +1401,12 @@
 
             // View all events button functionality
             document.getElementById('view-history-events-btn').addEventListener('click', function() {
-                window.location.href = '@Url.Action("Index", "Events")';
+                // Toggle between upcoming events and history view
+                upcomingEventsContainer.classList.add('hidden');
+                eventsHistoryContainer.classList.remove('hidden');
+
+                // Load past events
+                loadPastEvents();
             });
 
             // Update event list with real events
@@ -1966,10 +2049,19 @@
         const eventEditForm = document.getElementById('event-edit-form');
         const eventDetailsFooter = document.getElementById('event-details-footer');
         const eventEditFooter = document.getElementById('event-edit-footer');
-        const editEventDetailsBtn = document.getElementById('edit-event-details-btn');
+        const editEventDetailsBtn = document.getElementById('edit-event-btn');
         const cancelEditBtn = document.getElementById('cancel-edit-btn');
         const saveEditBtn = document.getElementById('save-edit-btn');
         const closeDetailsBtn = document.getElementById('close-details-btn');
+
+        // Add event listener for the Close button in the Event Details modal
+        if (closeDetailsBtn) {
+            closeDetailsBtn.addEventListener('click', function() {
+                const eventDetailsModal = document.getElementById('event-details-modal');
+                eventDetailsModal.classList.add('hidden');
+                document.body.style.overflow = '';
+            });
+        }
 
         // Switch to edit mode
         if (editEventDetailsBtn) {
@@ -1986,6 +2078,9 @@
                     eventEditForm.classList.remove('hidden');
                     eventDetailsFooter.classList.add('hidden');
                     eventEditFooter.classList.remove('hidden');
+
+                    // Update modal title to indicate we're editing now
+                    document.getElementById('event-details-title').textContent = 'Edit Event';
 
                     // Set form values
                     document.getElementById('edit-event-id').value = eventId;
@@ -2007,13 +2102,25 @@
             });
         }
 
-        // Cancel edit - return to details view
+        // Cancel edit - contextual behavior based on where editing was started
         if (cancelEditBtn) {
             cancelEditBtn.addEventListener('click', function() {
-                eventEditForm.classList.add('hidden');
-                eventDetailsView.classList.remove('hidden');
-                eventEditFooter.classList.add('hidden');
-                eventDetailsFooter.classList.remove('hidden');
+                const fromDetailsView = eventDetailsModal.dataset.fromDetailsView === 'true';
+
+                if (fromDetailsView) {
+                    // If started from details view, return to details view
+                    eventEditForm.classList.add('hidden');
+                    eventDetailsView.classList.remove('hidden');
+                    eventEditFooter.classList.add('hidden');
+                    eventDetailsFooter.classList.remove('hidden');
+
+                    // Reset title back to Event Details
+                    document.getElementById('event-details-title').textContent = 'Event Details';
+                } else {
+                    // If started from Upcoming Events section, close modal completely
+                    eventDetailsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
             });
         }
 

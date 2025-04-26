@@ -78,7 +78,7 @@ namespace daebak_subdivision_website.Models
             // ✅ Define Relationships
             modelBuilder.Entity<Homeowner>()
                 .HasOne(h => h.User)
-                .WithOne()
+                .WithOne(u => u.Homeowner)
                 .HasForeignKey<Homeowner>(h => h.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 

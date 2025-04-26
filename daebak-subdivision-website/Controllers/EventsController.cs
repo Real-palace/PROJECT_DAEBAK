@@ -37,7 +37,9 @@ namespace daebak_subdivision_website.Controllers
         {
             try
             {
-                var events = await _dbContext.Events.ToListAsync();
+                var events = await _dbContext.Events
+                    .Include(e => e.CreatedBy)
+                    .ToListAsync();
 
                 var calendarEvents = events.Select(e => new
                 {
@@ -48,7 +50,9 @@ namespace daebak_subdivision_website.Controllers
                     description = e.Description,
                     location = e.Location,
                     backgroundColor = GetEventColor(e.Title),
-                    borderColor = GetEventColor(e.Title)
+                    borderColor = GetEventColor(e.Title),
+                    createdAt = e.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    createdBy = e.CreatedBy != null ? e.CreatedBy.Username : "Administrator"
                 });
 
                 return Json(calendarEvents);
@@ -115,6 +119,9 @@ namespace daebak_subdivision_website.Controllers
                 _dbContext.Events.Add(newEvent);
                 await _dbContext.SaveChangesAsync();
 
+                // Assign proper color based on title for consistency
+                string eventColor = GetEventColor(newEvent.Title);
+
                 // Return success response with the created event
                 return Json(new
                 {
@@ -125,7 +132,11 @@ namespace daebak_subdivision_website.Controllers
                     start = newEvent.StartDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                     end = newEvent.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"),
                     description = newEvent.Description,
-                    location = newEvent.Location
+                    location = newEvent.Location,
+                    createdAt = newEvent.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    createdBy = "Administrator",
+                    backgroundColor = eventColor,
+                    borderColor = eventColor
                 });
             }
             catch (Exception ex)
@@ -176,35 +187,69 @@ namespace daebak_subdivision_website.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "ADMIN,STAFF")]
-        public async Task<IActionResult> Edit(int id, Event eventItem)
+        public async Task<IActionResult> Edit(int id, [FromBody] EventViewModel eventViewModel)
         {
-            if (id != eventItem.Id)
+            if (!ModelState.IsValid)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Invalid event data", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                var existingEvent = await _dbContext.Events.FindAsync(id);
+
+                if (existingEvent == null)
                 {
-                    eventItem.UpdatedAt = DateTime.Now;
-                    _dbContext.Update(eventItem);
-                    await _dbContext.SaveChangesAsync();
-                    return RedirectToAction(nameof(Index));
+                    return Json(new { success = false, message = "Event not found" });
                 }
-                catch (DbUpdateConcurrencyException)
+
+                // Parse date and time
+                DateTime startDateTime, endDateTime;
+
+                if (!DateTime.TryParse($"{eventViewModel.StartDate} {eventViewModel.StartTime}", out startDateTime))
                 {
-                    if (!EventExists(eventItem.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return Json(new { success = false, message = "Invalid start date or time format." });
                 }
+
+                if (!DateTime.TryParse($"{eventViewModel.EndDate} {eventViewModel.EndTime}", out endDateTime))
+                {
+                    return Json(new { success = false, message = "Invalid end date or time format." });
+                }
+
+                // Validate dates
+                if (endDateTime <= startDateTime)
+                {
+                    return Json(new { success = false, message = "End date must be after start date." });
+                }
+
+                // Update event properties
+                existingEvent.Title = eventViewModel.Title;
+                existingEvent.Description = eventViewModel.Description ?? string.Empty;
+                existingEvent.StartDate = startDateTime;
+                existingEvent.EndDate = endDateTime;
+                existingEvent.Location = eventViewModel.Location;
+                existingEvent.UpdatedAt = DateTime.Now;
+
+                _dbContext.Update(existingEvent);
+                await _dbContext.SaveChangesAsync();
+
+                // Return success with updated event data
+                return Json(new
+                {
+                    success = true,
+                    message = "Event updated successfully",
+                    id = existingEvent.Id,
+                    title = existingEvent.Title,
+                    start = existingEvent.StartDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    end = existingEvent.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    description = existingEvent.Description,
+                    location = existingEvent.Location
+                });
             }
-            return View(eventItem);
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error updating event: {ex.Message}" });
+            }
         }
 
         // GET: /Events/Delete/5
@@ -242,6 +287,32 @@ namespace daebak_subdivision_website.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // DELETE: /Events/DeleteEvent/5
+        [HttpPost, ActionName("DeleteEvent")]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "ADMIN,STAFF")]
+        public async Task<IActionResult> DeleteEvent(int id)
+        {
+            try
+            {
+                var eventItem = await _dbContext.Events.FindAsync(id);
+
+                if (eventItem == null)
+                {
+                    return Json(new { success = false, message = "Event not found" });
+                }
+
+                _dbContext.Events.Remove(eventItem);
+                await _dbContext.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Event deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Error deleting event: {ex.Message}" });
+            }
         }
 
         private bool EventExists(int id)

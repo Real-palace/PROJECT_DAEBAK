@@ -275,8 +275,23 @@ namespace daebak_subdivision_website.Controllers
             user.FirstName = model.FirstName;
             user.LastName = model.LastName;
             user.PhoneNumber = model.PhoneNumber;
-            user.HouseNumber = model.HouseNumber; // Update HouseNumber using the virtual property
             user.UpdatedAt = DateTime.Now;
+
+            // Explicitly update the Homeowner.HouseNumber
+            if (user.Homeowner != null)
+            {
+                user.Homeowner.HouseNumber = model.HouseNumber ?? string.Empty;
+            }
+            else
+            {
+                // If Homeowner relation doesn't exist yet (shouldn't happen but just in case), create it
+                _logger.LogWarning("Homeowner relationship missing for user {Username}, creating new entry", user.Username);
+                user.Homeowner = new Homeowner
+                {
+                    UserId = user.UserId,
+                    HouseNumber = model.HouseNumber ?? string.Empty
+                };
+            }
 
             try
             {
