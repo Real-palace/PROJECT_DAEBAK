@@ -168,7 +168,7 @@
             <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
                 <i class="ph ph-sign-out"></i>
             </a>
-        </div> 
+        </div>
     </div>
 
     <!-- Main Content -->
@@ -187,7 +187,7 @@
                         </button>
 
                         <!-- Notification Dropdown -->
-                        <div id="notification-dropdown" class="hidden fixed right-4 top-12 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300">
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
                             <div class="p-4 border-b border-gray-200">
                                 <div class="flex justify-between items-center">
                                     <h3 class="font-medium text-gray-700">Notifications</h3>
@@ -230,62 +230,55 @@
                                                 </button>
                                             </div>
                                             <p class="text-xs text-gray-500 mt-1">Your payment of ₱2,500 for March dues has been received.</p>
-                                            <div class="bg-yellow-100 p-2 rounded-full mr-3">
-                                                <i class="ph ph-calendar text-yellow-500"></i>
-                                            </div>
-                                            <div class="flex-1">
-                                                <div class="flex justify-between">
-                                                    <p class="text-sm font-medium text-gray-800">New Community Event</p>
-                                                    <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
-                                                        <i class="ph ph-check-circle"></i>
-                                                    </button>
-                                                </div>
-                                                <p class="text-xs text-gray-500 mt-1">Easter Egg Hunt event scheduled for April 9 at the community park.</p>
-                                                <p class="text-xs text-gray-400 mt-2">Yesterday</p>
-                                            </div>
+                                            <p class="text-xs text-gray-400 mt-2">5 hours ago</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Read Notification -->
-                                    <div class="notification-item p-4 hover:bg-gray-50">
-                                        <div class="flex items-start">
-                                            <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                                <i class="ph ph-chat-text text-blue-500"></i>
+                                <!-- Event Notification -->
+                                <div class="notification-item notification-unread border-l-4 border-yellow-500 p-4 bg-yellow-50/50 hover:bg-yellow-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-yellow-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-calendar text-yellow-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Upcoming Event</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
                                             </div>
-                                            <div class="flex-1">
-                                                <p class="text-sm font-medium text-gray-800">New Forum Post</p>
-                                                <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
-                                                <p class="text-xs text-gray-400 mt-2">3 days ago</p>
-                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">Easter Egg Hunt event scheduled for April 9 at the community park.</p>
+                                            <p class="text-xs text-gray-400 mt-2">Yesterday</p>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Read Notification -->
-                                    <div class="notification-item p-4 hover:bg-gray-50">
-                                        <div class="flex items-start">
-                                            <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                                <i class="ph ph-check-circle text-blue-500"></i>
-                                            </div>
-                                            <div class="flex-1">
-                                                <p class="text-sm font-medium text-gray-800">Maintenance Complete</p>
-                                                <p class="text-xs text-gray-500 mt-1">Maintenance of the swimming pool has been completed. The facility is now open for use.</p>
-                                                <p class="text-xs text-gray-400 mt-2">3 days ago</p>
-                                            </div>
+                                <!-- Read Notification -->
+                                <div class="notification-item p-4 hover:bg-gray-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-chat-text text-blue-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-medium text-gray-800">New Forum Post</p>
+                                            <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
+                                            <p class="text-xs text-gray-400 mt-2">3 days ago</p>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- User Menu -->
-                        <div class="relative">
-                            <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
-                                <span class="hidden md:block">@ViewBag.FirstName</span>
-                                <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                                    <i class="ph ph-user"></i>
-                                </div>
-                            </a>
-                        </div>
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.FirstName</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -982,16 +975,16 @@
         @if (ViewBag.Events != null)
         {
             <text>
-                                                                        try {
-                                                                            const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
-                                                                            console.log("Server events available:", serverEvents);
-                                                                            if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                                                                                events = serverEvents;
-                                                                                console.log("Using server events instead of defaults");
+                                                                            try {
+                                                                                const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                                                                                console.log("Server events available:", serverEvents);
+                                                                                if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                                                                                    events = serverEvents;
+                                                                                    console.log("Using server events instead of defaults");
+                                                                                }
+                                                                            } catch (e) {
+                                                                                console.error("Error with server events:", e);
                                                                             }
-                                                                        } catch (e) {
-                                                                            console.error("Error with server events:", e);
-                                                                        }
             </text>
         }
 
