@@ -144,7 +144,6 @@ namespace daebak_subdivision_website.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 HouseNumber = user.HouseNumber ?? string.Empty,
-                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
                 Role = user.Role,
                 CreatedAt = user.CreatedAt
             };

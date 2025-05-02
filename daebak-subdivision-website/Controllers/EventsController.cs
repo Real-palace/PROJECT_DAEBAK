@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using daebak_subdivision_website.Models;
 using System.Text.Json;
 using System.Security.Claims;
+using System.ComponentModel.DataAnnotations;
 
 namespace daebak_subdivision_website.Controllers
 {
@@ -68,9 +69,22 @@ namespace daebak_subdivision_website.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateEvent([FromBody] EventViewModel eventViewModel)
         {
+            // Debug info for model state
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                var errors = new Dictionary<string, string[]>();
+
+                foreach (var key in ModelState.Keys)
+                {
+                    var state = ModelState[key];
+                    if (state?.Errors.Count > 0) // Added null check
+                    {
+                        errors[key] = state.Errors.Select(e => e.ErrorMessage).ToArray();
+                    }
+                }
+
+                // Return detailed validation errors
+                return BadRequest(errors);
             }
 
             try
@@ -355,13 +369,26 @@ namespace daebak_subdivision_website.Controllers
 
     public class EventViewModel
     {
+        [Required]
         public string Title { get; set; }
-        public string Description { get; set; }
+
+        public string? Description { get; set; } // Made nullable
+
+        [Required]
         public string StartDate { get; set; }
+
+        [Required]
         public string StartTime { get; set; }
+
+        [Required]
         public string EndDate { get; set; }
+
+        [Required]
         public string EndTime { get; set; }
+
+        [Required]
         public string Location { get; set; }
-        public string Color { get; set; }
+
+        public string? Color { get; set; } // Made nullable
     }
 }

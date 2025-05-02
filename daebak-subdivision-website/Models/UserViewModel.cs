@@ -5,7 +5,7 @@ namespace daebak_subdivision_website.Models
 {
     public class UserViewModel
     {
-        public int Id { get; set; }  // ✅ Add this property
+        public int UserId { get; set; }  // Changed from Id to UserId to match controller
 
         [Required, StringLength(50)]
         public string Username { get; set; }
@@ -25,6 +25,9 @@ namespace daebak_subdivision_website.Models
 
         [StringLength(10)]
         public string HouseNumber { get; set; }
+
+        [StringLength(10)]
+        public string Department { get; set; }
 
         [Required, StringLength(10)]
         public string Role { get; set; }

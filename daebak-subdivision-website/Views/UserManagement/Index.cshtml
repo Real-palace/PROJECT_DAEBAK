@@ -1,0 +1,215 @@
+@model daebak_subdivision_website.Models.AdminPageModel
+@{
+    ViewData["Title"] = "Daebak Subdivision | User Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var users = ViewData["Users"] as IEnumerable<daebak_subdivision_website.Models.User>;
+}
+
+<!-- User Management Section -->
+<div class="p-6">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="success-alert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded relative" role="alert">
+            <div class="flex items-center">
+                <i class="ph ph-check-circle text-xl mr-2"></i>
+                <p>@TempData["SuccessMessage"]</p>
+            </div>
+            <button class="absolute top-0 right-0 p-2" onclick="this.parentElement.remove()">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="error-alert" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded relative" role="alert">
+            <div class="flex items-center">
+                <i class="ph ph-warning-circle text-xl mr-2"></i>
+                <p>@TempData["ErrorMessage"]</p>
+            </div>
+            <button class="absolute top-0 right-0 p-2" onclick="this.parentElement.remove()">
+                <i class="ph ph-x"></i>
+            </button>
+        </div>
+    }
+
+    <!-- Search and Filter Options -->
+    <div class="bg-white p-5 rounded-xl shadow-md mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Search Box -->
+            <div class="flex items-center relative">
+                <i class="ph ph-magnifying-glass text-gray-400 absolute left-3 top-3"></i>
+                <input type="search" id="searchUsers" placeholder="Search users..." class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+
+            <!-- Role Filter -->
+            <div>
+                <select id="roleFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="all">All Roles</option>
+                    <option value="ADMIN">Admin</option>
+                    <option value="HOMEOWNER">Homeowner</option>
+                    <option value="STAFF">Staff</option>
+                </select>
+            </div>
+
+            <!-- Add User Button -->
+            <div class="flex justify-end">
+                <a href="@Url.Action("Create", "UserManagement")" class="flex items-center gap-1 px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/80 transition-colors">
+                    <i class="ph ph-plus"></i>
+                    Add New User
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- User List Table -->
+    <div class="bg-white p-5 rounded-xl shadow-md overflow-hidden">
+        <div class="overflow-x-auto">
+            <table id="usersTable" class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Name
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Username/Email
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Role
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Created At
+                        </th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="userTableBody">
+                    @foreach (var user in users)
+                    {
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                                        @user.FirstName[0]@user.LastName[0]
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">@user.FirstName @user.LastName</div>
+                                        <div class="text-sm text-gray-500">@(user.Homeowner != null ? $"House #{user.Homeowner.HouseNumber}" : "")</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900 mb-1">@user.Username</div>
+                                <div class="text-sm text-gray-500">@user.Email</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @{
+                                    string badgeClass = user.Role.ToUpper() switch
+                                    {
+                                        "ADMIN" => "bg-blue-100 text-blue-800",
+                                        "HOMEOWNER" => "bg-green-100 text-green-800",
+                                        "STAFF" => "bg-yellow-100 text-yellow-800",
+                                        _ => "bg-gray-100 text-gray-800"
+                                    };
+                                }
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @badgeClass">
+                                    @user.Role
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                @user.CreatedAt.ToString("MMM dd, yyyy")
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex items-center gap-2">
+                                    <a href="@Url.Action("Edit", "UserManagement", new { id = user.UserId })" class="text-primary hover:text-primary-dark" title="Edit User">
+                                        <i class="ph ph-pencil-simple"></i>
+                                    </a>
+                                    <a href="@Url.Action("Delete", "UserManagement", new { id = user.UserId })" class="text-red-600 hover:text-red-900" title="Delete User">
+                                        <i class="ph ph-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                Showing <span id="showing-start">1</span> to <span id="showing-end">@users.Count()</span> of <span id="total-users">@users.Count()</span> users
+            </div>
+            <div class="flex items-center">
+                <button id="prev-page" class="px-3 py-1 border border-gray-300 rounded-md mr-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50" disabled>
+                    <i class="ph ph-caret-left"></i>
+                </button>
+                <div class="flex items-center">
+                    <span id="current-page" class="mx-2">1</span> of <span id="total-pages" class="mx-2">1</span>
+                </div>
+                <button id="next-page" class="px-3 py-1 border border-gray-300 rounded-md ml-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50" disabled>
+                    <i class="ph ph-caret-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchUsers');
+        const roleFilter = document.getElementById('roleFilter');
+        const userTableBody = document.getElementById('userTableBody');
+        const rows = Array.from(userTableBody.querySelectorAll('tr'));
+
+        // Search functionality
+        searchInput.addEventListener('input', filterUsers);
+
+        // Role filter functionality
+        roleFilter.addEventListener('change', filterUsers);
+
+        // Function to filter users
+        function filterUsers() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedRole = roleFilter.value.toLowerCase();
+
+            rows.forEach(row => {
+                const name = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                const usernameEmail = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                const role = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
+
+                // Check if row matches search term and role filter
+                const matchesSearch = name.includes(searchTerm) || usernameEmail.includes(searchTerm);
+                const matchesRole = selectedRole === 'all' || role.includes(selectedRole);
+
+                if (matchesSearch && matchesRole) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Update showing count
+            updateShowingCount();
+        }
+
+        // Update showing count in pagination
+        function updateShowingCount() {
+            const visibleRows = rows.filter(row => row.style.display !== 'none');
+            document.getElementById('showing-start').textContent = visibleRows.length > 0 ? '1' : '0';
+            document.getElementById('showing-end').textContent = visibleRows.length;
+            document.getElementById('total-users').textContent = rows.length;
+        }
+
+        // Auto-close alerts after 5 seconds
+        const alerts = document.querySelectorAll('#success-alert, #error-alert');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.classList.add('opacity-0', 'transition-opacity');
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    });
+</script>

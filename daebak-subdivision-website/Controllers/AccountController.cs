@@ -81,9 +81,9 @@ namespace daebak_subdivision_website.Controllers
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
                 _logger.LogInformation($"User '{user.Username}' logged in successfully");
-                
-                // Add success message
-                TempData["SuccessMessage"] = $"Welcome back, {user.FirstName}! You have successfully logged in!";
+
+                // Store first name in ViewData for welcome message on dashboard
+                TempData["DashboardWelcome"] = user.FirstName;
 
                 // Redirect based on role
                 switch (user.Role.ToUpper())
@@ -136,7 +136,7 @@ namespace daebak_subdivision_website.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 HouseNumber = homeowner.HouseNumber ?? string.Empty,
-                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
+                ProfilePicture = "/images/profile/default.jpg", // Always use default image since ProfilePicture column doesn't exist
                 Role = "Homeowner",
                 CreatedAt = user.CreatedAt
             };

@@ -28,9 +28,19 @@ namespace daebak_subdivision_website.Controllers
                 .OrderBy(e => e.StartDate)  // Changed from EventDate to StartDate
                 .ToListAsync();
 
+            // Get counts for dashboard statistics
+            int userCount = await _dbContext.Users.CountAsync();
+            decimal paymentsReceived = await _dbContext.Payments.SumAsync(p => p.Amount);
+            int reservationsCount = await _dbContext.FacilityReservations.CountAsync();
+            int serviceRequestsCount = await _dbContext.ServiceRequests.CountAsync();
+
             var model = new AdminPageModel
             {
-                Events = events
+                Events = events,
+                UserCount = userCount,
+                PaymentsReceived = paymentsReceived,
+                ReservationsCount = reservationsCount,
+                ServiceRequestsCount = serviceRequestsCount
             };
 
             _logger.LogInformation("Admin dashboard accessed");
@@ -39,6 +49,20 @@ namespace daebak_subdivision_website.Controllers
 
         public IActionResult AccessDenied()
         {
+            return View();
+        }
+
+        // Documents management
+        public IActionResult Documents()
+        {
+            _logger.LogInformation("Admin documents section accessed");
+            return View();
+        }
+
+        // Reports section
+        public IActionResult Reports()
+        {
+            _logger.LogInformation("Admin reports section accessed");
             return View();
         }
 

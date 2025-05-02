@@ -41,8 +41,7 @@ namespace daebak_subdivision_website.Models
         [Column("PHONE_NUMBER")]
         public string? PhoneNumber { get; set; }
 
-        [StringLength(255)]
-        [Column("PROFILE_PICTURE")]
+        [NotMapped] // This property is not mapped to a database column
         public string? ProfilePicture { get; set; }
 
         [Column("CREATED_AT")]
@@ -53,6 +52,9 @@ namespace daebak_subdivision_website.Models
 
         // Navigation property for Homeowner
         public virtual Homeowner? Homeowner { get; set; }
+
+        // Navigation property for Staff
+        public virtual Staff? Staff { get; set; }
 
         // Virtual property to get HouseNumber from Homeowner
         [NotMapped]
@@ -65,6 +67,22 @@ namespace daebak_subdivision_website.Models
                 if (Homeowner != null)
                 {
                     Homeowner.HouseNumber = value ?? string.Empty;
+                }
+                // Property setter needed for model binding in form submissions
+            }
+        }
+
+        // Virtual property to get Department from Staff
+        [NotMapped]
+        public string? Department
+        {
+            get => Staff?.Department;
+            set
+            {
+                // If Staff exists, update its Department
+                if (Staff != null)
+                {
+                    Staff.Department = value ?? string.Empty;
                 }
                 // Property setter needed for model binding in form submissions
             }

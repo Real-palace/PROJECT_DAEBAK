@@ -13,6 +13,11 @@ namespace daebak_subdivision_website.Models
         [Column("USER_ID")]
         public int UserId { get; set; }  // Maps to USER_ID
 
+        [Required]
+        [Column("DEPARTMENT")]
+        [StringLength(10)]
+        public string Department { get; set; }  // Maps to DEPARTMENT column
+
         [ForeignKey("UserId")]
         public User User { get; set; }
     }

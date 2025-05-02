@@ -88,9 +88,10 @@ namespace daebak_subdivision_website.Models
                 .HasForeignKey<Admin>(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Fix Staff-User relationship by specifying both navigation properties
             modelBuilder.Entity<Staff>()
-                .HasOne<User>()
-                .WithOne()
+                .HasOne(s => s.User)
+                .WithOne(u => u.Staff)
                 .HasForeignKey<Staff>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 

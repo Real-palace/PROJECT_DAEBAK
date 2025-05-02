@@ -204,7 +204,7 @@ CREATE TABLE FEEDBACK (
 
 -- Creating admin role for Admin login credentials username = admin , password = @dmin_role123
 
-INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, FIRST_NAME, LAST_NAME, PHONE_NUMBER, PROFILE_PICTURE, CREATED_AT, UPDATED_AT, ROLE)
+INSERT INTO USERS (USERNAME, PASSWORD_HASH, EMAIL, FIRST_NAME, LAST_NAME, PHONE_NUMBER, CREATED_AT, UPDATED_AT, ROLE)
 VALUES (
     'admin',
     '$2a$12$uCVVcLQt1XXWeAK2OSFNh.392zwaVgHmMYwBiLWpFpL68Cx.yhJtK',  -- Bcrypt hashed password (@dmin_role123)
@@ -212,7 +212,6 @@ VALUES (
     'Super',
     'Admin',
     '1234567890',
-    NULL,  -- No profile picture for now
     GETDATE(),  -- Created at
     GETDATE(),  -- Updated at
     'ADMIN'  -- Role

@@ -1,70 +1,20 @@
 ﻿@model daebak_subdivision_website.Models.AdminPageModel
 @{
-    ViewData["Title"] = "Admin Dashboard";
-    Layout = null;
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isUserManagement = currentController?.Equals("UserManagement", StringComparison.OrdinalIgnoreCase) == true;
+
+    ViewData["Title"] = "Daebak Subdivision | Admin Dashboard";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    
+    // Get welcome name from TempData if available
+    var welcomeName = TempData["DashboardWelcome"] as string;
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" ="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
-    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    <!-- Poppins font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#94B0DF',
-                        secondary: '#356480',
-                        tertiary: '#2c3e50',
-                        light: '#FCFDFF',
-                    },
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    },
-                },
-            },
-        };
-    </script>
-
+@section Styles {
+    <!-- Calendar & Chart Specific Styles -->
     <style>
-        /* Custom scrollbar styling */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background-color: rgba(0, 0, 0, 0.2);
-            }
-
-        /* Hide scrollbar when not hovering */
-        .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: transparent transparent;
-        }
-
-            .custom-scrollbar:hover {
-                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
-            }
-
-        /* Calendar Styles from Homeowner Dashboard */
+        /* Calendar Styles */
         .fc {
             font-family: 'Poppins', sans-serif;
         }
@@ -99,28 +49,42 @@
 
             .fc .fc-daygrid-day-number {
                 font-weight: 500;
-                font-size: 0.9rem;
-                padding: 8px;
+                font-size: 0.85rem;
+                padding: 4px;
+            }
+
+            /* Adjusted row height to better fit within container */
+            .fc .fc-daygrid-day {
+                height: 65px !important;
+            }
+
+            /* Adjusting event rows spacing */
+            .fc .fc-daygrid-day-events {
+                padding: 0;
+                margin-top: 1px;
+                margin-bottom: 0;
             }
 
             .fc .fc-event {
-                border-radius: 4px;
-                font-size: 0.85em;
+                border-radius: 2px;
+                font-size: 0.7em;
                 border: none;
-                padding: 2px 4px;
+                padding: 1px 2px;
                 font-family: 'Poppins', sans-serif;
+                margin-bottom: 0; /* Reduced space between events */
+                line-height: 1.2;
             }
 
             .fc .fc-col-header-cell-cushion {
                 font-weight: 500;
                 color: #4b5563;
-                padding: 8px 4px;
+                padding: 4px;
                 text-transform: uppercase;
-                font-size: 0.75rem;
+                font-size: 0.7rem;
             }
 
             .fc .fc-event-main {
-                padding: 2px 4px;
+                padding: 1px 2px;
             }
 
             .fc .fc-button {
@@ -134,1077 +98,564 @@
                 border-radius: 0.5rem;
             }
 
-        /* Management dropdown menu styling - updated for stability and centering */
-        .management-dropdown {
-            display: none;
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%); /* Center vertically */
-            margin-left: 10px; /* Increased margin for better visibility */
-            z-index: 50;
-            transition: all 0.2s ease; /* Smooth transition */
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none; /* Initially don't capture mouse events */
-        }
-
-        .management-item {
-            position: relative;
-        }
-
-            /* Show dropdown on hover with delay for stability */
-            .management-item:hover .management-dropdown {
-                display: block;
-                opacity: 1;
-                visibility: visible;
-                pointer-events: auto; /* Re-enable mouse events when visible */
-            }
-
-        /* Add a hover-out delay to prevent accidental closing */
-        .management-dropdown:after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: -15px; /* Invisible bridge between menu and dropdown */
-            width: 15px;
+        /* ECharts container styling */
+        .chart-container {
+            width: 100%;
             height: 100%;
+        }
+
+        /* Same-height containers */
+        .equal-height-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .upcoming-events-list {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 450px; /* Set fixed height for scrollbar */
+        }
+
+        /* Custom scrollbar styling */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
             background: transparent;
         }
 
-        .management-dropdown-item {
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            transition: all 0.2s ease;
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
         }
 
-            .management-dropdown-item:hover {
-                background-color: rgba(148, 176, 223, 0.1);
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+
+        /* Hide scrollbar when not hovering */
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+            .custom-scrollbar:hover {
+                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
             }
     </style>
-</head>
-<body class="font-sans bg-light flex min-h-screen">
-    <!-- Sidebar -->
-    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
-        <!-- Logo -->
-        <div class="w-full flex justify-center py-4">
-            <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-12 h-auto">
-        </div>
+}
 
-        <!-- Menu Items -->
-        <div class="flex flex-col items-center gap-5">
-            <!-- Home Link -->
-            <a href="@Url.Action("Dashboard", "Admin")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Home">
-                <i class="ph ph-house-simple"></i>
-            </a>
-
-            <!-- Management Link with Dropdown -->
-            <div class="management-item relative w-full h-14 group">
-                <button class="w-full h-full flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Management">
-                    <i class="ph ph-sliders-horizontal"></i>
-                </button>
-
-                <!-- Management Dropdown Menu -->
-                <div class="management-dropdown bg-white rounded-lg shadow-lg py-2 min-w-60">
-                    <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item">
-                        <i class="ph ph-users text-secondary mr-3"></i>
-                        <span>User Management</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item">
-                        <i class="ph ph-megaphone text-secondary mr-3"></i>
-                        <span>Announcements & Notifications</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Billing")" class="management-dropdown-item">
-                        <i class="ph ph-credit-card text-secondary mr-3"></i>
-                        <span>Billing & Payment</span>
-                    </a>
-                    <a href="@Url.Action("Index", "Facilities")" class="management-dropdown-item">
-                        <i class="ph ph-tree-structure text-secondary mr-3"></i>
-                        <span>Facilities</span>
-                    </a>
-                    <a href="@Url.Action("Index", "ServiceRequests")" class="management-dropdown-item">
-                        <i class="ph ph-wrench text-secondary mr-3"></i>
-                        <span>Services</span>
-                    </a>
-                    <a href="@Url.Action("Documents", "Admin")" class="management-dropdown-item">
-                        <i class="ph ph-file-text text-secondary mr-3"></i>
-                        <span>Documents</span>
-                    </a>
-                </div>
-            </div>
-
-            <!-- Reports Link -->
-            <a href="@Url.Action("Reports", "Admin")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Reports">
-                <i class="ph ph-chart-line"></i>
-            </a>
-        </div>
-
-        <!-- Logout -->
-        <div class="flex flex-col items-center gap-3">
-            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
-                <i class="ph ph-sign-out"></i>
-            </a>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
-        <!-- Top Navigation Bar -->
-        <div class="bg-white shadow-sm sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-                <div class="text-lg font-medium text-tertiary">Admin Dashboard</div>
-
-                <div class="flex items-center gap-5">
-                    <!-- Notifications -->
-                    <div class="relative">
-                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
-                            <i class="ph ph-bell text-2xl"></i>
-                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
-                        </button>
-                    </div>
-
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <div class="flex items-center gap-2 text-gray-700 transition-colors">
-                            <span class="hidden md:block">Administrator</span>
-                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                                <i class="ph ph-user"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+<!-- Welcome Message Banner -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-hand-waving text-3xl text-primary"></i>
             </div>
         </div>
-
-        <div class="p-6">
-            <!-- Interactive Cards Section -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-                <!-- Announcements Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-primary">
-                    <div class="bg-primary/20 p-3 rounded-full mr-4">
-                        <i class="ph ph-megaphone text-2xl text-primary"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Total Announcements</p>
-                        <p class="text-xl font-semibold">25</p>
-                    </div>
-                </div>
-
-                <!-- Active Events Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-secondary">
-                    <div class="bg-secondary/20 p-3 rounded-full mr-4">
-                        <i class="ph ph-calendar text-2xl text-secondary"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Active Events</p>
-                        <p class="text-xl font-semibold">7</p>
-                    </div>
-                </div>
-
-                <!-- Service Requests Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-tertiary">
-                    <div class="bg-tertiary/20 p-3 rounded-full mr-4">
-                        <i class="ph ph-wrench text-2xl text-tertiary"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Pending Service Requests</p>
-                        <p class="text-xl font-semibold">12</p>
-                    </div>
-                </div>
-
-                <!-- Pending Reservations Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-blue-500">
-                    <div class="bg-blue-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-calendar-check text-2xl text-blue-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Pending Reservations</p>
-                        <p class="text-xl font-semibold">15</p>
-                    </div>
-                </div>
-
-                <!-- Total Users Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-green-500">
-                    <div class="bg-green-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-users text-2xl text-green-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Total Users</p>
-                        <p class="text-xl font-semibold">1,234</p>
-                    </div>
-                </div>
-
-                <!-- Total Revenue Card -->
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-purple-500">
-                    <div class="bg-purple-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-currency-circle-dollar text-2xl text-purple-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Total Revenue Collected</p>
-                        <p class="text-xl font-semibold">₱ 250,000</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Calendar Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-calendar-check text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Event Calendar</h3>
-                        </div>
-                        <button id="add-event-btn" class="flex items-center gap-1 px-3 py-1 bg-secondary text-white rounded-md hover:bg-secondary/80 transition-colors">
-                            <i class="ph ph-plus"></i>
-                            Add Event
-                        </button>
-                    </div>
-                    <div id="admin-calendar"></div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Upcoming Events</h3>
-                        </div>
-                        <button id="view-history-events-btn" class="text-sm text-secondary hover:underline flex items-center">
-                            <i class="ph ph-clock-counter-clockwise mr-1"></i>
-                            History
-                        </button>
-                    </div>
-                    <div id="upcoming-events-container">
-                        <ul id="event-list" class="space-y-3">
-                            <!-- Events will be populated by JS -->
-                        </ul>
-                    </div>
-                    <div id="events-history-container" class="hidden">
-                        <ul id="events-history-list" class="space-y-3">
-                            <!-- Past Events will be populated by JS -->
-                        </ul>
-                        <button id="back-to-upcoming-btn" class="w-full mt-4 py-2 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors flex items-center justify-center">
-                            <i class="ph ph-arrow-left mr-1"></i>
-                            Back to Upcoming
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Main Charts Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-users text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">User Role Distribution</h3>
-                    </div>
-                    <div id="roleChart" class="h-[300px]"></div>
-                </div>
-
-                <!-- User Growth Chart -->
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-chart-line text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">User Growth Over Time</h3>
-                    </div>
-                    <div id="userGrowthChart" class="h-[300px]"></div>
-                </div>
-            </div>
-
-            <!-- Billing & Facility Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-wallet text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Bill Payment Status</h3>
-                    </div>
-                    <div id="billPaymentStatusChart" class="h-[300px]"></div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-building text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Most Booked Facilities</h3>
-                    </div>
-                    <div id="facilityBookingChart" class="h-[300px]"></div>
-                </div>
-            </div>
-
-            <!-- Logout Confirmation Modal -->
-            <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-                    <div class="p-6 border-b border-gray-100">
-                        <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div class="flex justify-end gap-4">
-                            <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                                Cancel
-                            </button>
-                            <button id="confirm-logout" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
-                                Yes, Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Event Creation Modal -->
-            <div id="event-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto my-auto flex flex-col max-h-[90vh] overflow-hidden">
-                    <!-- Fixed Header -->
-                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-calendar-plus text-xl text-white"></i>
-                            <h3 class="font-semibold text-xl text-white">Add New Event</h3>
-                        </div>
-                        <button id="close-event-modal" class="text-white hover:text-gray-200 focus:outline-none">
-                            <i class="ph ph-x text-xl"></i>
-                        </button>
-                    </div>
-
-                    <!-- Scrollable Content -->
-                    <div class="overflow-y-auto px-6 py-4 custom-scrollbar flex-1">
-                        <form id="event-form" class="space-y-4">
-                            @Html.AntiForgeryToken()
-                            <div id="form-error-alert" class="hidden bg-red-50 text-red-600 p-3 rounded-md mb-4">
-                                <div class="flex items-center">
-                                    <i class="ph ph-warning-circle mr-2 text-lg"></i>
-                                    <span id="error-message">Please correct the errors below.</span>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="eventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
-                                <input type="text" id="eventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
-                                <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label for="eventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
-                                    <div class="flex flex-col space-y-2">
-                                        <input type="date" id="eventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
-                                        <input type="time" id="eventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.ToString("HH:mm")" required>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label for="eventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
-                                    <div class="flex flex-col space-y-2">
-                                        <input type="date" id="eventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.AddHours(2).ToString("yyyy-MM-dd")" required>
-                                        <input type="time" id="eventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" value="@DateTime.Now.AddHours(2).ToString("HH:mm")" required>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="eventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
-                                <input type="text" id="eventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
-                                <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
-                            </div>
-
-                            <!-- Description field - optional -->
-                            <div class="mb-4">
-                                <label for="eventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
-                                <textarea id="eventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
-                                <div class="text-xs text-gray-500 mt-1">Information about the event (optional)</div>
-                            </div>
-
-                            <!-- Hidden color field with default value -->
-                            <input type="hidden" name="Color" id="eventColor" value="#356480">
-                        </form>
-                    </div>
-
-                    <!-- Fixed Footer with Button Controls -->
-                    <div class="p-4 border-t border-gray-100 bg-gray-50 sticky bottom-0 flex justify-end">
-                        <button type="button" id="cancel-event" class="mr-3 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" form="event-form" id="submit-event-btn" class="px-6 py-2 bg-gradient-to-r from-secondary to-primary text-white font-medium rounded-md hover:opacity-90 transition-colors">
-                            <i class="ph ph-plus-circle mr-1"></i>
-                            Create Event
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Event Details Modal -->
-            <div id="event-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto flex flex-col max-h-[90vh] overflow-hidden">
-                    <!-- Header -->
-                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-calendar-check text-xl text-white"></i>
-                            <h3 class="font-semibold text-xl text-white" id="event-details-title">Event Details</h3>
-                        </div>
-                        <div class="flex items-center">
-                            <button id="close-event-details" class="text-white hover:text-gray-200 focus:outline-none">
-                                <i class="ph ph-x text-xl"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Content -->
-                    <div id="event-details-view" class="px-6 py-5 flex-1 overflow-y-auto">
-                        <div class="mb-3">
-                            <div class="flex items-center gap-3 mb-5">
-                                <div class="bg-secondary/20 p-3 rounded-full">
-                                    <i id="event-details-icon" class="ph ph-calendar-check text-2xl text-secondary"></i>
-                                </div>
-                                <div>
-                                    <h4 id="event-details-name" class="text-xl font-semibold text-gray-800">Event Name</h4>
-                                    <p class="text-sm text-gray-500" id="event-details-date">April 25, 2025</p>
-                                </div>
-                            </div>
-
-                            <div class="space-y-1">
-                                <div class="flex items-start">
-                                    <i class="ph ph-clock text-lg text-secondary mt-0.5 mr-3"></i>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">Time</p>
-                                        <p id="event-details-time" class="text-gray-600">9:00 AM - 11:00 AM</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-start">
-                                    <i class="ph ph-map-pin text-lg text-secondary mt-0.5 mr-3"></i>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">Location</p>
-                                        <p id="event-details-location" class="text-gray-600">Clubhouse</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-start">
-                                    <i class="ph ph-text-align-left text-lg text-secondary mt-0.5 mr-3"></i>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">Description</p>
-                                        <p id="event-details-description" class="text-gray-600">No description available</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-start">
-                                    <i class="ph ph-user-circle text-lg text-secondary mt-0.5 mr-3"></i>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">Created By</p>
-                                        <p id="event-details-created-by" class="text-gray-600">Administrator</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-start">
-                                    <i class="ph ph-calendar text-lg text-secondary mt-0.5 mr-3"></i>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-700">Created On</p>
-                                        <p id="event-details-created-on" class="text-gray-600">April 20, 2025</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Edit form (initially hidden) -->
-                    <div id="event-edit-form" class="hidden flex-1 flex flex-col overflow-hidden">
-                        <!-- Scrollable Content -->
-                        <div class="overflow-y-auto px-6 py-4 custom-scrollbar flex-1">
-                            <form id="edit-event-form" class="space-y-4">
-                                <input type="hidden" id="edit-event-id">
-                                @Html.AntiForgeryToken()
-
-                                <div id="edit-form-error-alert" class="hidden bg-red-50 text-red-600 p-3 rounded-md mb-4">
-                                    <div class="flex items-center">
-                                        <i class="ph ph-warning-circle mr-2 text-lg"></i>
-                                        <span id="edit-error-message">Please correct the errors below.</span>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="editEventTitle" class="block text-gray-700 font-medium mb-2">Event Title <span class="text-red-500">*</span></label>
-                                    <input type="text" id="editEventTitle" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter event title" maxlength="100" required>
-                                    <div class="text-xs text-gray-500 mt-1">Maximum 100 characters</div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label for="editEventStartDate" class="block text-gray-700 font-medium mb-2">Start Date & Time <span class="text-red-500">*</span></label>
-                                        <div class="flex flex-col space-y-2">
-                                            <input type="date" id="editEventStartDate" name="StartDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                            <input type="time" id="editEventStartTime" name="StartTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label for="editEventEndDate" class="block text-gray-700 font-medium mb-2">End Date & Time <span class="text-red-500">*</span></label>
-                                        <div class="flex flex-col space-y-2">
-                                            <input type="date" id="editEventEndDate" name="EndDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                            <input type="time" id="editEventEndTime" name="EndTime" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="editEventLocation" class="block text-gray-700 font-medium mb-2">Location <span class="text-red-500">*</span></label>
-                                    <input type="text" id="editEventLocation" name="Location" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="e.g. Clubhouse, Basketball Court" maxlength="100" required>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="editEventDescription" class="block text-gray-700 font-medium mb-2">Description</label>
-                                    <textarea id="editEventDescription" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Provide details about the event"></textarea>
-                                </div>
-                            </form>
-                        </div>
-
-                        <!-- Footer for editing mode - these are the Cancel and Save Changes buttons -->
-                        <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end" id="event-edit-footer">
-                            <div class="flex gap-2">
-                                <button id="cancel-edit-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                    Cancel
-                                </button>
-                                <button id="save-edit-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors flex items-center">
-                                    <i class="ph ph-floppy-disk mr-1"></i>
-                                    Save Changes
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer for details view - initially visible -->
-                    <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end" id="event-details-footer">
-                        <div class="flex gap-2">
-                            <button id="close-details-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Event History Modal -->
-            <div id="event-history-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto py-10">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-auto flex flex-col max-h-[90vh] overflow-hidden">
-                    <!-- Header -->
-                    <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-secondary to-primary sticky top-0">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-clock-counter-clockwise text-xl text-white"></i>
-                            <h3 class="font-semibold text-xl text-white">Event History</h3>
-                        </div>
-                        <button id="close-event-history" class="text-white hover:text-gray-200 focus:outline-none">
-                            <i class="ph ph-x text-xl"></i>
-                        </button>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="p-6 flex-1 overflow-y-auto">
-                        <div id="event-history-content" class="space-y-4">
-                            <div class="relative pl-8 pb-5 border-l-2 border-secondary">
-                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-secondary"></div>
-                                <div class="mb-1">
-                                    <span class="text-xs font-medium bg-secondary/10 text-secondary px-2 py-1 rounded">Created</span>
-                                    <span class="text-sm text-gray-500 ml-2">April 20, 2025 - 10:15 AM</span>
-                                </div>
-                                <p class="text-sm text-gray-700">Event was created by <span class="font-medium">Administrator</span></p>
-                            </div>
-
-                            <div class="relative pl-8 pb-5 border-l-2 border-blue-400">
-                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-blue-400"></div>
-                                <div class="mb-1">
-                                    <span class="text-xs font-medium bg-blue-100 text-blue-600 px-2 py-1 rounded">Updated</span>
-                                    <span class="text-sm text-gray-500 ml-2">April 21, 2025 - 3:30 PM</span>
-                                </div>
-                                <p class="text-sm text-gray-700">Event description was updated by <span class="font-medium">Administrator</span></p>
-                            </div>
-
-                            <div class="relative pl-8 pb-0 border-l-2 border-gray-300">
-                                <div class="absolute -left-2 top-0 h-4 w-4 rounded-full bg-gray-300"></div>
-                                <div class="mb-1">
-                                    <span class="text-xs font-medium bg-gray-100 text-gray-600 px-2 py-1 rounded">Updated</span>
-                                    <span class="text-sm text-gray-500 ml-2">April 22, 2025 - 9:45 AM</span>
-                                </div>
-                                <p class="text-sm text-gray-700">Event time was changed from <span class="font-medium">9:00 AM - 11:00 AM</span> to <span class="font-medium">10:00 AM - 12:00 PM</span> by <span class="font-medium">Administrator</span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="p-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-                        <button id="close-history-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Event Delete Confirmation Modal -->
-            <div id="delete-confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-                    <div class="p-6 border-b border-gray-100">
-                        <h3 class="font-semibold text-xl text-red-600">Delete Event</h3>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-600 mb-2">Are you sure you want to delete this event?</p>
-                        <p class="text-gray-500 text-sm mb-6">This action cannot be undone.</p>
-                        <div class="flex justify-end gap-4">
-                            <button id="cancel-delete" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                                Cancel
-                            </button>
-                            <button id="confirm-delete" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
-                                Yes, Delete
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer with copyright -->
-            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
-                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
-            </div>
-        </div>
-    </div>
-
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
-    <script>
-        // Logout confirmation function
-        function confirmLogout() {
-            const logoutModal = document.getElementById('logout-modal');
-            logoutModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
-
-            // Directly set up logout modal buttons here to ensure they work
-            const cancelLogoutBtn = document.getElementById('cancel-logout');
-            const confirmLogoutBtn = document.getElementById('confirm-logout');
-
-            // Cancel logout - hide modal
-            cancelLogoutBtn.onclick = function() {
-                logoutModal.classList.add('hidden');
-                document.body.style.overflow = ''; // Re-enable scrolling
-            };
-
-            // Confirm logout - redirect to logout action
-            confirmLogoutBtn.onclick = function() {
-                window.location.href = '@Url.Action("Logout", "Account")';
-            };
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', function(e) {
-                if (e.target === logoutModal) {
-                    logoutModal.classList.add('hidden');
-                    document.body.style.overflow = '';
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">
+                @if (!string.IsNullOrEmpty(welcomeName))
+                {
+                    <span>Welcome back, @welcomeName! You have successfully logged in!</span>
                 }
-            });
+                else
+                {
+                    <span>Welcome to Daebak Subdivision Admin Dashboard</span>
+                }
+            </h2>
+            <p class="text-gray-600 mt-1">Here's an overview of what's happening in the subdivision. Have a great day!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Content -->
+<div class="grid grid-cols-12 gap-6">
+    <!-- Quick Stats Overview -->
+    <div class="col-span-12 grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Total Residents -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium">Total Residents</h3>
+                    <p class="text-2xl font-semibold text-gray-800 mt-1">1,453</p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <i class="ph ph-users text-2xl text-secondary"></i>
+                </div>
+            </div>
+            <div class="flex items-center mt-4">
+                <span class="text-xs text-green-500 font-medium flex items-center">
+                    <i class="ph ph-arrow-up mr-1"></i> 12%
+                </span>
+                <span class="text-xs text-gray-400 ml-2">Since last month</span>
+            </div>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium">Pending Requests</h3>
+                    <p class="text-2xl font-semibold text-gray-800 mt-1">25</p>
+                </div>
+                <div class="p-3 bg-yellow-50 rounded-lg">
+                    <i class="ph ph-hourglass text-2xl text-yellow-500"></i>
+                </div>
+            </div>
+            <div class="flex items-center mt-4">
+                <span class="text-xs text-red-500 font-medium flex items-center">
+                    <i class="ph ph-arrow-up mr-1"></i> 8%
+                </span>
+                <span class="text-xs text-gray-400 ml-2">Since last week</span>
+            </div>
+        </div>
+
+        <!-- Facility Bookings -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium">Facility Bookings</h3>
+                    <p class="text-2xl font-semibold text-gray-800 mt-1">348</p>
+                </div>
+                <div class="p-3 bg-green-50 rounded-lg">
+                    <i class="ph ph-buildings text-2xl text-green-500"></i>
+                </div>
+            </div>
+            <div class="flex items-center mt-4">
+                <span class="text-xs text-green-500 font-medium flex items-center">
+                    <i class="ph ph-arrow-up mr-1"></i> 24%
+                </span>
+                <span class="text-xs text-gray-400 ml-2">Since last month</span>
+            </div>
+        </div>
+
+        <!-- Monthly Collection -->
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-gray-500 text-sm font-medium">Monthly Collection</h3>
+                    <p class="text-2xl font-semibold text-gray-800 mt-1">₱1.2M</p>
+                </div>
+                <div class="p-3 bg-purple-50 rounded-lg">
+                    <i class="ph ph-currency-circle-dollar text-2xl text-purple-500"></i>
+                </div>
+            </div>
+            <div class="flex items-center mt-4">
+                <span class="text-xs text-green-500 font-medium flex items-center">
+                    <i class="ph ph-arrow-up mr-1"></i> 6%
+                </span>
+                <span class="text-xs text-gray-400 ml-2">Since last month</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar & Events Section - Same Height Row -->
+    <div class="col-span-12 grid grid-cols-12 gap-6 h-[600px]">
+        <!-- Calendar Section -->
+        <div class="col-span-12 lg:col-span-8 h-full">
+            <div class="bg-white p-6 rounded-xl shadow-sm h-full equal-height-container">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-lg font-medium text-gray-800">Calendar & Events</h3>
+                    <button id="add-event-btn" class="bg-secondary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-secondary/90 transition-colors flex items-center gap-1">
+                        <i class="ph ph-plus"></i> Add Event
+                    </button>
+                </div>
+
+                <!-- FullCalendar Container -->
+                <div id="admin-calendar" class="flex-grow h-[500px]"></div>
+            </div>
+        </div>
+
+        <!-- Upcoming Events Section -->
+        <div class="col-span-12 lg:col-span-4 h-full">
+            <!-- Upcoming Events -->
+            <div id="upcoming-events-container" class="bg-white p-6 rounded-xl shadow-sm h-full equal-height-container">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-medium text-gray-800">Upcoming Events</h3>
+                    <button id="view-history-events-btn" class="text-secondary hover:text-secondary/80 transition-colors text-sm font-medium flex items-center">
+                        View History <i class="ph ph-arrow-right ml-1"></i>
+                    </button>
+                </div>
+
+                <!-- Event List -->
+                <ul id="event-list" class="upcoming-events-list custom-scrollbar pr-2"></ul>
+            </div>
+
+            <!-- Events History (initially hidden) -->
+            <div id="events-history-container" class="bg-white p-6 rounded-xl shadow-sm h-full equal-height-container hidden">
+                <div class="flex justify-between items-center mb-5">
+                    <h3 class="text-lg font-medium text-gray-800">Event History</h3>
+                    <button id="back-to-upcoming-btn" class="text-secondary hover:text-secondary/80 transition-colors text-sm font-medium flex items-center">
+                        <i class="ph ph-arrow-left mr-1"></i> Back to Upcoming
+                    </button>
+                </div>
+
+                <!-- Event History List -->
+                <ul id="events-history-list" class="upcoming-events-list custom-scrollbar pr-2"></ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="col-span-12 lg:col-span-6">
+        <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+            <h3 class="text-lg font-medium text-gray-800 mb-5">User Growth</h3>
+            <!-- User Growth Chart -->
+            <div id="userGrowthChart" class="h-64 chart-container"></div>
+        </div>
+    </div>
+
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+            <h3 class="text-lg font-medium text-gray-800 mb-5">User Roles</h3>
+            <!-- Role Distribution Chart -->
+            <div id="roleChart" class="h-64 chart-container"></div>
+        </div>
+    </div>
+
+    <div class="col-span-12 md:col-span-6 lg:col-span-3">
+        <div class="bg-white p-6 rounded-xl shadow-sm h-full">
+            <h3 class="text-lg font-medium text-gray-800 mb-5">Bill Status</h3>
+            <!-- Bill Payment Status Chart -->
+            <div id="billPaymentStatusChart" class="h-64 chart-container"></div>
+        </div>
+    </div>
+
+    <div class="col-span-12">
+        <div class="bg-white p-6 rounded-xl shadow-sm">
+            <h3 class="text-lg font-medium text-gray-800 mb-5">Facility Usage</h3>
+            <!-- Facility Usage Chart -->
+            <div id="facilityBookingChart" class="h-64 chart-container"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Modal -->
+<div id="event-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-lg w-full p-5 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900">Add New Event</h3>
+            <button id="close-event-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Event Form -->
+        <form id="event-form" class="space-y-3">
+            <!-- Anti-forgery token for form submission -->
+            @Html.AntiForgeryToken()
+
+            <!-- Error Alert - Hidden by default -->
+            <div id="form-error-alert" class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded hidden">
+                <p id="error-message"></p>
+            </div>
+
+            <!-- Title -->
+            <div>
+                <label for="eventTitle" class="block text-sm font-medium text-gray-700 mb-1">Event Title*</label>
+                <input type="text" id="eventTitle" name="eventTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+            </div>
+
+            <!-- Start Date & Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="eventStartDate" class="block text-sm font-medium text-gray-700 mb-1">Start Date*</label>
+                    <input type="date" id="eventStartDate" name="eventStartDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="eventStartTime" class="block text-sm font-medium text-gray-700 mb-1">Start Time*</label>
+                    <input type="time" id="eventStartTime" name="eventStartTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+            </div>
+
+            <!-- End Date & Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="eventEndDate" class="block text-sm font-medium text-gray-700 mb-1">End Date*</label>
+                    <input type="date" id="eventEndDate" name="eventEndDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="eventEndTime" class="block text-sm font-medium text-gray-700 mb-1">End Time*</label>
+                    <input type="time" id="eventEndTime" name="eventEndTime" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <label for="eventLocation" class="block text-sm font-medium text-gray-700 mb-1">Location*</label>
+                <input type="text" id="eventLocation" name="eventLocation" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="eventDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="eventDescription" name="eventDescription" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+            </div>
+
+            <!-- Form Buttons -->
+            <div>
+                <div id="form-footer-error" class="text-red-600 text-sm hidden"></div>
+                <div class="flex justify-end gap-3 mt-3">
+                    <button type="button" id="cancel-event" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
+                    <button type="submit" id="submit-event-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Create Event</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Event Details Modal -->
+<div id="event-details-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden" data-event-id="">
+    <div class="bg-white rounded-lg max-w-lg w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900" id="event-details-title">Event Details</h3>
+            <button id="close-event-details" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Event Details View -->
+        <div id="event-details-view">
+            <div>
+                <div class="flex items-center mb-4">
+                    <div class="bg-blue-50 p-3 rounded-lg mr-4">
+                        <i id="event-details-icon" class="ph ph-calendar-check text-2xl text-secondary"></i>
+                    </div>
+                    <h2 id="event-details-name" class="text-xl font-medium text-gray-800">Event Title</h2>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex items-start">
+                        <i class="ph ph-calendar text-lg text-gray-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-700 font-medium">Date</p>
+                            <p id="event-details-date" class="text-gray-600">January 1, 2023</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <i class="ph ph-clock text-lg text-gray-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-700 font-medium">Time</p>
+                            <p id="event-details-time" class="text-gray-600">10:00 AM - 12:00 PM</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <i class="ph ph-map-pin text-lg text-gray-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-700 font-medium">Location</p>
+                            <p id="event-details-location" class="text-gray-600">Clubhouse</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start">
+                        <i class="ph ph-text-align-left text-lg text-gray-500 mr-3 mt-0.5"></i>
+                        <div>
+                            <p class="text-sm text-gray-700 font-medium">Description</p>
+                            <p id="event-details-description" class="text-gray-600">No description available</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-gray-200 pt-3 mt-3">
+                <p class="text-xs text-gray-500">Created by <span id="event-details-created-by">Administrator</span> on <span id="event-details-created-on">January 1, 2023</span></p>
+            </div>
+        </div>
+
+        <!-- Event Edit Form (initially hidden) -->
+        <div id="event-edit-form" class="hidden space-y-2.5">
+            <!-- Hidden event ID field for form submission -->
+            <input type="hidden" id="edit-event-id">
+
+            <!-- Title -->
+            <div>
+                <label for="editEventTitle" class="block text-sm font-medium text-gray-700 mb-1">Event Title*</label>
+                <input type="text" id="editEventTitle" name="editEventTitle" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+            </div>
+
+            <!-- Start Date & Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="editEventStartDate" class="block text-sm font-medium text-gray-700 mb-1">Start Date*</label>
+                    <input type="date" id="editEventStartDate" name="editEventStartDate" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="editEventStartTime" class="block text-sm font-medium text-gray-700 mb-1">Start Time*</label>
+                    <input type="time" id="editEventStartTime" name="editEventStartTime" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+            </div>
+
+            <!-- End Date & Time -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="editEventEndDate" class="block text-sm font-medium text-gray-700 mb-1">End Date*</label>
+                    <input type="date" id="editEventEndDate" name="editEventEndDate" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+                <div>
+                    <label for="editEventEndTime" class="block text-sm font-medium text-gray-700 mb-1">End Time*</label>
+                    <input type="time" id="editEventEndTime" name="editEventEndTime" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div>
+                <label for="editEventLocation" class="block text-sm font-medium text-gray-700 mb-1">Location*</label>
+                <input type="text" id="editEventLocation" name="editEventLocation" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" required>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="editEventDescription" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="editEventDescription" name="editEventDescription" rows="2" class="w-full px-3 py-1.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+            </div>
+
+            <!-- Form Error -->
+            <div id="edit-form-footer-error" class="text-red-600 text-xs hidden"></div>
+        </div>
+
+        <!-- Details Footer -->
+        <div id="event-details-footer" class="flex justify-end gap-3 border-t border-gray-200 pt-3 mt-3">
+            <button id="edit-event-btn" class="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Edit</button>
+            <button id="delete-event-btn" class="px-4 py-1.5 bg-red-100 text-red-700 rounded-lg hover:bg-red-200">Delete</button>
+            <button id="close-details-btn" class="px-4 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/90">Close</button>
+        </div>
+
+        <!-- Edit Footer (initially hidden) -->
+        <div id="event-edit-footer" class="flex justify-end gap-3 border-t border-gray-200 pt-3 mt-3 hidden">
+            <button id="cancel-edit-btn" class="px-4 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">Cancel</button>
+            <button id="save-edit-btn" class="px-4 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Event History Modal -->
+<div id="event-history-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-medium text-gray-900">Event History</h3>
+            <button id="close-event-history" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <div class="space-y-4">
+            <!-- Sample history items - would be dynamically populated in real implementation -->
+            <div class="border-l-2 border-secondary pl-4 py-1">
+                <p class="text-sm font-medium text-gray-700">Event created</p>
+                <p class="text-xs text-gray-500">By Administrator on May 1, 2023 at 10:00 AM</p>
+            </div>
+            <div class="border-l-2 border-secondary pl-4 py-1">
+                <p class="text-sm font-medium text-gray-700">Event details updated</p>
+                <p class="text-xs text-gray-500">By Administrator on May 5, 2023 at 2:30 PM</p>
+                <p class="text-xs text-gray-600 mt-1">Changed location from "Main Hall" to "Clubhouse"</p>
+            </div>
+            <div class="border-l-2 border-secondary pl-4 py-1">
+                <p class="text-sm font-medium text-gray-700">Event time updated</p>
+                <p class="text-xs text-gray-500">By Administrator on May 8, 2023 at 9:15 AM</p>
+                <p class="text-xs text-gray-600 mt-1">Changed time from "2:00 PM - 4:00 PM" to "3:00 PM - 5:00 PM"</p>
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-6">
+            <button id="close-history-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirmation-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden" data-event-id="">
+    <div class="bg-white rounded-lg max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Deletion</h3>
+        <p class="text-gray-500 mb-5">Are you sure you want to delete this event? This action cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+            <button id="cancel-delete" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
+            <button id="confirm-delete" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Yes, Delete</button>
+        </div>
+    </div>
+</div>
+
+<!-- Day Events Modal - To show all events when "+2 more" is clicked -->
+<div id="day-events-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden" data-date="">
+    <div class="bg-white rounded-lg max-w-md w-full p-5 max-h-[80vh] overflow-y-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-medium text-gray-900" id="day-events-title">Events on May 1</h3>
+            <button id="close-day-events" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Events List -->
+        <ul id="day-events-list" class="space-y-3 mb-4"></ul>
+
+        <div class="flex justify-end border-t border-gray-200 pt-3 mt-3">
+            <button id="close-day-events-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">Close</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
+
+    <script>
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-md mb-3 flex items-center transform transition-all duration-300 translate-x-full`;
+            toast.innerHTML = `
+                <i class="ph ${type === 'success' ? 'ph-check-circle' : 'ph-x-circle'} text-xl mr-2"></i>
+                <span>${message}</span>
+            `;
+
+            document.getElementById('toast-container').appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+
+            // Remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 4000);
+        }
+
+        // Helper function to format time as HH:MM
+        function formatTime(date) {
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${minutes}`;
+        }
+
+        // Helper function to format date as YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Setup notification functionality
-            const notificationBtn = document.getElementById('notification-toggle-btn');
-
-            // Event Details Modal Functionality
-            const eventDetailsModal = document.getElementById('event-details-modal');
-            const closeEventDetailsBtn = document.getElementById('close-event-details');
-            const deleteEventBtn = document.getElementById('delete-event-btn');
-            const editEventBtn = document.getElementById('edit-event-btn');
-            const viewHistoryBtn = document.getElementById('view-history-btn');
-
-            // Event History Modal Functionality
-            const eventHistoryModal = document.getElementById('event-history-modal');
-            const closeEventHistoryBtn = document.getElementById('close-event-history');
-            const closeHistoryBtn = document.getElementById('close-history-btn');
-
-            // Delete Confirmation Modal
-            const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
-            const cancelDeleteBtn = document.getElementById('cancel-delete');
-            const confirmDeleteBtn = document.getElementById('confirm-delete');
-
-            // Close Event Details Modal
-            if (closeEventDetailsBtn) {
-                closeEventDetailsBtn.addEventListener('click', function() {
-                    eventDetailsModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            // Close when clicking outside
-            if (eventDetailsModal) {
-                eventDetailsModal.addEventListener('click', function(e) {
-                    if (e.target === eventDetailsModal) {
-                        eventDetailsModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Handle Delete Event Button
-            if (deleteEventBtn) {
-                deleteEventBtn.addEventListener('click', function() {
-                    // Show delete confirmation dialog
-                    deleteConfirmationModal.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-                    // Store the event ID in the delete confirmation modal
-                    deleteConfirmationModal.dataset.eventId = eventDetailsModal.dataset.eventId;
-                });
-            }
-
-            // Handle Edit Event Button
-            if (editEventBtn) {
-                editEventBtn.addEventListener('click', function() {
-                    const eventId = eventDetailsModal.dataset.eventId;
-
-                    // Find the event in the calendar
-                    const event = calendar.getEventById(eventId);
-
-                    if (event) {
-                        // Show edit form for the event
-                        showEventEditForm(event, true);
-                    } else {
-                        // Show error if event not found
-                        showNotification('Event not found. Please try again.', 'error');
-                    }
-                });
-            }
-
-            // Handle View History Button
-            if (viewHistoryBtn) {
-                viewHistoryBtn.addEventListener('click', function() {
-                    // Show history modal
-                    eventHistoryModal.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden';
-
-                    // In a real implementation, you would fetch event history from the server
-                    // For now, we'll use the sample data already in the HTML
-                });
-            }
-
-            // Close History Modal handlers
-            if (closeEventHistoryBtn) {
-                closeEventHistoryBtn.addEventListener('click', function() {
-                    eventHistoryModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            if (closeHistoryBtn) {
-                closeHistoryBtn.addEventListener('click', function() {
-                    eventHistoryModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            // Close when clicking outside
-            if (eventHistoryModal) {
-                eventHistoryModal.addEventListener('click', function(e) {
-                    if (e.target === eventHistoryModal) {
-                        eventHistoryModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Delete Confirmation Modal handlers
-            if (cancelDeleteBtn) {
-                cancelDeleteBtn.addEventListener('click', function() {
-                    deleteConfirmationModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                });
-            }
-
-            if (confirmDeleteBtn) {
-                confirmDeleteBtn.addEventListener('click', function() {
-                    const eventId = deleteConfirmationModal.dataset.eventId;
-
-                    // Get the anti-forgery token
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-                    // Show loading state
-                    confirmDeleteBtn.disabled = true;
-                    confirmDeleteBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Deleting...';
-
-                    // Send delete request to the server
-                    fetch(`@Url.Action("DeleteEvent", "Events")?id=${eventId}`, {
-                        method: 'POST',
-                        headers: {
-                            'RequestVerificationToken': token
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Server returned ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Reset button
-                        confirmDeleteBtn.disabled = false;
-                        confirmDeleteBtn.innerHTML = 'Yes, Delete';
-
-                        if (data.success) {
-                            // Remove event from calendar
-                            const event = calendar.getEventById(eventId);
-                            if (event) {
-                                event.remove();
-                            }
-
-                            // Close both modals
-                            deleteConfirmationModal.classList.add('hidden');
-                            eventDetailsModal.classList.add('hidden');
-                            document.body.style.overflow = '';
-
-                            // Refresh upcoming events list
-                            loadUpcomingEvents();
-
-                            // Show success notification
-                            showNotification('Event deleted successfully!', 'success');
-                        } else {
-                            // Show error message
-                            showNotification(data.message || 'Failed to delete event.', 'error');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error deleting event:', error);
-
-                        // Reset button
-                        confirmDeleteBtn.disabled = false;
-                        confirmDeleteBtn.innerHTML = 'Yes, Delete';
-
-                        // Show error notification
-                        showNotification('Failed to delete event. Please try again.', 'error');
-                    });
-                });
-            }
-
-            // Close when clicking outside
-            if (deleteConfirmationModal) {
-                deleteConfirmationModal.addEventListener('click', function(e) {
-                    if (e.target === deleteConfirmationModal) {
-                        deleteConfirmationModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Toggle notifications dropdown if implemented
-            if (notificationBtn) {
-                notificationBtn.addEventListener('click', function() {
-                    alert("Notifications feature to be implemented");
-                });
-            }
-
-            // Event Modal Functionality
-            const eventModal = document.getElementById('event-modal');
-            const addEventBtn = document.getElementById('add-event-btn');
-            const closeEventModalBtn = document.getElementById('close-event-modal');
-            const cancelEventBtn = document.getElementById('cancel-event');
-            const eventForm = document.getElementById('event-form');
-
-            // Show event modal when Add Event button is clicked
-            if (addEventBtn) {
-                addEventBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    eventModal.classList.remove('hidden');
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling
-
-                    // Set default dates (today and tomorrow)
-                    const today = new Date();
-                    const tomorrow = new Date();
-                    tomorrow.setDate(today.getDate() + 1);
-
-                    document.getElementById('eventStartDate').value = formatDate(today);
-                    document.getElementById('eventEndDate').value = formatDate(tomorrow);
-                });
-            }
-
-            // Helper function to format date as YYYY-MM-DD
-            function formatDate(date) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const day = String(date.getDate()).padStart(2, '0');
-                return `${year}-${month}-${day}`;
-            }
-
-            // Close event modal functions
-            function closeEventModal() {
-                eventModal.classList.add('hidden');
-                document.body.style.overflow = ''; // Re-enable scrolling
-                eventForm.reset(); // Reset form fields
-            }
-
-            // Close modal when close button is clicked
-            if (closeEventModalBtn) {
-                closeEventModalBtn.addEventListener('click', closeEventModal);
-            }
-
-            // Close modal when cancel button is clicked
-            if (cancelEventBtn) {
-                cancelEventBtn.addEventListener('click', closeEventModal);
-            }
-
-            // Close modal when clicking outside
-            if (eventModal) {
-                eventModal.addEventListener('click', function(e) {
-                    if (e.target === eventModal) {
-                        closeEventModal();
-                    }
-                });
-            }
-
-            // Handle form submission
-            if (eventForm) {
-                eventForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    // Basic form validation
-                    const title = document.getElementById('eventTitle').value.trim();
-                    const startDate = document.getElementById('eventStartDate').value;
-                    const startTime = document.getElementById('eventStartTime').value;
-                    const endDate = document.getElementById('eventEndDate').value;
-                    const endTime = document.getElementById('eventEndTime').value;
-                    const location = document.getElementById('eventLocation').value.trim();
-                    const description = document.getElementById('eventDescription').value.trim();
-                    const color = document.getElementById('eventColor').value;
-
-                    // Show error if required fields are empty
-                    if (!title || !startDate || !startTime || !endDate || !endTime || !location) {
-                        document.getElementById('form-error-alert').classList.remove('hidden');
-                        document.getElementById('error-message').textContent = 'Please fill in all required fields.';
-                        return;
-                    }
-
-                    // Create event data object from form
-                    const eventData = {
-                        Title: title,
-                        Description: description,
-                        StartDate: startDate,
-                        StartTime: startTime,
-                        EndDate: endDate,
-                        EndTime: endTime,
-                        Location: location,
-                        Color: color
-                    };
-
-                    // Get the anti-forgery token
-                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
-                    // Show loading state
-                    const submitBtn = document.getElementById('submit-event-btn');
-                    const originalBtnText = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Creating...';
-
-                    // Submit event data to server via AJAX with proper headers
-                    fetch('@Url.Action("CreateEvent", "Events")', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'RequestVerificationToken': token
-                        },
-                        body: JSON.stringify(eventData)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Server returned ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        // Reset submit button
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-
-                        if (data.success) {
-                            // Add the new event to the calendar
-                            calendar.addEvent({
-                                id: data.id,
-                                title: data.title,
-                                start: data.start,
-                                end: data.end,
-                                backgroundColor: data.backgroundColor,
-                                borderColor: data.borderColor,
-                                extendedProps: {
-                                    location: data.location,
-                                    description: data.description,
-                                    createdAt: data.createdAt,
-                                    createdBy: data.createdBy
-                                }
-                            });
-
-                            // Refresh upcoming events list
-                            loadUpcomingEvents();
-
-                            // Close the modal and show success message
-                            closeEventModal();
-                            showNotification('Event created successfully!', 'success');
-                        } else {
-                            // Show error message
-                            document.getElementById('form-error-alert').classList.remove('hidden');
-                            document.getElementById('error-message').textContent = data.message || 'Failed to create event. Please try again.';
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error creating event:', error);
-                        // Reset submit button
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalBtnText;
-
-                        // Show error notification
-                        document.getElementById('form-error-alert').classList.remove('hidden');
-                        document.getElementById('error-message').textContent = 'Failed to create event. Please try again.';
-                    });
-                });
-            }
-
-            // Notification helper function
-            function showNotification(message, type = 'info') {
-                // Create notification element
-                const notification = document.createElement('div');
-                notification.className = `fixed top-5 right-5 p-4 rounded-md shadow-lg z-50 flex items-center ${
-                    type === 'success' ? 'bg-green-100 border-l-4 border-green-500 text-green-700' :
-                    type === 'error' ? 'bg-red-100 border-l-4 border-red-500 text-red-700' :
-                    'bg-blue-100 border-l-4 border-blue-500 text-blue-700'
-                }`;
-
-                // Icon based on type
-                const icon = type === 'success' ? 'ph-check-circle' :
-                             type === 'error' ? 'ph-warning-circle' : 'ph-info';
-
-                notification.innerHTML = `
-                    <i class="ph ${icon} text-xl mr-2"></i>
-                    <p>${message}</p>
-                    <button class="ml-auto pl-4 text-gray-500 hover:text-gray-700 focus:outline-none" onclick="this.parentElement.remove()">
-                        <i class="ph ph-x"></i>
-                    </button>
-                `;
-
-                document.body.appendChild(notification);
-
-                // Auto remove after 5 seconds
-                setTimeout(() => {
-                    notification.classList.add('opacity-0', 'transition-opacity');
-                    setTimeout(() => notification.remove(), 300);
-                }, 5000);
-            }
-
-            // Add visual feedback for color selection
-            document.querySelectorAll('.event-color-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    // Remove active class from all options
-                    document.querySelectorAll('.event-color-option').forEach(opt => {
-                        opt.classList.remove('bg-gray-100', 'border-2', 'border-secondary');
-                    });
-
-                    // Add active class to selected option
-                    this.classList.add('bg-gray-100', 'border-2', 'border-secondary');
-
-                    // Check the radio input
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
-                });
-            });
-
             // Initialize calendar
             const calendarEl = document.getElementById('admin-calendar');
-            const eventListEl = document.getElementById('event-list');
 
-            // Create calendar with 5-row display
+            // Add null check to prevent TypeError when calendar element doesn't exist
+            if (!calendarEl) {
+                console.log('Calendar element not found, skipping calendar initialization');
+                return;
+            }
+
+            // Create calendar with optimized height and display
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 initialDate: '@DateTime.Now.ToString("yyyy-MM-dd")',
@@ -1213,24 +664,56 @@
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
-                height: 'auto', // Auto height for month view
+                height: 500, // Fixed height for better consistency across screen sizes
+                contentHeight: 'auto',
+                fixedWeekCount: false, // Allows calendar to adjust based on number of weeks in month
                 views: {
                     dayGridMonth: {
-                        dayMaxEventRows: 3, // Adjust for fewer rows
-                        fixedWeekCount: false, // Allow showing 5 or 6 rows as needed
+                        dayMaxEventRows: 2, // Limit to 2 events per day
                         aspectRatio: 1.8, // Wider month view
                     },
                     timeGridWeek: {
-                        height: 600, // Fixed height for week view to enable scrolling
-                        slotDuration: '01:00:00', // 1-hour slots
-                        slotLabelInterval: '01:00', // 1-hour labels
                         allDaySlot: true, // Show all-day slot at the top
                     }
                 },
-                // Other settings remain the same
-                events: '@Url.Action("GetEvents", "Events")',
+                // Custom events fetching to filter out completed events
+                events: function(info, successCallback, failureCallback) {
+                    fetch('@Url.Action("GetEvents", "Events")')
+                        .then(response => response.json())
+                        .then(events => {
+                            // Filter out completed events (end date+time in the past)
+                            // Create a date object for May 1, 2025 with current time
+                            const now = new Date();
+                            const currentDate = new Date('2025-05-01');
+                            // Apply the current time to our reference date
+                            currentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+                            console.log("Current date and time for calendar filtering:", currentDate.toISOString());
+
+                            const activeEvents = events.filter(event => {
+                                const eventEndDate = new Date(event.end);
+                                // Include events that haven't ended yet
+                                return eventEndDate > currentDate;
+                            });
+
+                            console.log(`Calendar: Filtered ${events.length} events to ${activeEvents.length} active events`);
+                            successCallback(activeEvents);
+                        })
+                        .catch(error => {
+                            console.error('Error loading events:', error);
+                            failureCallback(error);
+                        });
+                },
                 eventClick: function(info) {
                     showEventDetails(info.event);
+                },
+                // Add handler for "more" link that appears when there are more than 2 events
+                moreLinkClick: function(info) {
+                    // Show modal with all events for this day
+                    showDayEvents(info.date, info.allSegs.map(seg => seg.event));
+
+                    // Return false to prevent default action (prevents default popover)
+                    return false;
                 },
                 eventDisplay: 'block',
                 eventTimeFormat: {
@@ -1246,426 +729,410 @@
 
             calendar.render();
 
-            // Show event details in a modal
-            function showEventDetails(event) {
-                const eventDetailsModal = document.getElementById('event-details-modal');
-                const eventDetailsTitle = document.getElementById('event-details-title');
-                const eventDetailsName = document.getElementById('event-details-name');
-                const eventDetailsDate = document.getElementById('event-details-date');
-                const eventDetailsTime = document.getElementById('event-details-time');
-                const eventDetailsLocation = document.getElementById('event-details-location');
-                const eventDetailsDescription = document.getElementById('event-details-description');
-                const eventDetailsCreatedBy = document.getElementById('event-details-created-by');
-                const eventDetailsCreatedOn = document.getElementById('event-details-created-on');
-                const eventDetailsIcon = document.getElementById('event-details-icon');
-
-                // Make sure we're showing the details view, not the edit form
-                const eventDetailsView = document.getElementById('event-details-view');
-                const eventEditForm = document.getElementById('event-edit-form');
-                const eventDetailsFooter = document.getElementById('event-details-footer');
-                const eventEditFooter = document.getElementById('event-edit-footer');
-
-                if(eventDetailsView) eventDetailsView.classList.remove('hidden');
-                if(eventEditForm) eventEditForm.classList.add('hidden');
-                if(eventDetailsFooter) eventDetailsFooter.classList.remove('hidden');
-                if(eventEditFooter) eventEditFooter.classList.add('hidden');
-
-                // Set the current event ID for operations
-                eventDetailsModal.dataset.eventId = event.id || '';
-
-                // Populate modal with event details
-                eventDetailsTitle.textContent = 'Event Details';
-                eventDetailsName.textContent = event.title;
-
-                // Format date
-                const startDate = event.start ? new Date(event.start) : null;
-                const endDate = event.end ? new Date(event.end) : null;
-
-                if (startDate) {
-                    const formattedStartDate = startDate.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                    eventDetailsDate.textContent = formattedStartDate;
-                } else {
-                    eventDetailsDate.textContent = 'Date not specified';
-                }
-
-                // Format time
-                if (startDate && endDate) {
-                    const startTime = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const endTime = endDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    eventDetailsTime.textContent = `${startTime} - ${endTime}`;
-                } else {
-                    eventDetailsTime.textContent = 'Time not specified';
-                }
-
-                eventDetailsLocation.textContent = event.extendedProps?.location || 'No location specified';
-                eventDetailsDescription.textContent = event.extendedProps?.description || 'No description available';
-                eventDetailsCreatedBy.textContent = event.extendedProps?.createdBy || 'Administrator';
-
-                // Format the Created On date using the actual createdAt value from the event
-                if (event.extendedProps?.createdAt) {
-                    const createdDate = new Date(event.extendedProps.createdAt);
-                    eventDetailsCreatedOn.textContent = createdDate.toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
-                } else {
-                    eventDetailsCreatedOn.textContent = 'Not available';
-                }
-
-                // Set icon based on event title
-                let iconClass = 'ph-calendar-check';
-                if (event.title.toLowerCase().includes('meeting')) {
-                    iconClass = 'ph-users';
-                } else if (event.title.toLowerCase().includes('maintenance')) {
-                    iconClass = 'ph-wrench';
-                } else if (event.title.toLowerCase().includes('clean')) {
-                    iconClass = 'ph-broom';
-                } else if (event.title.toLowerCase().includes('due')) {
-                    iconClass = 'ph-currency-circle-dollar';
-                }
-
-                eventDetailsIcon.className = `ph ${iconClass} text-2xl text-secondary`;
-
-                // Show the modal
-                eventDetailsModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-            }
-
-            // Function to show event edit form
-            function showEventEditForm(event, fromDetailsView = false) {
-                const eventDetailsModal = document.getElementById('event-details-modal');
-                const eventDetailsView = document.getElementById('event-details-view');
-                const eventEditForm = document.getElementById('event-edit-form');
-                const eventDetailsFooter = document.getElementById('event-details-footer');
-                const eventEditFooter = document.getElementById('event-edit-footer');
-
-                // Set modal title to Edit Event
-                document.getElementById('event-details-title').textContent = 'Edit Event';
-
-                // Store the event ID in the modal dataset
-                eventDetailsModal.dataset.eventId = event.id || '';
-
-                // Track if editing was started from details view
-                eventDetailsModal.dataset.fromDetailsView = fromDetailsView.toString();
-
-                // Show edit form, hide details view
-                if(eventDetailsView) eventDetailsView.classList.add('hidden');
-                if(eventEditForm) eventEditForm.classList.remove('hidden');
-
-                // Toggle footers - hide details footer, show edit footer
-                if(eventDetailsFooter) eventDetailsFooter.classList.add('hidden');
-                if(eventEditFooter) eventEditFooter.classList.remove('hidden');
-
-                // Set form values
-                document.getElementById('edit-event-id').value = event.id;
-                document.getElementById('editEventTitle').value = event.title;
-
-                // Format dates and times for the form
-                const startDate = event.start ? new Date(event.start) : new Date();
-                const endDate = event.end ? new Date(event.end) : new Date();
-
-                document.getElementById('editEventStartDate').value = formatDate(startDate);
-                document.getElementById('editEventEndDate').value = formatDate(endDate);
-
-                document.getElementById('editEventStartTime').value = formatTime(startDate);
-                document.getElementById('editEventEndTime').value = formatTime(endDate);
-
-                document.getElementById('editEventLocation').value = event.extendedProps?.location || '';
-                document.getElementById('editEventDescription').value = event.extendedProps?.description || '';
-
-                // Show the modal
-                eventDetailsModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-            }
-
-            // Add event button functionality
-            document.getElementById('add-event-btn').addEventListener('click', function() {
-                // Show the event modal form instead of redirecting
-                eventModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-
-                // Set default dates (today and tomorrow)
-                const today = new Date();
-                const tomorrow = new Date();
-                tomorrow.setDate(today.getDate() + 1);
-
-                document.getElementById('eventStartDate').value = formatDate(today);
-                document.getElementById('eventEndDate').value = formatDate(tomorrow);
-            });
-
-            // View all events button functionality
-            document.getElementById('view-history-events-btn').addEventListener('click', function() {
-                // Toggle between upcoming events and history view
-                upcomingEventsContainer.classList.add('hidden');
-                eventsHistoryContainer.classList.remove('hidden');
-
-                // Load past events
-                loadPastEvents();
-            });
-
-            // Update event list with real events
+            // Load real events from the server for upcoming events list
             loadUpcomingEvents();
 
-            function loadUpcomingEvents() {
-                fetch('@Url.Action("GetEvents", "Events")')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Server returned ' + response.status);
-                        }
-                        return response.json();
-                    })
-                    .then(events => {
-                        const eventListEl = document.getElementById('event-list');
+            // Add Event Button Functionality
+            const addEventBtn = document.getElementById('add-event-btn');
+            const eventModal = document.getElementById('event-modal');
+            const closeEventModalBtn = document.getElementById('close-event-modal');
+            const cancelEventBtn = document.getElementById('cancel-event');
+            const eventForm = document.getElementById('event-form');
 
-                        if (!eventListEl) {
-                            console.error('Event list element not found');
-                            return;
-                        }
+            // Set today's date as default for the event form
+            const today = new Date();
+            const todayFormatted = formatDate(today);
+            document.getElementById('eventStartDate').value = todayFormatted;
+            document.getElementById('eventEndDate').value = todayFormatted;
 
-                        // Clear existing events
-                        eventListEl.innerHTML = '';
+            // Open event modal
+            addEventBtn.addEventListener('click', function() {
+                eventModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            });
 
-                        if (!events || events.length === 0) {
-                            eventListEl.innerHTML = '<p class="text-gray-500 italic text-center py-4">No events scheduled</p>';
-                            return;
-                        }
+            // Close event modal
+            closeEventModalBtn.addEventListener('click', function() {
+                eventModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+                resetEventForm();
+            });
 
-                        // Sort events by date
-                        events.sort((a, b) => new Date(a.start) - new Date(b.start));
+            // Cancel event creation
+            cancelEventBtn.addEventListener('click', function() {
+                eventModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+                resetEventForm();
+            });
 
-                        // Get today's date to filter upcoming events
-                        const today = new Date();
+            // Close modal when clicking outside
+            eventModal.addEventListener('click', function(e) {
+                if (e.target === eventModal) {
+                    eventModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    resetEventForm();
+                }
+            });
 
-                        // Show ALL events, not just upcoming ones
-                        // Show events in the list - ALL events, not just a limited number
-                        events.forEach(function(event) {
-                            const eventDate = new Date(event.start);
-                            const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                            const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Event form submission
+            eventForm.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-                            // Set icon based on event title
-                            let icon = 'ph-calendar-check';
-                            let color = event.backgroundColor || '#356480'; // Use event color or default
+                // Clear previous errors
+                document.getElementById('form-error-alert').classList.add('hidden');
 
-                            if (event.title.toLowerCase().includes('meeting')) {
-                                icon = 'ph-users';
-                            } else if (event.title.toLowerCase().includes('maintenance')) {
-                                icon = 'ph-wrench';
-                            } else if (event.title.toLowerCase().includes('clean')) {
-                                icon = 'ph-broom';
-                            } else if (event.title.toLowerCase().includes('due')) {
-                                icon = 'ph-currency-circle-dollar';
+                const formData = new FormData(eventForm);
+
+                // Basic validation
+                const startDate = formData.get('eventStartDate');
+                const endDate = formData.get('eventEndDate');
+                const startTime = formData.get('eventStartTime');
+                const endTime = formData.get('eventEndTime');
+
+                if (!startDate || !endDate || !startTime || !endTime) {
+                    showFormError('All date and time fields are required');
+                    return;
+                }
+
+                // Check if the event is in the past - use strict comparison
+                const currentDate = new Date('2025-05-01T00:00:00'); // Use the current date (May 1, 2025)
+                const eventStartDateTime = new Date(`${startDate}T${startTime}:00`);
+
+                // Compare timestamps for accurate comparison
+                if (eventStartDateTime.getTime() < currentDate.getTime()) {
+                    showFormError('Cannot create events in the past. Please select a future date and time.');
+                    return;
+                }
+
+                // Create the event data object matching the EventViewModel in the controller
+                const eventData = {
+                    Title: formData.get('eventTitle'),
+                    Description: formData.get('eventDescription') || '',
+                    StartDate: formData.get('eventStartDate'),
+                    StartTime: formData.get('eventStartTime'),
+                    EndDate: formData.get('eventEndDate'),
+                    EndTime: formData.get('eventEndTime'),
+                    Location: formData.get('eventLocation')
+                };
+
+                // Send to server
+                submitEvent(eventData);
+            });
+
+            // Submit event function
+            function submitEvent(eventData) {
+                // Show loading state
+                const submitBtn = document.getElementById('submit-event-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Creating...';
+
+                // Clear previous errors
+                document.getElementById('form-error-alert').classList.add('hidden');
+                const footerError = document.getElementById('form-footer-error');
+                footerError.classList.add('hidden');
+                footerError.textContent = '';
+
+                // Get the anti-forgery token
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                // Send the data to the controller
+                fetch('@Url.Action("CreateEvent", "Events")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify(eventData)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            if (!text || text.trim() === '') {
+                                throw new Error(`Server returned ${response.status} ${response.statusText}`);
                             }
-
-                            const li = document.createElement('li');
-                            li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
-                            li.style.borderLeftColor = color;
-                            li.innerHTML = `
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1 event-info cursor-pointer">
-                                        <div class="flex items-start">
-                                            <i class="ph ${icon} text-lg mr-3 mt-0.5" style="color: ${color}"></i>
-                                            <div>
-                                                <h4 class="font-medium">${event.title}</h4>
-                                                <div class="text-sm text-gray-600">
-                                                    <div class="flex items-center gap-1">
-                                                        <i class="ph ph-calendar text-xs"></i>
-                                                        <span>${formattedDate}</span>
-                                                    </div>
-                                                    <div class="flex items-center gap-1">
-                                                        <i class="ph ph-clock text-xs"></i>
-                                                        <span>${formattedTime}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <button class="edit-event-btn p-1 text-gray-600 hover:bg-gray-100 rounded" title="Edit" data-event-id="${event.id || ''}">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-event-btn p-1 text-red-600 hover:bg-red-50 rounded" title="Delete" data-event-id="${event.id || ''}">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            `;
-
-                            // Add click event to show details
-                            const eventInfoEl = li.querySelector('.event-info');
-                            eventInfoEl.addEventListener('click', function() {
-                                showEventDetails({
-                                    id: event.id,
-                                    title: event.title,
-                                    start: event.start,
-                                    end: event.end,
-                                    extendedProps: {
-                                        description: event.description,
-                                        location: event.location
-                                    }
-                                });
-                            });
-
-                            // Add edit event handler
-                            const editBtn = li.querySelector('.edit-event-btn');
-                            editBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                const eventId = this.getAttribute('data-event-id');
-
-                                // Find the event in the calendar
-                                const calendarEvent = calendar.getEventById(eventId);
-
-                                if (calendarEvent) {
-                                    // Show edit form
-                                    showEventEditForm(calendarEvent);
-                                }
-                            });
-
-                            // Add delete event handler
-                            const deleteBtn = li.querySelector('.delete-event-btn');
-                            deleteBtn.addEventListener('click', function(e) {
-                                e.stopPropagation();
-                                const eventId = this.getAttribute('data-event-id');
-
-                                // Show delete confirmation dialog
-                                deleteConfirmationModal.classList.remove('hidden');
-                                document.body.style.overflow = 'hidden';
-                                // Store the event ID in the delete confirmation modal
-                                deleteConfirmationModal.dataset.eventId = eventId;
-                            });
-
-                            eventListEl.appendChild(li);
+                            try {
+                                return JSON.parse(text);
+                            } catch (e) {
+                                throw new Error("Server error: " + text);
+                            }
                         });
-                    })
-                    .catch(error => {
-                        console.error('Error fetching events:', error);
-                        const eventListEl = document.getElementById('event-list');
-                        if (eventListEl) {
-                            eventListEl.innerHTML = '<p class="text-red-500 italic text-center py-4">Failed to load events</p>';
-                        }
-                    });
-            }
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
 
-            // View history events button functionality
-            const viewHistoryEventsBtn = document.getElementById('view-history-events-btn');
-            const upcomingEventsContainer = document.getElementById('upcoming-events-container');
-            const eventsHistoryContainer = document.getElementById('events-history-container');
-            const backToUpcomingBtn = document.getElementById('back-to-upcoming-btn');
-            const eventsHistoryList = document.getElementById('events-history-list');
+                    if (data && data.success) {
+                        // Add the event to the calendar
+                        calendar.addEvent({
+                            id: data.id,
+                            title: data.title,
+                            start: data.start,
+                            end: data.end,
+                            color: data.backgroundColor,
+                            extendedProps: {
+                                location: data.location,
+                                description: data.description,
+                                createdBy: data.createdBy,
+                                createdOn: data.createdAt
+                            }
+                        });
 
-            if (viewHistoryEventsBtn) {
-                viewHistoryEventsBtn.addEventListener('click', function() {
-                    // Toggle between upcoming events and history view
-                    upcomingEventsContainer.classList.add('hidden');
-                    eventsHistoryContainer.classList.remove('hidden');
+                        // Close the modal
+                        eventModal.classList.add('hidden');
+                        document.body.style.overflow = ''; // Re-enable scrolling
+                        resetEventForm();
 
-                    // Load past events
-                    loadPastEvents();
+                        // Show success toast
+                        showToast('Event created successfully!', 'success');
+
+                        // Refresh the upcoming events list
+                        loadUpcomingEvents();
+
+                        // Force calendar render to show new event
+                        calendar.render();
+                    } else {
+                        showFooterError(data && data.message ? data.message : 'Failed to create event - Server returned invalid response');
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+
+                    showFooterError('Failed to create event: ' + error.message);
                 });
             }
 
-            if (backToUpcomingBtn) {
-                backToUpcomingBtn.addEventListener('click', function() {
-                    // Toggle back to upcoming events
-                    eventsHistoryContainer.classList.add('hidden');
-                    upcomingEventsContainer.classList.remove('hidden');
-                });
+            // Show footer error
+            function showFooterError(message) {
+                const footerError = document.getElementById('form-footer-error');
+                footerError.textContent = message;
+                footerError.classList.remove('hidden');
             }
 
-            // Function to load past events
-            function loadPastEvents() {
-                // Fetch events from the controller
+            // The old showFormError can be kept for backwards compatibility
+            function showFormError(message) {
+                showFooterError(message);
+            }
+
+            // Reset event form
+            function resetEventForm() {
+                eventForm.reset();
+                document.getElementById('form-error-alert').classList.add('hidden');
+                document.getElementById('eventStartDate').value = todayFormatted;
+                document.getElementById('eventEndDate').value = todayFormatted;
+            }
+
+            // Load upcoming events from server
+            function loadUpcomingEvents() {
                 fetch('@Url.Action("GetEvents", "Events")')
                     .then(response => response.json())
                     .then(events => {
-                        if (eventsHistoryList) {
-                            eventsHistoryList.innerHTML = '';
-
-                            // Sort events by date (descending - most recent first)
-                            events.sort((a, b) => new Date(b.start) - new Date(a.start));
-
-                            // Filter to show only past events
-                            const today = new Date();
-                            const pastEvents = events.filter(event => new Date(event.end) < today);
-
-                            if (pastEvents.length === 0) {
-                                eventsHistoryList.innerHTML = '<p class="text-gray-500 italic text-center">No past events</p>';
-                                return;
-                            }
-
-                            pastEvents.forEach(function(event) {
-                                const eventDate = new Date(event.start);
-                                const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-                                // Set icon based on event title
-                                let icon = 'ph-calendar-check';
-                                let color = '#95a5a6'; // Gray for past events
-
-                                if (event.title.toLowerCase().includes('meeting')) {
-                                    icon = 'ph-users';
-                                } else if (event.title.toLowerCase().includes('maintenance')) {
-                                    icon = 'ph-wrench';
-                                } else if (event.title.toLowerCase().includes('clean')) {
-                                    icon = 'ph-broom';
-                                } else if (event.title.toLowerCase().includes('due')) {
-                                    icon = 'ph-currency-circle-dollar';
-                                }
-
-                                const li = document.createElement('li');
-                                li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
-                                li.style.borderLeftColor = color;
-                                li.innerHTML = `
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center">
-                                            <div class="text-center mr-3 bg-gray-100 rounded-full h-10 w-10 flex items-center justify-center">
-                                                <span class="block text-xs font-medium text-gray-600">${formattedDate}</span>
-                                            </div>
-                                            <div>
-                                                <p class="font-medium flex items-center text-gray-500">
-                                                    <i class="ph ${icon} mr-2" style="color: ${color}"></i>
-                                                    ${event.title}
-                                                </p>
-                                                <p class="text-xs text-gray-400">${event.location || ''}</p>
-                                            </div>
-                                        </div>
-                                        <span class="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">Completed</span>
-                                    </div>
-                                `;
-
-                                // Add click event to show details
-                                li.addEventListener('click', function() {
-                                    showEventDetails({
-                                        id: event.id,
-                                        title: event.title,
-                                        start: event.start,
-                                        end: event.end,
-                                        extendedProps: {
-                                            description: event.description,
-                                            location: event.location
-                                        }
-                                    });
-                                });
-
-                                eventsHistoryList.appendChild(li);
-                            });
-                        }
+                        renderUpcomingEvents(events);
                     })
                     .catch(error => {
-                        console.error('Error fetching past events:', error);
-                        if (eventsHistoryList) {
-                            eventsHistoryList.innerHTML = '<p class="text-red-500 italic text-center">Failed to load past events</p>';
-                        }
+                        console.error('Error loading events:', error);
                     });
             }
 
-            // Update event list with real events
-            loadUpcomingEvents();
+            // Render upcoming events list with date grouping (no limiting)
+            function renderUpcomingEvents(events) {
+                const eventList = document.getElementById('event-list');
+                if (!eventList) return;
+
+                console.log("Rendering upcoming events:", events.length, "events found");
+
+                // Clear current list
+                eventList.innerHTML = '';
+
+                // Create the current date and time using same approach as calendar
+                // Use current browser time but with May 1, 2025 date
+                const now = new Date();
+                const currentDate = new Date('2025-05-01');
+                // Apply the current time to our reference date
+                currentDate.setHours(now.getHours(), now.getMinutes(), now.getSeconds());
+
+                console.log("Current date and time for upcoming events filtering:", currentDate.toISOString());
+
+                // Filter for upcoming events (end time > current time)
+                const upcomingEvents = events.filter(event => {
+                    const eventEndDate = new Date(event.end);
+                    // Only include events that haven't ended yet
+                    return eventEndDate > currentDate;
+                }).sort((a, b) => new Date(a.start) - new Date(b.start)); // Sort by start date
+
+                console.log("Filtered upcoming events:", upcomingEvents.length);
+
+                if (upcomingEvents.length === 0) {
+                    eventList.innerHTML = '<li class="text-center text-gray-500 py-4">No upcoming events</li>';
+                    return;
+                }
+
+                // Group events by date
+                const eventsByDate = {};
+                upcomingEvents.forEach(event => {
+                    const eventDate = new Date(event.start);
+                    const dateKey = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD format
+
+                    if (!eventsByDate[dateKey]) {
+                        eventsByDate[dateKey] = [];
+                    }
+
+                    eventsByDate[dateKey].push(event);
+                });
+
+                console.log("Events grouped by date:", Object.keys(eventsByDate).length, "dates");
+
+                // Render all events grouped by date
+                Object.keys(eventsByDate).sort().forEach(dateKey => {
+                    const dateEvents = eventsByDate[dateKey];
+                    const dateObj = new Date(dateKey);
+                    const formattedDate = dateObj.toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric' // Include year in the date display
+                    });
+
+                    console.log(`Rendering ${dateEvents.length} events for ${formattedDate}`);
+
+                    // Create date header
+                    const dateHeader = document.createElement('div');
+                    dateHeader.className = 'bg-gray-50 px-3 py-2 rounded-md mb-2 mt-4 text-xs font-medium text-gray-600';
+                    dateHeader.textContent = formattedDate;
+                    eventList.appendChild(dateHeader);
+
+                    // Show all events for this date - no limits
+                    dateEvents.forEach(event => {
+                        renderEventItem(event, eventList);
+                    });
+                });
+            }
+
+            // Helper function to render a single event item
+            function renderEventItem(event, container) {
+                const eventStartDate = new Date(event.start);
+                const eventEndDate = new Date(event.end);
+
+                const eventItem = document.createElement('li');
+                eventItem.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50 mb-3';
+                eventItem.style.borderLeftColor = event.backgroundColor || '#356480';
+
+                // Get appropriate icon based on event title
+                let icon = 'ph-calendar-check';
+                if (event.title.toLowerCase().includes('meeting')) {
+                    icon = 'ph-users';
+                } else if (event.title.toLowerCase().includes('maintenance')) {
+                    icon = 'ph-wrench';
+                } else if (event.title.toLowerCase().includes('clean')) {
+                    icon = 'ph-broom';
+                } else if (event.title.toLowerCase().includes('easter')) {
+                    icon = 'ph-egg';
+                } else if (event.title.toLowerCase().includes('garden')) {
+                    icon = 'ph-plant';
+                }
+
+                // Format date
+                const formattedDate = eventStartDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                eventItem.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
+                            <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium flex items-center">
+                                <i class="ph ${icon} mr-2" style="color: ${event.backgroundColor || '#356480'}"></i>
+                                ${event.title}
+                            </p>
+                            <div class="flex items-center text-xs text-gray-500 mt-1">
+                                <i class="ph ph-clock text-gray-400 mr-1"></i>
+                                <span>${eventStartDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${eventEndDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                            </div>
+                            <div class="flex items-center text-xs text-gray-500 mt-1">
+                                <i class="ph ph-map-pin text-gray-400 mr-1"></i>
+                                <span>${event.location || 'No location specified'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add click event to show details
+                eventItem.addEventListener('click', function() {
+                    showEventDetails({
+                        id: event.id,
+                        title: event.title,
+                        start: eventStartDate,
+                        end: eventEndDate,
+                        extendedProps: {
+                            location: event.location,
+                            description: event.description,
+                            createdBy: event.createdBy,
+                            createdOn: event.createdAt
+                        },
+                        backgroundColor: event.backgroundColor
+                    });
+                });
+
+                container.appendChild(eventItem);
+            }
+
+            // Show event details function
+            function showEventDetails(event) {
+                const detailsModal = document.getElementById('event-details-modal');
+                if (!detailsModal) return;
+
+                // Set event ID for reference
+                detailsModal.dataset.eventId = event.id;
+
+                // Fill in details
+                document.getElementById('event-details-name').textContent = event.title;
+                document.getElementById('event-details-date').textContent = event.start.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+                document.getElementById('event-details-time').textContent = `${event.start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${event.end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+                document.getElementById('event-details-location').textContent = event.extendedProps?.location || 'No location specified';
+                document.getElementById('event-details-description').textContent = event.extendedProps?.description || 'No description available';
+                document.getElementById('event-details-created-by').textContent = event.extendedProps?.createdBy || 'Administrator';
+
+                const createdDate = event.extendedProps?.createdOn ? new Date(event.extendedProps.createdOn) : new Date();
+                document.getElementById('event-details-created-on').textContent = createdDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+
+                // Update icon color to match event
+                const eventIcon = document.getElementById('event-details-icon');
+                eventIcon.style.color = event.backgroundColor || '#356480';
+
+                // Show modal
+                detailsModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+                // Set up close buttons
+                document.getElementById('close-event-details').addEventListener('click', closeEventDetails);
+                document.getElementById('close-details-btn').addEventListener('click', closeEventDetails);
+
+                // Close modal when clicking outside
+                detailsModal.addEventListener('click', function(e) {
+                    if (e.target === detailsModal) {
+                        closeEventDetails();
+                    }
+                });
+            }
+
+            // Close event details function
+            function closeEventDetails() {
+                const detailsModal = document.getElementById('event-details-modal');
+                if (!detailsModal) return;
+
+                detailsModal.classList.add('hidden');
+                document.body.style.overflow = ''; // Re-enable scrolling
+            }
 
             // Initialize charts
             const roleChart = echarts.init(document.getElementById('roleChart'));
@@ -1826,424 +1293,441 @@
                 calendar.updateSize();
             });
 
-            // Setup logout modal buttons
-            const logoutModal = document.getElementById('logout-modal');
-            const cancelLogoutBtn = document.getElementById('cancel-logout');
-            const confirmLogoutBtn = document.getElementById('confirm-logout');
+            // Event history view toggle
+            const viewHistoryBtn = document.getElementById('view-history-events-btn');
+            const backToUpcomingBtn = document.getElementById('back-to-upcoming-btn');
+            const upcomingEventsContainer = document.getElementById('upcoming-events-container');
+            const eventsHistoryContainer = document.getElementById('events-history-container');
 
-            if (cancelLogoutBtn && confirmLogoutBtn) {
-                cancelLogoutBtn.addEventListener('click', function() {
-                    logoutModal.classList.add('hidden');
-                    document.body.style.overflow = ''; // Re-enable scrolling
+            if (viewHistoryBtn && backToUpcomingBtn) {
+                // View history button
+                viewHistoryBtn.addEventListener('click', function() {
+                    upcomingEventsContainer.classList.add('hidden');
+                    eventsHistoryContainer.classList.remove('hidden');
+
+                    // Get past events from server
+                    fetch('@Url.Action("GetEvents", "Events")')
+                        .then(response => response.json())
+                        .then(events => {
+                            // Filter for past events - both events from before May 1, 2025 and events that have ended
+                            const now = new Date('2025-05-01T00:00:00Z'); // Current date: May 1, 2025
+                            const pastEvents = events.filter(event => {
+                                const eventEndDate = new Date(event.end);
+                                return eventEndDate < now;
+                            }).sort((a, b) => new Date(b.start) - new Date(a.start)); // Most recent first
+
+                            renderEventHistory(pastEvents);
+                        })
+                        .catch(error => {
+                            console.error('Error loading past events:', error);
+                            renderEventHistory([]);
+                        });
                 });
 
-                confirmLogoutBtn.addEventListener('click', function() {
-                    window.location.href = '@Url.Action("Logout", "Account")';
-                });
-
-                // Close modal when clicking outside
-                logoutModal.addEventListener('click', function(e) {
-                    if (e.target === logoutModal) {
-                        logoutModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-        });
-
-        // Enhancement for management dropdown stability
-        document.addEventListener('DOMContentLoaded', function() {
-            // Existing code remains...
-
-            // Management dropdown enhancement
-            const managementItem = document.querySelector('.management-item');
-            const managementDropdown = document.querySelector('.management-dropdown');
-
-            if (managementItem && managementDropdown) {
-                let timeout;
-
-                // Show dropdown with a slight delay to prevent accidental triggering
-                managementItem.addEventListener('mouseenter', function() {
-                    clearTimeout(timeout);
-                    managementDropdown.classList.add('active');
-                });
-
-                // Hide dropdown with a delay to prevent accidental closing
-                managementItem.addEventListener('mouseleave', function() {
-                    timeout = setTimeout(function() {
-                        managementDropdown.classList.remove('active');
-                    }, 300); // 300ms delay before hiding
-                });
-
-                // When entering the dropdown itself, clear the timeout to prevent closing
-                managementDropdown.addEventListener('mouseenter', function() {
-                    clearTimeout(timeout);
-                });
-
-                // When leaving the dropdown, set a timeout to hide it with delay
-                managementDropdown.addEventListener('mouseleave', function() {
-                    timeout = setTimeout(function() {
-                        managementDropdown.classList.remove('active');
-                    }, 300); // 300ms delay before hiding
-                });
-
-                // Click handler for touch devices
-                managementItem.addEventListener('click', function(e) {
-                    // Prevent click from immediately closing the menu
-                    e.preventDefault();
-                    e.stopPropagation();
-
-                    // Toggle active class
-                    if (managementDropdown.classList.contains('active')) {
-                        managementDropdown.classList.remove('active');
-                    } else {
-                        managementDropdown.classList.add('active');
-                    }
+                // Back to upcoming button
+                backToUpcomingBtn.addEventListener('click', function() {
+                    eventsHistoryContainer.classList.add('hidden');
+                    upcomingEventsContainer.classList.remove('hidden');
                 });
             }
-        });
 
-        // Function to load upcoming events
-        function loadUpcomingEvents() {
-            fetch('@Url.Action("GetEvents", "Events")')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Server returned ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(events => {
-                    const eventListEl = document.getElementById('event-list');
+            // Render event history list
+            function renderEventHistory(events) {
+                const eventsHistoryList = document.getElementById('events-history-list');
+                if (!eventsHistoryList) return;
 
-                    if (!eventListEl) {
-                        console.error('Event list element not found');
-                        return;
-                    }
+                // Clear current list
+                eventsHistoryList.innerHTML = '';
 
-                    // Clear existing events
-                    eventListEl.innerHTML = '';
+                if (events.length === 0) {
+                    eventsHistoryList.innerHTML = '<li class="text-center text-gray-500 py-4">No past events</li>';
+                    return;
+                }
 
-                    if (!events || events.length === 0) {
-                        eventListEl.innerHTML = '<p class="text-gray-500 italic text-center py-4">No events scheduled</p>';
-                        return;
-                    }
+                // Add each event to the history list
+                events.forEach(event => {
+                    const eventStartDate = new Date(event.start);
+                    const eventEndDate = new Date(event.end);
 
-                    // Sort events by date
-                    events.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-                    // Get today's date to filter upcoming events
-                    const today = new Date();
-
-                    // Show ALL events, not just upcoming ones
-                    // Show events in the list - ALL events, not just a limited number
-                    events.forEach(function(event) {
-                        const eventDate = new Date(event.start);
-                        const formattedDate = eventDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                        const formattedTime = eventDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                        // Set icon based on event title
-                        let icon = 'ph-calendar-check';
-                        let color = event.backgroundColor || '#356480'; // Use event color or default
-
-                        if (event.title.toLowerCase().includes('meeting')) {
-                            icon = 'ph-users';
-                        } else if (event.title.toLowerCase().includes('maintenance')) {
-                            icon = 'ph-wrench';
-                        } else if (event.title.toLowerCase().includes('clean')) {
-                            icon = 'ph-broom';
-                        } else if (event.title.toLowerCase().includes('due')) {
-                            icon = 'ph-currency-circle-dollar';
-                        }
-
-                        const li = document.createElement('li');
-                        li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
-                        li.style.borderLeftColor = color;
-                        li.innerHTML = `
-                            <div class="flex items-center justify-between">
-                                <div class="flex-1 event-info cursor-pointer">
-                                    <div class="flex items-start">
-                                        <i class="ph ${icon} text-lg mr-3 mt-0.5" style="color: ${color}"></i>
-                                        <div>
-                                            <h4 class="font-medium">${event.title}</h4>
-                                            <div class="text-sm text-gray-600">
-                                                <div class="flex items-center gap-1">
-                                                    <i class="ph ph-calendar text-xs"></i>
-                                                    <span>${formattedDate}</span>
-                                                </div>
-                                                <div class="flex items-center gap-1">
-                                                    <i class="ph ph-clock text-xs"></i>
-                                                    <span>${formattedTime}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                    const eventItem = document.createElement('li');
+                    eventItem.className = 'bg-gray-50 rounded-lg p-4 border border-gray-100';
+                    eventItem.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-3 h-12 rounded-full bg-opacity-70" style="background-color: ${event.color}"></div>
+                            <div class="flex-grow">
+                                <h4 class="font-medium text-gray-700">${event.title}</h4>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <i class="ph ph-calendar text-gray-400 mr-1"></i>
+                                    <span>${eventStartDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <button class="edit-event-btn p-1 text-gray-600 hover:bg-gray-100 rounded" title="Edit" data-event-id="${event.id || ''}">
-                                        <i class="ph ph-pencil-simple"></i>
-                                    </button>
-                                    <button class="delete-event-btn p-1 text-red-600 hover:bg-red-50 rounded" title="Delete" data-event-id="${event.id || ''}">
-                                        <i class="ph ph-trash"></i>
-                                    </button>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <i class="ph ph-clock text-gray-400 mr-1"></i>
+                                    <span>${eventStartDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} - ${eventEndDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                                 </div>
                             </div>
-                        `;
+                        </div>
+                    `;
 
-                        // Add click event to show details
-                        const eventInfoEl = li.querySelector('.event-info');
-                        eventInfoEl.addEventListener('click', function() {
-                            showEventDetails({
-                                id: event.id,
-                                title: event.title,
-                                start: event.start,
-                                end: event.end,
-                                extendedProps: {
-                                    description: event.description,
-                                    location: event.location
-                                }
-                            });
+                    // Add click event to show details
+                    eventItem.addEventListener('click', function() {
+                        showEventDetails({
+                            id: event.id,
+                            title: event.title,
+                            start: eventStartDate,
+                            end: eventEndDate,
+                            extendedProps: {
+                                location: event.location,
+                                description: event.description,
+                                createdBy: event.createdBy,
+                                createdOn: event.createdOn
+                            },
+                            backgroundColor: event.color
                         });
-
-                        // Add edit event handler
-                        const editBtn = li.querySelector('.edit-event-btn');
-                        editBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const eventId = this.getAttribute('data-event-id');
-
-                            // Find the event in the calendar
-                            const calendarEvent = calendar.getEventById(eventId);
-
-                            if (calendarEvent) {
-                                // Show edit form
-                                showEventEditForm(calendarEvent);
-                            }
-                        });
-
-                        // Add delete event handler
-                        const deleteBtn = li.querySelector('.delete-event-btn');
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const eventId = this.getAttribute('data-event-id');
-
-                            // Show delete confirmation dialog
-                            deleteConfirmationModal.classList.remove('hidden');
-                            document.body.style.overflow = 'hidden';
-                            // Store the event ID in the delete confirmation modal
-                            deleteConfirmationModal.dataset.eventId = eventId;
-                        });
-
-                        eventListEl.appendChild(li);
                     });
-                })
-                .catch(error => {
-                    console.error('Error fetching events:', error);
-                    const eventListEl = document.getElementById('event-list');
-                    if (eventListEl) {
-                        eventListEl.innerHTML = '<p class="text-red-500 italic text-center py-4">Failed to load events</p>';
-                    }
+
+                    eventsHistoryList.appendChild(eventItem);
                 });
-        }
+            }
 
-        // Event Details and Edit Functionality
-        const eventDetailsView = document.getElementById('event-details-view');
-        const eventEditForm = document.getElementById('event-edit-form');
-        const eventDetailsFooter = document.getElementById('event-details-footer');
-        const eventEditFooter = document.getElementById('event-edit-footer');
-        const editEventDetailsBtn = document.getElementById('edit-event-btn');
-        const cancelEditBtn = document.getElementById('cancel-edit-btn');
-        const saveEditBtn = document.getElementById('save-edit-btn');
-        const closeDetailsBtn = document.getElementById('close-details-btn');
+            // =============================
+            // Event Edit Functionality
+            // =============================
+            const editEventBtn = document.getElementById('edit-event-btn');
+            const cancelEditBtn = document.getElementById('cancel-edit-btn');
+            const saveEditBtn = document.getElementById('save-edit-btn');
+            const eventDetailsView = document.getElementById('event-details-view');
+            const eventEditForm = document.getElementById('event-edit-form');
+            const eventDetailsFooter = document.getElementById('event-details-footer');
+            const eventEditFooter = document.getElementById('event-edit-footer');
 
-        // Add event listener for the Close button in the Event Details modal
-        if (closeDetailsBtn) {
-            closeDetailsBtn.addEventListener('click', function() {
-                const eventDetailsModal = document.getElementById('event-details-modal');
-                eventDetailsModal.classList.add('hidden');
-                document.body.style.overflow = '';
-            });
-        }
-
-        // Switch to edit mode
-        if (editEventDetailsBtn) {
-            editEventDetailsBtn.addEventListener('click', function() {
-                // Get the current event ID
-                const eventId = eventDetailsModal.dataset.eventId;
-
-                // Find the event in the calendar
-                const event = calendar.getEventById(eventId);
-
-                if (event) {
-                    // Hide details view, show edit form
-                    eventDetailsView.classList.add('hidden');
-                    eventEditForm.classList.remove('hidden');
-                    eventDetailsFooter.classList.add('hidden');
-                    eventEditFooter.classList.remove('hidden');
-
-                    // Update modal title to indicate we're editing now
-                    document.getElementById('event-details-title').textContent = 'Edit Event';
-
-                    // Set form values
+            // Edit event button functionality
+            if (editEventBtn) {
+                editEventBtn.addEventListener('click', function() {
+                    // Get the event ID from the modal
+                    const eventId = document.getElementById('event-details-modal').dataset.eventId;
                     document.getElementById('edit-event-id').value = eventId;
-                    document.getElementById('editEventTitle').value = event.title;
 
-                    // Format dates and times for the form
-                    const startDate = event.start ? new Date(event.start) : new Date();
-                    const endDate = event.end ? new Date(event.end) : new Date();
+                    // Fill form with current event details
+                    document.getElementById('editEventTitle').value = document.getElementById('event-details-name').textContent;
+                    document.getElementById('editEventLocation').value = document.getElementById('event-details-location').textContent;
+                    document.getElementById('editEventDescription').value = document.getElementById('event-details-description').textContent;
 
-                    document.getElementById('editEventStartDate').value = formatDate(startDate);
-                    document.getElementById('editEventEndDate').value = formatDate(endDate);
+                    // Parse date and time from the details
+                    const dateStr = document.getElementById('event-details-date').textContent;
+                    const timeStr = document.getElementById('event-details-time').textContent;
+                    const [startTimeStr, endTimeStr] = timeStr.split(' - ');
+
+                    // Convert to proper format for input fields
+                    const eventDate = new Date(dateStr);
+                    const formattedDate = formatDate(eventDate);
+
+                    // Set date fields
+                    document.getElementById('editEventStartDate').value = formattedDate;
+                    document.getElementById('editEventEndDate').value = formattedDate;
+
+                    // Parse time strings to set time fields
+                    // First, format times to 24-hour format
+                    const startDate = new Date(`${dateStr} ${startTimeStr}`);
+                    const endDate = new Date(`${dateStr} ${endTimeStr}`);
 
                     document.getElementById('editEventStartTime').value = formatTime(startDate);
                     document.getElementById('editEventEndTime').value = formatTime(endDate);
 
-                    document.getElementById('editEventLocation').value = event.extendedProps?.location || '';
-                    document.getElementById('editEventDescription').value = event.extendedProps?.description || '';
-                }
-            });
-        }
+                    // Switch to edit view
+                    eventDetailsView.classList.add('hidden');
+                    eventEditForm.classList.remove('hidden');
+                    eventDetailsFooter.classList.add('hidden');
+                    eventEditFooter.classList.remove('hidden');
+                });
+            }
 
-        // Cancel edit - contextual behavior based on where editing was started
-        if (cancelEditBtn) {
-            cancelEditBtn.addEventListener('click', function() {
-                const fromDetailsView = eventDetailsModal.dataset.fromDetailsView === 'true';
-
-                if (fromDetailsView) {
-                    // If started from details view, return to details view
-                    eventEditForm.classList.add('hidden');
+            // Cancel edit button functionality
+            if (cancelEditBtn) {
+                cancelEditBtn.addEventListener('click', function() {
+                    // Switch back to details view
                     eventDetailsView.classList.remove('hidden');
-                    eventEditFooter.classList.add('hidden');
+                    eventEditForm.classList.add('hidden');
                     eventDetailsFooter.classList.remove('hidden');
+                    eventEditFooter.classList.add('hidden');
+                });
+            }
 
-                    // Reset title back to Event Details
-                    document.getElementById('event-details-title').textContent = 'Event Details';
-                } else {
-                    // If started from Upcoming Events section, close modal completely
-                    eventDetailsModal.classList.add('hidden');
+            // Save edit button functionality
+            if (saveEditBtn) {
+                saveEditBtn.addEventListener('click', function() {
+                    const eventId = document.getElementById('edit-event-id').value;
+
+                    // Get form values
+                    const updatedEventData = {
+                        Title: document.getElementById('editEventTitle').value,
+                        Description: document.getElementById('editEventDescription').value || '',
+                        StartDate: document.getElementById('editEventStartDate').value,
+                        StartTime: document.getElementById('editEventStartTime').value,
+                        EndDate: document.getElementById('editEventEndDate').value,
+                        EndTime: document.getElementById('editEventEndTime').value,
+                        Location: document.getElementById('editEventLocation').value
+                    };
+
+                    // Validation
+                    if (!updatedEventData.Title || !updatedEventData.StartDate || !updatedEventData.EndDate ||
+                        !updatedEventData.StartTime || !updatedEventData.EndTime || !updatedEventData.Location) {
+                        showToast('Please fill in all required fields', 'error');
+                        return;
+                    }
+
+                    // Check if the edited event is in the past - use strict timestamp comparison
+                    const currentDate = new Date('2025-05-01T00:00:00'); // Use the current date (May 1, 2025)
+                    const eventStartDateTime = new Date(`${updatedEventData.StartDate}T${updatedEventData.StartTime}:00`);
+
+                    if (eventStartDateTime.getTime() < currentDate.getTime()) {
+                        showToast('Cannot edit events to occur in the past. Please select a future date and time.', 'error');
+                        return;
+                    }
+
+                    // Disable button during request
+                    saveEditBtn.disabled = true;
+                    saveEditBtn.innerText = 'Saving...';
+
+                    // Get the anti-forgery token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    // Send update request to server
+                    fetch(`@Url.Action("Edit", "Events")/` + eventId, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(updatedEventData)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Update the event details view
+                            document.getElementById('event-details-name').textContent = updatedEventData.Title;
+
+                            // Format the date display
+                            const updatedStartDate = new Date(`${updatedEventData.StartDate}T${updatedEventData.StartTime}`);
+                            const updatedEndDate = new Date(`${updatedEventData.EndDate}T${updatedEventData.EndTime}`);
+
+                            document.getElementById('event-details-date').textContent = updatedStartDate.toLocaleDateString('en-US', {
+                                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+                            });
+
+                            document.getElementById('event-details-time').textContent =
+                                `${updatedStartDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })} -
+                                ${updatedEndDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+
+                            document.getElementById('event-details-location').textContent = updatedEventData.Location;
+                            document.getElementById('event-details-description').textContent = updatedEventData.Description || 'No description available';
+
+                            // Switch back to details view
+                            eventDetailsView.classList.remove('hidden');
+                            eventEditForm.classList.add('hidden');
+                            eventDetailsFooter.classList.remove('hidden');
+                            eventEditFooter.classList.add('hidden');
+
+                            // Show success message
+                            showToast('Event updated successfully!', 'success');
+
+                            // Refresh the calendar and event list
+                            calendar.refetchEvents();
+                            loadUpcomingEvents();
+                        } else {
+                            showToast(data.message || 'Failed to update event', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error updating event:', error);
+                        showToast('An error occurred while updating the event', 'error');
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        saveEditBtn.disabled = false;
+                        saveEditBtn.innerText = 'Save Changes';
+                    });
+                });
+            }
+
+            // Event Delete Functionality
+            const deleteEventBtn = document.getElementById('delete-event-btn');
+            const deleteConfirmationModal = document.getElementById('delete-confirmation-modal');
+            const cancelDeleteBtn = document.getElementById('cancel-delete');
+            const confirmDeleteBtn = document.getElementById('confirm-delete');
+
+            // Delete event button functionality
+            if (deleteEventBtn) {
+                deleteEventBtn.addEventListener('click', function() {
+                    // Get the event ID from the details modal
+                    const eventId = document.getElementById('event-details-modal').dataset.eventId;
+                    deleteConfirmationModal.dataset.eventId = eventId;
+
+                    // Show confirmation modal
+                    deleteConfirmationModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                });
+            }
+
+            // Cancel delete button functionality
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', function() {
+                    deleteConfirmationModal.classList.add('hidden');
+                    document.body.style.overflow = ''; // Re-enable scrolling
+                });
+            }
+
+            // Confirm delete button functionality
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', function() {
+                    const eventId = deleteConfirmationModal.dataset.eventId;
+
+                    // Disable button during request
+                    confirmDeleteBtn.disabled = true;
+                    confirmDeleteBtn.innerText = 'Deleting...';
+
+                    // Get the anti-forgery token
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                    // Send delete request to server
+                    fetch('@Url.Action("DeleteEvent", "Events")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'RequestVerificationToken': token
+                        },
+                        body: `id=${eventId}`
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Close the confirmation and details modals
+                            deleteConfirmationModal.classList.add('hidden');
+                            document.getElementById('event-details-modal').classList.add('hidden');
+                            document.body.style.overflow = ''; // Re-enable scrolling
+
+                            // Show success message
+                            showToast('Event deleted successfully!', 'success');
+
+                            // Refresh the calendar and event list
+                            calendar.refetchEvents();
+                            loadUpcomingEvents();
+                        } else {
+                            showToast(data.message || 'Failed to delete event', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting event:', error);
+                        showToast('An error occurred while deleting the event', 'error');
+                    })
+                    .finally(() => {
+                        // Re-enable button
+                        confirmDeleteBtn.disabled = false;
+                        confirmDeleteBtn.innerText = 'Yes, Delete';
+                    });
+                });
+            }
+
+            // Close delete modal when clicking outside
+            deleteConfirmationModal.addEventListener('click', function(e) {
+                if (e.target === deleteConfirmationModal) {
+                    deleteConfirmationModal.classList.add('hidden');
                     document.body.style.overflow = '';
                 }
             });
-        }
 
-        // Close button in details view
-        if (closeDetailsBtn) {
-            closeDetailsBtn.addEventListener('click', function() {
-                eventDetailsModal.classList.add('hidden');
-                document.body.style.overflow = '';
-            });
-        }
+            // Function to show all events for a specific day in a modal
+            function showDayEvents(date, events) {
+                const dayEventsModal = document.getElementById('day-events-modal');
+                const dayEventsList = document.getElementById('day-events-list');
+                const dayEventsTitle = document.getElementById('day-events-title');
 
-        // Save edited event
-        if (saveEditBtn) {
-            saveEditBtn.addEventListener('click', function() {
-                const eventId = document.getElementById('edit-event-id').value;
-                const title = document.getElementById('editEventTitle').value.trim();
-                const startDate = document.getElementById('editEventStartDate').value;
-                const startTime = document.getElementById('editEventStartTime').value;
-                const endDate = document.getElementById('editEventEndDate').value;
-                const endTime = document.getElementById('editEventEndTime').value;
-                const location = document.getElementById('editEventLocation').value.trim();
-                const description = document.getElementById('editEventDescription').value.trim();
+                if (!dayEventsModal || !dayEventsList) return;
 
-                // Basic validation
-                if (!title || !startDate || !startTime || !endDate || !endTime || !location) {
-                    showNotification('Please fill in all required fields.', 'error');
-                    return;
+                // Format the date for the title
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                // Set modal title
+                dayEventsTitle.textContent = `Events on ${formattedDate}`;
+
+                // Clear previous event list
+                dayEventsList.innerHTML = '';
+
+                // Add each event to the list
+                if (events && events.length > 0) {
+                    events.forEach(event => {
+                        const eventItem = document.createElement('li');
+                        eventItem.className = 'p-3 rounded-lg border-l-4 hover:bg-gray-50 cursor-pointer transition-colors';
+                        eventItem.style.borderLeftColor = event.backgroundColor || '#356480';
+
+                        const startTime = event.start.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                        const endTime = event.end.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+                        eventItem.innerHTML = `
+                            <div class="flex flex-col">
+                                <p class="font-medium">${event.title}</p>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <i class="ph ph-clock text-gray-400 mr-1"></i>
+                                    <span>${startTime} - ${endTime}</span>
+                                </div>
+                                <div class="flex items-center text-xs text-gray-500 mt-1">
+                                    <i class="ph ph-map-pin text-gray-400 mr-1"></i>
+                                    <span>${event.extendedProps?.location || 'No location specified'}</span>
+                                </div>
+                            </div>
+                        `;
+
+                        // Add click event to show details and close this modal
+                        eventItem.addEventListener('click', function() {
+                            // First, close the day events modal
+                            dayEventsModal.classList.add('hidden');
+
+                            // Then show the event details
+                            showEventDetails(event);
+                        });
+
+                        dayEventsList.appendChild(eventItem);
+                    });
+                } else {
+                    dayEventsList.innerHTML = '<li class="text-center text-gray-500 py-4">No events on this day</li>';
                 }
 
-                // Create updated event data
-                const updatedEventData = {
-                    Id: eventId,
-                    Title: title,
-                    StartDate: startDate,
-                    StartTime: startTime,
-                    EndDate: endDate,
-                    EndTime: endTime,
-                    Location: location,
-                    Description: description
-                };
+                // Show the modal
+                dayEventsModal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
 
-                // Get the anti-forgery token
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                // Set up close functionality
+                const closeBtn = document.getElementById('close-day-events');
+                const closeBtnFooter = document.getElementById('close-day-events-btn');
 
-                // Show loading state
-                saveEditBtn.disabled = true;
-                saveEditBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-1"></i> Saving...';
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', closeDayEventsModal);
+                }
 
-                // Send update request to server
-                fetch(`@Url.Action("Edit", "Events")/${eventId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify(updatedEventData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Server returned ' + response.status);
+                if (closeBtnFooter) {
+                    closeBtnFooter.addEventListener('click', closeDayEventsModal);
+                }
+
+                // Close when clicking outside
+                dayEventsModal.addEventListener('click', function(e) {
+                    if (e.target === dayEventsModal) {
+                        closeDayEventsModal();
                     }
-                    return response.json();
-                })
-                .then(data => {
-                    // Reset button
-                    saveEditBtn.disabled = false;
-                    saveEditBtn.innerHTML = '<i class="ph ph-floppy-disk mr-1"></i> Save Changes';
-
-                    if (data.success) {
-                        // Update the event in the calendar
-                        const event = calendar.getEventById(eventId);
-                        if (event) {
-                            // Format dates with time
-                            const startDateTime = new Date(`${startDate}T${startTime}`);
-                            const endDateTime = new Date(`${endDate}T${endTime}`);
-
-                            event.setProp('title', title);
-                            event.setDates(startDateTime, endDateTime);
-                            event.setExtendedProp('description', description);
-                            event.setExtendedProp('location', location);
-                        }
-
-                        // Refresh upcoming events list
-                        loadUpcomingEvents();
-
-                        // Close edit mode and modal
-                        eventDetailsModal.classList.add('hidden');
-                        document.body.style.overflow = '';
-
-                        // Show success message
-                        showNotification('Event updated successfully!', 'success');
-                    } else {
-                        // Show error message
-                        showNotification(data.message || 'Failed to update event.', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error updating event:', error);
-
-                    // Reset button
-                    saveEditBtn.disabled = false;
-                    saveEditBtn.innerHTML = '<i class="ph ph-floppy-disk mr-1"></i> Save Changes';
-
-                    // Show error notification
-                    showNotification('Failed to update event. Please try again.', 'error');
                 });
-            });
-        }
+            }
 
-        // Helper function to format date as YYYY-MM-DD
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        }
-
-        // Helper function to format time as HH:MM
-        function formatTime(date) {
-            const hours = String(date.getHours()).padStart(2, '0');
-            const minutes = String(date.getMinutes()).padStart(2, '0');
-            return `${hours}:${minutes}`;
-        }
+            // Function to close the day events modal
+            function closeDayEventsModal() {
+                const dayEventsModal = document.getElementById('day-events-modal');
+                if (dayEventsModal) {
+                    dayEventsModal.classList.add('hidden');
+                    document.body.style.overflow = ''; // Re-enable scrolling
+                }
+            }
+        });
     </script>
-</body>
-</html>
+}
