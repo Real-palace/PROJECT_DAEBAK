@@ -5,6 +5,21 @@
     var users = ViewData["Users"] as IEnumerable<daebak_subdivision_website.Models.User>;
 }
 
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-users text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">User Management</h2>
+            <p class="text-gray-600 mt-1">Manage homeowners, staff, and admin accounts</p>
+        </div>
+    </div>
+</div>
+
 <!-- User Management Section -->
 <div class="p-6">
     @if (TempData["SuccessMessage"] != null)

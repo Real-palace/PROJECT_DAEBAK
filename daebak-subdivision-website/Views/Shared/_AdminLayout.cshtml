@@ -5,6 +5,11 @@
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isDashboard = (currentController == "Admin" && currentAction == "Dashboard");
+    
+    // Add logic to check if current page is facilities
+    var isFacilities = (currentController == "Admin" && currentAction == "Facilities") || 
+                       (currentController == "Facilities") ||
+                       (currentController == "FacilityReservations");
 }
 
 <!DOCTYPE html>
@@ -219,27 +224,31 @@
                 <div id="management-dropdown" class="management-dropdown py-2">
                     <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Index", "UserManagement")'; return false;">
                         <i class="ph ph-person text-secondary mr-3"></i>
-                        <span>User Management</span>
+                        <span>Users</span>
                     </a>
                     <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Index", "Announcements")'; return false;">
                         <i class="ph ph-megaphone text-secondary mr-3"></i>
-                        <span>Announcements & Notifications</span>
+                        <span>Announcements</span>
                     </a>
-                    <a href="@Url.Action("Billing", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Billing", "Admin")'; return false;">
-                        <i class="ph ph-credit-card text-secondary mr-3"></i>
-                        <span>Billing & Payment</span>
-                    </a>
-                    <a href="@Url.Action("Facilities", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Facilities", "Admin")'; return false;">
-                        <i class="ph ph-tree-structure text-secondary mr-3"></i>
-                        <span>Facilities</span>
+                    <a href="@Url.Action("AdminBilling", "Billing")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("AdminBilling", "Billing")'; return false;">
+                        <i class="ph ph-currency-circle-dollar text-secondary mr-3"></i>
+                        <span>Billings & Payments</span>
                     </a>
                     <a href="@Url.Action("ServiceRequests", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("ServiceRequests", "Admin")'; return false;">
                         <i class="ph ph-wrench text-secondary mr-3"></i>
                         <span>Services</span>
                     </a>
+                    <a href="@Url.Action("AdminIndex", "Facilities")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("AdminIndex", "Facilities")'; return false;">
+                        <i class="ph ph-tree-structure text-secondary mr-3"></i>
+                        <span>Facilities</span>
+                    </a>
+                    <a href="@Url.Action("Security", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Security", "Admin")'; return false;">
+                        <i class="ph ph-shield text-secondary mr-3"></i>
+                        <span>Security</span>
+                    </a>
                     <a href="@Url.Action("Documents", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Documents", "Admin")'; return false;">
                         <i class="ph ph-file-text text-secondary mr-3"></i>
-                        <span>Documents & Contacts Info</span>
+                        <span>Documents & Contacts</span>
                     </a>
                 </div>
             </div>
@@ -308,6 +317,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- Render the Modals section -->
+    @RenderSection("Modals", required: false)
 
     <!-- Scripts -->
     <script>
@@ -456,10 +468,12 @@
             const managementPaths = [
                 '/usermanagement',
                 '/announcements',
-                '/admin/billing',
-                '/admin/facilities',
+                '/billing',
+                '/facilities',
                 '/admin/servicerequests',
-                '/admin/documents'
+                '/admin/security',
+                '/admin/documents',
+                '/facilityreservations'
             ];
 
             // Check if we're in a management section
@@ -484,7 +498,7 @@
                     pageTitle.textContent = 'User Management';
                 } else if (currentPath.includes('/announcements')) {
                     pageTitle.textContent = 'Announcements & Notifications';
-                } else if (currentPath.includes('/admin/billing')) {
+                } else if (currentPath.includes('/billing/adminbilling')) {
                     pageTitle.textContent = 'Billing & Payment';
                 } else if (currentPath.includes('/admin/facilities')) {
                     pageTitle.textContent = 'Facilities';

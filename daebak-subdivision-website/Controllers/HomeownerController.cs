@@ -67,8 +67,43 @@ namespace daebak_subdivision_website.Controllers
             ViewBag.DueDate = "March 15, 2025";
             ViewBag.LastPayment = "2,500.00";
             ViewBag.LastPaymentDate = "February 15, 2025";
+            
+            // Add the ViewBag properties that are needed by the view
+            ViewBag.TotalDue = 5250.00m;
+            ViewBag.PaidThisMonth = 2500.00m;
+            ViewBag.DueThisMonth = 3750.00m;
+            ViewBag.OverdueAmount = 3000.00m;
+            
+            // Initialize ViewBag.UserBills to prevent NullReferenceException in the view
+            ViewBag.UserBills = _dbContext.UserBills
+                .Include(b => b.BillingItem)
+                .Where(b => b.UserId == user.UserId)
+                .ToList();
+            
+            // Initialize ViewBag.Payments for the payment history section
+            ViewBag.Payments = _dbContext.Payments
+                .Where(p => p.UserId == user.UserId)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(10)  // Limit to the most recent 10 payments
+                .ToList();
+                
+            // Initialize ViewBag.PaymentMethods to prevent any potential NullReferenceException
+            ViewBag.PaymentMethods = new List<dynamic>();
+            
+            // Added a UserProfileViewModel to match the model expected by the view
+            var model = new UserProfileViewModel
+            {
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                HouseNumber = user.HouseNumber ?? string.Empty,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
+            };
 
-            return View();
+            return View(model);
         }
 
         public IActionResult Facilities()
