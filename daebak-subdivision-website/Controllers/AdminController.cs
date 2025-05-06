@@ -56,7 +56,7 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Documents()
         {
             _logger.LogInformation("Admin documents section accessed");
-            return View();
+            return RedirectToAction("AdminIndex", "Documents");
         }
 
         // Reports section

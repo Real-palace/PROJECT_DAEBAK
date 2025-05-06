@@ -8,6 +8,7 @@
                        (currentController == "Facilities");
     var isServices = (currentController == "Homeowner" && currentAction == "Services") ||
                      (currentController == "ServiceRequests");
+    var isSecurity = (currentController == "Homeowner" && currentAction == "Security");
 }
 
 <!DOCTYPE html>
@@ -69,7 +70,7 @@
             <a href="@Url.Action("Facilities", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isFacilities ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Facilities">
                 <i class="ph ph-tree-structure"></i>
             </a>
-            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
+            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isSecurity ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Security">
                 <i class="ph ph-shield"></i>
             </a>
         </div>

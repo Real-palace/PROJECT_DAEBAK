@@ -6,10 +6,30 @@
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
     var isDashboard = (currentController == "Admin" && currentAction == "Dashboard");
     
-    // Add logic to check if current page is facilities
-    var isFacilities = (currentController == "Admin" && currentAction == "Facilities") || 
-                       (currentController == "Facilities") ||
+    // Add logic to check for reports page
+    var isReports = (currentController == "Admin" && currentAction == "Reports");
+    
+    // Add logic to check for each section
+    var isUserManagement = (currentController == "UserManagement");
+    var isAnnouncements = (currentController == "Announcements");
+    var isBilling = (currentController == "Billing" && currentAction == "AdminBilling");
+    var isServiceRequests = (currentController == "ServiceRequests" && currentAction == "AdminServiceRequestsPage");
+    var isFacilities = (currentController == "Facilities" && currentAction == "AdminIndex") || 
+                       (currentController == "Admin" && currentAction == "Facilities") || 
                        (currentController == "FacilityReservations");
+    var isSecurity = (currentController == "Security" && currentAction == "Admin") || 
+                     (currentController == "Admin" && currentAction == "Security");
+    var isFeedback = (currentController == "Feedback" && (currentAction == "AdminFeedback" || 
+                      currentAction == "Index"));
+    
+    // Updated: Check for Documents page - include both Admin controller and Documents controller
+    var isDocuments = (currentController == "Admin" && currentAction == "Documents") || 
+                      (currentController == "Documents" && currentAction == "AdminIndex");
+    
+    // Flag to check if any management section is active
+    var isAnyManagementActive = isUserManagement || isAnnouncements || isBilling || 
+                              isServiceRequests || isFacilities || isSecurity || 
+                              isFeedback || isDocuments;
 }
 
 <!DOCTYPE html>
@@ -145,6 +165,8 @@
             display: none;
             position: fixed;
             left: 80px;
+            /* Fixed position at 120px from top */
+            top: 120px; 
             z-index: 50;
             background-color: white;
             border-radius: 0.5rem;
@@ -194,6 +216,16 @@
             width: 100%;
             height: 100%;
         }
+
+        .management-dropdown-item.active {
+            background-color: rgba(148, 176, 223, 0.3);
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .sidebar-icon-active {
+            color: #2c3e50 !important;
+        }
     </style>
 
     @RenderSection("Styles", required: false)
@@ -211,51 +243,55 @@
         <div class="flex flex-col items-center gap-5">
             <!-- Home Link with active state indicator - Using only color change, no line indicator -->
             <a href="@Url.Action("Dashboard", "Admin")" class="relative w-full h-14 flex justify-center items-center @(isDashboard ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Home">
-                <i class="ph ph-house-simple"></i>
+                <i class="ph ph-house-simple @(isDashboard ? "sidebar-icon-active" : "")"></i>
             </a>
 
             <!-- Management Link with Dropdown -->
-            <div class="management-item relative w-full h-14">
-                <button type="button" id="management-btn" class="w-full h-full flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Management">
-                    <i class="ph ph-sliders-horizontal"></i>
+            <div class="management-item relative w-full h-14 @(isAnyManagementActive ? "active" : "")">
+                <button type="button" id="management-btn" class="w-full h-full flex justify-center items-center @(isAnyManagementActive ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Management">
+                    <i class="ph ph-sliders-horizontal @(isAnyManagementActive ? "sidebar-icon-active" : "")"></i>
                 </button>
 
                 <!-- Management Dropdown Menu - Fixed to use direct links instead of JavaScript-dependent dropdown -->
                 <div id="management-dropdown" class="management-dropdown py-2">
-                    <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Index", "UserManagement")'; return false;">
+                    <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item @(isUserManagement ? "active" : "")" onclick="window.location.href='@Url.Action("Index", "UserManagement")'; return false;">
                         <i class="ph ph-person text-secondary mr-3"></i>
                         <span>Users</span>
                     </a>
-                    <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Index", "Announcements")'; return false;">
+                    <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item @(isAnnouncements ? "active" : "")" onclick="window.location.href='@Url.Action("Index", "Announcements")'; return false;">
                         <i class="ph ph-megaphone text-secondary mr-3"></i>
                         <span>Announcements</span>
                     </a>
-                    <a href="@Url.Action("AdminBilling", "Billing")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("AdminBilling", "Billing")'; return false;">
+                    <a href="@Url.Action("AdminBilling", "Billing")" class="management-dropdown-item @(isBilling ? "active" : "")" onclick="window.location.href='@Url.Action("AdminBilling", "Billing")'; return false;">
                         <i class="ph ph-currency-circle-dollar text-secondary mr-3"></i>
                         <span>Billings & Payments</span>
                     </a>
-                    <a href="@Url.Action("ServiceRequests", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("ServiceRequests", "Admin")'; return false;">
+                    <a href="@Url.Action("AdminServiceRequestsPage", "ServiceRequests")" class="management-dropdown-item @(isServiceRequests ? "active" : "")" onclick="window.location.href='@Url.Action("AdminServiceRequestsPage", "ServiceRequests")'; return false;">
                         <i class="ph ph-wrench text-secondary mr-3"></i>
                         <span>Services</span>
                     </a>
-                    <a href="@Url.Action("AdminIndex", "Facilities")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("AdminIndex", "Facilities")'; return false;">
+                    <a href="@Url.Action("AdminIndex", "Facilities")" class="management-dropdown-item @(isFacilities ? "active" : "")" onclick="window.location.href='@Url.Action("AdminIndex", "Facilities")'; return false;">
                         <i class="ph ph-tree-structure text-secondary mr-3"></i>
                         <span>Facilities</span>
                     </a>
-                    <a href="@Url.Action("Security", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Security", "Admin")'; return false;">
+                    <a href="@Url.Action("Security", "Admin")" class="management-dropdown-item @(isSecurity ? "active" : "")" onclick="window.location.href='@Url.Action("Security", "Admin")'; return false;">
                         <i class="ph ph-shield text-secondary mr-3"></i>
                         <span>Security</span>
                     </a>
-                    <a href="@Url.Action("Documents", "Admin")" class="management-dropdown-item" onclick="window.location.href='@Url.Action("Documents", "Admin")'; return false;">
+                    <a href="@Url.Action("AdminFeedback", "Feedback")" class="management-dropdown-item @(isFeedback ? "active" : "")" onclick="window.location.href='@Url.Action("AdminFeedback", "Feedback")'; return false;">
+                        <i class="ph ph-chat-circle-text text-secondary mr-3"></i>
+                        <span>Feedbacks</span>
+                    </a>
+                    <a href="@Url.Action("AdminIndex", "Documents")" class="management-dropdown-item @(isDocuments ? "active" : "")" onclick="window.location.href='@Url.Action("AdminIndex", "Documents")'; return false;">
                         <i class="ph ph-file-text text-secondary mr-3"></i>
-                        <span>Documents & Contacts</span>
+                        <span>Documents</span>
                     </a>
                 </div>
             </div>
 
             <!-- Reports Link -->
-            <a href="@Url.Action("Reports", "Admin")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Reports">
-                <i class="ph ph-chart-line"></i>
+            <a href="@Url.Action("Reports", "Admin")" class="relative w-full h-14 flex justify-center items-center @(isReports ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Reports">
+                <i class="ph ph-chart-line @(isReports ? "sidebar-icon-active" : "")"></i>
             </a>
         </div>
 
@@ -368,24 +404,11 @@
             if (managementItem && managementDropdown && managementBtn) {
                 let timeout;
 
-                // Function to position the dropdown correctly
-                function positionDropdown() {
-                    const btnRect = managementBtn.getBoundingClientRect();
-                    const dropdownHeight = managementDropdown.offsetHeight;
-
-                    // Calculate the vertical center position of the button
-                    const centerY = btnRect.top + (btnRect.height / 2);
-
-                    // Set the top position to center the dropdown vertically with the button
-                    managementDropdown.style.top = (centerY - (dropdownHeight / 2)) + 'px';
-                }
-
                 // Show dropdown with a slight delay to prevent accidental triggering
                 managementItem.addEventListener('mouseenter', function() {
                     clearTimeout(timeout);
                     managementDropdown.classList.add('active');
-                    // Position the dropdown after adding active class
-                    setTimeout(positionDropdown, 10);
+                    // Removed the positioning function call
                 });
 
                 // Hide dropdown with a delay to prevent accidental closing
@@ -420,17 +443,11 @@
                         managementDropdown.classList.remove('active');
                     } else {
                         managementDropdown.classList.add('active');
-                        // Position the dropdown after adding active class
-                        setTimeout(positionDropdown, 10);
+                        // Removed the positioning function call
                     }
                 });
 
-                // Ensure positioning works on window resize too
-                window.addEventListener('resize', function() {
-                    if (managementDropdown.classList.contains('active')) {
-                        positionDropdown();
-                    }
-                });
+                // Removed resize event handler for positioning
             }
 
             // Check for window resize to refresh charts if they exist
@@ -461,31 +478,8 @@
 
         // Highlight management icon when in management section
         document.addEventListener('DOMContentLoaded', function() {
-            // Get the current URL path
-            const currentPath = window.location.pathname.toLowerCase();
-
-            // Check if current page is in any management section
-            const managementPaths = [
-                '/usermanagement',
-                '/announcements',
-                '/billing',
-                '/facilities',
-                '/admin/servicerequests',
-                '/admin/security',
-                '/admin/documents',
-                '/facilityreservations'
-            ];
-
-            // Check if we're in a management section
-            const isManagementSection = managementPaths.some(path => currentPath.includes(path));
-
-            if (isManagementSection) {
-                // Add active class to the management item
-                const managementItem = document.querySelector('.management-item');
-                if (managementItem) {
-                    managementItem.classList.add('active');
-                }
-            }
+            // This function is now redundant as we're handling active states directly in the Razor markup
+            // But keeping it for backward compatibility
         });
 
         // Set specific title in topbar based on current section
@@ -508,6 +502,28 @@
                     pageTitle.textContent = 'Documents';
                 }
                 // Otherwise, keep the ViewData["Title"]
+            }
+        });
+
+        // Force management icon highlighting when any management section is active
+        document.addEventListener('DOMContentLoaded', function() {
+            const isManagementActive = @Json.Serialize(isAnyManagementActive);
+            if (isManagementActive) {
+                const managementBtn = document.getElementById('management-btn');
+                const managementIcon = managementBtn.querySelector('i');
+                
+                if (managementBtn && managementIcon) {
+                    managementBtn.classList.add('text-tertiary');
+                    managementIcon.classList.add('sidebar-icon-active');
+                    
+                    // Show dropdown initially on page load when in management section
+                    const managementDropdown = document.getElementById('management-dropdown');
+                    if (managementDropdown) {
+                        setTimeout(function() {
+                            managementDropdown.classList.add('active');
+                        }, 100);
+                    }
+                }
             }
         });
     </script>

@@ -1,0 +1,997 @@
+@model daebak_subdivision_website.Models.AdminPageModel
+@{
+    ViewData["Title"] = "Daebak Subdivision | Reports";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-chart-line text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Reports & Analytics</h2>
+            <p class="text-gray-600 mt-1">Access and generate reports for various subdivision activities and metrics</p>
+        </div>
+    </div>
+</div>
+
+<!-- Report Types Navigation -->
+<div class="bg-white rounded-xl shadow-sm mb-6 overflow-hidden">
+    <div class="border-b border-gray-200">
+        <div class="flex overflow-x-auto custom-scrollbar">
+            <button id="financial-tab" class="tab-btn active px-6 py-3 border-b-2 border-primary font-medium text-primary whitespace-nowrap">
+                Financial Reports
+            </button>
+            <button id="facility-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                Facility Usage
+            </button>
+            <button id="service-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                Service Requests
+            </button>
+            <button id="security-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                Security Incidents
+            </button>
+            <button id="residents-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                Resident Statistics
+            </button>
+            <button id="custom-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap">
+                Custom Reports
+            </button>
+        </div>
+    </div>
+    
+    <!-- Date Range & Export Controls -->
+    <div class="p-4 bg-gray-50 flex flex-wrap gap-4 justify-between items-center">
+        <div class="flex flex-wrap gap-4 items-center">
+            <!-- Date Range Selector -->
+            <div>
+                <label for="daterange" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                <div class="relative">
+                    <input type="text" id="daterange" name="daterange" class="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Select date range">
+                    <i class="ph ph-calendar absolute left-3 top-2.5 text-gray-400"></i>
+                </div>
+            </div>
+            
+            <!-- Report Grouping -->
+            <div>
+                <label for="groupBy" class="block text-sm font-medium text-gray-700 mb-1">Group By</label>
+                <select id="groupBy" class="pl-3 pr-8 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly" selected>Monthly</option>
+                    <option value="quarterly">Quarterly</option>
+                    <option value="yearly">Yearly</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="flex flex-wrap gap-2">
+            <!-- Filter Button -->
+            <button id="filter-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/80 transition-colors flex items-center gap-1">
+                <i class="ph ph-funnel"></i>
+                <span>Filter</span>
+            </button>
+            
+            <!-- Export Options -->
+            <div class="relative inline-block">
+                <button id="export-menu-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors flex items-center gap-1">
+                    <i class="ph ph-download"></i>
+                    <span>Export</span>
+                    <i class="ph ph-caret-down ml-1"></i>
+                </button>
+                <div id="export-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10">
+                    <div class="py-1">
+                        <button class="export-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-format="pdf">
+                            <i class="ph ph-file-pdf mr-2 text-red-500"></i> Export as PDF
+                        </button>
+                        <button class="export-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-format="excel">
+                            <i class="ph ph-file-xls mr-2 text-green-600"></i> Export as Excel
+                        </button>
+                        <button class="export-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-format="csv">
+                            <i class="ph ph-file-csv mr-2 text-blue-500"></i> Export as CSV
+                        </button>
+                        <button class="export-option block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" data-format="print">
+                            <i class="ph ph-printer mr-2 text-gray-500"></i> Print Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Report Content Container -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <!-- Tab Contents -->
+    <div id="financial-content" class="tab-content">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Financial Summary</h3>
+        
+        <!-- Key Financial Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Revenue</p>
+                        <h3 class="text-2xl font-semibold">₱1,254,800</h3>
+                        <p class="text-xs text-green-600 mt-1">+8.5% vs prev period</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <i class="ph ph-money text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Collection Rate</p>
+                        <h3 class="text-2xl font-semibold">87.2%</h3>
+                        <p class="text-xs text-green-600 mt-1">+3.1% vs prev period</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <i class="ph ph-percent text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Outstanding</p>
+                        <h3 class="text-2xl font-semibold">₱183,450</h3>
+                        <p class="text-xs text-red-600 mt-1">+2.3% vs prev period</p>
+                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3">
+                        <i class="ph ph-hourglass text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Expenses</p>
+                        <h3 class="text-2xl font-semibold">₱821,300</h3>
+                        <p class="text-xs text-gray-600 mt-1">-1.2% vs prev period</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                        <i class="ph ph-shopping-cart text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Financial Charts - Revenue vs Expenses -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h4 class="text-md font-medium text-gray-700 mb-4">Revenue vs Expenses</h4>
+                <div id="revenue-expenses-chart" class="h-80"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4">
+                <h4 class="text-md font-medium text-gray-700 mb-4">Payment Methods Distribution</h4>
+                <div id="payment-methods-chart" class="h-80"></div>
+            </div>
+        </div>
+        
+        <!-- Collection Rate by Category -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <h4 class="text-md font-medium text-gray-700 mb-4">Collection Rate by Category</h4>
+            <div id="collection-rate-chart" class="h-80"></div>
+        </div>
+        
+        <!-- Detailed Financial Transactions Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200">
+                <h4 class="text-md font-medium text-gray-700">Recent Financial Transactions</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaction ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">TRX-2025-40125</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Juan Dela Cruz (House #101)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Monthly Association Dues - May 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱2,500.00</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">May 2, 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completed</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">TRX-2025-40124</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Maria Santos (House #102)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Monthly Association Dues - May 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱2,500.00</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">May 1, 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completed</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">TRX-2025-40123</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Pedro Reyes (House #205)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Water Bill - April 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,250.00</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 30, 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completed</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">TRX-2025-40122</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Ana Lim (House #128)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Security Fee - May 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱1,000.00</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 29, 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Completed</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">TRX-2025-40121</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Carlos Tan (House #315)</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Special Assessment - Pool Renovation</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₱5,000.00</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 28, 2025</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Partial</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-200 flex items-center justify-between">
+                <div class="text-sm text-gray-500">
+                    Showing <span class="font-medium">1</span> to <span class="font-medium">5</span> of <span class="font-medium">84</span> entries
+                </div>
+                <div class="flex space-x-1">
+                    <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
+                        Previous
+                    </button>
+                    <button class="px-3 py-1 bg-primary border border-primary rounded-lg text-sm font-medium text-white hover:bg-primary/80">
+                        1
+                    </button>
+                    <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        2
+                    </button>
+                    <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        3
+                    </button>
+                    <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Next
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Other tab contents will be initially hidden -->
+    <div id="facility-content" class="tab-content hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Facility Usage Analytics</h3>
+        
+        <!-- Key Facility Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Reservations</p>
+                        <h3 class="text-2xl font-semibold">247</h3>
+                        <p class="text-xs text-green-600 mt-1">+12.5% vs prev period</p>
+                    </div>
+                    <div class="bg-blue-100 rounded-full p-3">
+                        <i class="ph ph-calendar-check text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Revenue from Facilities</p>
+                        <h3 class="text-2xl font-semibold">₱124,500</h3>
+                        <p class="text-xs text-green-600 mt-1">+7.3% vs prev period</p>
+                    </div>
+                    <div class="bg-green-100 rounded-full p-3">
+                        <i class="ph ph-money text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Utilization Rate</p>
+                        <h3 class="text-2xl font-semibold">68.4%</h3>
+                        <p class="text-xs text-green-600 mt-1">+5.2% vs prev period</p>
+                    </div>
+                    <div class="bg-yellow-100 rounded-full p-3">
+                        <i class="ph ph-chart-pie text-yellow-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-500">
+                <div class="flex justify-between">
+                    <div>
+                        <p class="text-sm text-gray-500">Maintenance Cost</p>
+                        <h3 class="text-2xl font-semibold">₱42,800</h3>
+                        <p class="text-xs text-red-600 mt-1">+3.7% vs prev period</p>
+                    </div>
+                    <div class="bg-purple-100 rounded-full p-3">
+                        <i class="ph ph-wrench text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Facility Usage Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-lg shadow p-4">
+                <h4 class="text-md font-medium text-gray-700 mb-4">Most Used Facilities</h4>
+                <div id="facility-usage-chart" class="h-80"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-4">
+                <h4 class="text-md font-medium text-gray-700 mb-4">Monthly Reservation Trends</h4>
+                <div id="reservation-trends-chart" class="h-80"></div>
+            </div>
+        </div>
+        
+        <!-- Peak Usage Times -->
+        <div class="bg-white rounded-lg shadow p-4 mb-6">
+            <h4 class="text-md font-medium text-gray-700 mb-4">Peak Usage Times</h4>
+            <div id="peak-usage-chart" class="h-80"></div>
+        </div>
+        
+        <!-- Facility Reservations Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-4 border-b border-gray-200">
+                <h4 class="text-md font-medium text-gray-700">Recent Facility Reservations</h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reservation ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Sample data rows for facility reservations -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="service-content" class="tab-content hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Service Request Analytics</h3>
+        <!-- Service request content similar to above, with appropriate metrics and charts -->
+    </div>
+    
+    <div id="security-content" class="tab-content hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Security Analysis</h3>
+        <!-- Security incident content with appropriate metrics and charts -->
+    </div>
+    
+    <div id="residents-content" class="tab-content hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Resident Demographics</h3>
+        <!-- Resident statistics content with appropriate metrics and charts -->
+    </div>
+    
+    <div id="custom-content" class="tab-content hidden">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Custom Report Builder</h3>
+        
+        <!-- Custom Report Builder Interface -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="report-type" class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
+                    <select id="report-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="">Select a report type</option>
+                        <option value="financial">Financial Report</option>
+                        <option value="facility">Facility Usage Report</option>
+                        <option value="service">Service Request Report</option>
+                        <option value="security">Security Incident Report</option>
+                        <option value="resident">Resident Demographics Report</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="report-period" class="block text-sm font-medium text-gray-700 mb-1">Report Period</label>
+                    <select id="report-period" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="current_month">Current Month</option>
+                        <option value="last_month">Last Month</option>
+                        <option value="current_quarter">Current Quarter</option>
+                        <option value="last_quarter">Last Quarter</option>
+                        <option value="current_year">Current Year</option>
+                        <option value="last_year">Last Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="chart-type" class="block text-sm font-medium text-gray-700 mb-1">Chart Type</label>
+                    <select id="chart-type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="pie">Pie Chart</option>
+                        <option value="area">Area Chart</option>
+                        <option value="table">Table Only</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <button id="generate-custom-report" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/80 transition-colors">
+                    Generate Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Custom Report Preview Area -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="border-2 border-dashed border-gray-300 p-8 text-center">
+                <i class="ph ph-chart-bar text-5xl text-gray-400 mb-2"></i>
+                <h4 class="text-lg font-medium text-gray-700 mb-2">Custom Report Preview</h4>
+                <p class="text-gray-500">Select report parameters above and click "Generate Report" to create a custom report</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Filter Modal -->
+<div id="filter-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-xl w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Advanced Report Filters</h3>
+            <button id="close-filter-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <!-- Filter Form -->
+        <form id="advanced-filter-form" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="filter-date-from" class="block text-sm font-medium text-gray-700 mb-1">Date From</label>
+                    <input type="date" id="filter-date-from" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                <div>
+                    <label for="filter-date-to" class="block text-sm font-medium text-gray-700 mb-1">Date To</label>
+                    <input type="date" id="filter-date-to" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+            </div>
+            
+            <div>
+                <label for="filter-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select id="filter-category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="all">All Categories</option>
+                    <!-- Categories will be populated based on selected report type -->
+                </select>
+            </div>
+            
+            <div>
+                <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select id="filter-status" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="all">All Statuses</option>
+                    <!-- Statuses will be populated based on selected report type -->
+                </select>
+            </div>
+            
+            <div>
+                <label for="filter-comparison" class="block text-sm font-medium text-gray-700 mb-1">Comparison Period</label>
+                <select id="filter-comparison" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="none">No Comparison</option>
+                    <option value="previous_period">Previous Period</option>
+                    <option value="previous_year">Same Period Last Year</option>
+                </select>
+            </div>
+            
+            <div class="pt-4 flex justify-end gap-3">
+                <button type="button" id="reset-filters" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Reset</button>
+                <button type="submit" id="apply-advanced-filters" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">Apply Filters</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Include Date Range Picker -->
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daterangepicker@3.1.0/daterangepicker.css" rel="stylesheet">
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize daterangepicker
+            $('#daterange').daterangepicker({
+                opens: 'left',
+                startDate: moment().subtract(30, 'days'),
+                endDate: moment(),
+                ranges: {
+                   'Today': [moment(), moment()],
+                   'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+                   'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+                   'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+                   'This Month': [moment().startOf('month'), moment().endOf('month')],
+                   'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+                   'This Quarter': [moment().startOf('quarter'), moment().endOf('quarter')],
+                   'This Year': [moment().startOf('year'), moment().endOf('year')]
+                }
+            });
+            
+            // Tab switching functionality
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active state from all tabs
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active', 'border-primary', 'text-primary');
+                        b.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    
+                    // Add active state to clicked tab
+                    this.classList.add('active', 'border-primary', 'text-primary');
+                    this.classList.remove('border-transparent', 'text-gray-500');
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Show selected tab content
+                    const contentId = this.id.replace('-tab', '-content');
+                    document.getElementById(contentId).classList.remove('hidden');
+                    
+                    // Refresh charts if they exist
+                    refreshChartsInVisibleTab(contentId);
+                });
+            });
+            
+            // Export menu toggle
+            const exportMenuBtn = document.getElementById('export-menu-btn');
+            const exportMenu = document.getElementById('export-menu');
+            
+            if (exportMenuBtn && exportMenu) {
+                exportMenuBtn.addEventListener('click', function() {
+                    exportMenu.classList.toggle('hidden');
+                });
+                
+                // Close menu when clicking elsewhere
+                document.addEventListener('click', function(e) {
+                    if (!exportMenuBtn.contains(e.target) && !exportMenu.contains(e.target)) {
+                        exportMenu.classList.add('hidden');
+                    }
+                });
+                
+                // Export option handling
+                const exportOptions = document.querySelectorAll('.export-option');
+                exportOptions.forEach(option => {
+                    option.addEventListener('click', function() {
+                        const format = this.dataset.format;
+                        exportReport(format);
+                        exportMenu.classList.add('hidden');
+                    });
+                });
+            }
+            
+            // Filter modal handling
+            const filterBtn = document.getElementById('filter-btn');
+            const filterModal = document.getElementById('filter-modal');
+            const closeFilterModal = document.getElementById('close-filter-modal');
+            
+            if (filterBtn && filterModal && closeFilterModal) {
+                filterBtn.addEventListener('click', function() {
+                    filterModal.classList.remove('hidden');
+                });
+                
+                closeFilterModal.addEventListener('click', function() {
+                    filterModal.classList.add('hidden');
+                });
+                
+                // Close modal when clicking outside
+                filterModal.addEventListener('click', function(e) {
+                    if (e.target === filterModal) {
+                        filterModal.classList.add('hidden');
+                    }
+                });
+                
+                // Handle filter form submission
+                const advancedFilterForm = document.getElementById('advanced-filter-form');
+                if (advancedFilterForm) {
+                    advancedFilterForm.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        applyAdvancedFilters();
+                        filterModal.classList.add('hidden');
+                    });
+                }
+                
+                // Reset filters
+                const resetFiltersBtn = document.getElementById('reset-filters');
+                if (resetFiltersBtn) {
+                    resetFiltersBtn.addEventListener('click', function() {
+                        advancedFilterForm.reset();
+                    });
+                }
+            }
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Custom report generation
+            const generateCustomReportBtn = document.getElementById('generate-custom-report');
+            if (generateCustomReportBtn) {
+                generateCustomReportBtn.addEventListener('click', function() {
+                    generateCustomReport();
+                });
+            }
+        });
+        
+        // Functions for chart initialization
+        function initializeCharts() {
+            // Revenue vs Expenses Chart
+            if (document.getElementById('revenue-expenses-chart')) {
+                const revenueExpensesChart = echarts.init(document.getElementById('revenue-expenses-chart'));
+                const revenueExpensesOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data: ['Revenue', 'Expenses']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '₱{value}'
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Revenue',
+                            type: 'bar',
+                            stack: 'total',
+                            data: [120000, 132000, 101000, 134000, 120000, 110000, 125000, 132000, 141000, 134000, 118000, 142800],
+                            itemStyle: {
+                                color: '#94B0DF'
+                            }
+                        },
+                        {
+                            name: 'Expenses',
+                            type: 'bar',
+                            stack: 'total',
+                            data: [82000, 75000, 79000, 87000, 81000, 74000, 78000, 69000, 79000, 71000, 72300, 74000],
+                            itemStyle: {
+                                color: '#356480'
+                            }
+                        }
+                    ]
+                };
+                revenueExpensesChart.setOption(revenueExpensesOption);
+            }
+            
+            // Payment Methods Distribution Chart
+            if (document.getElementById('payment-methods-chart')) {
+                const paymentMethodsChart = echarts.init(document.getElementById('payment-methods-chart'));
+                const paymentMethodsOption = {
+                    tooltip: {
+                        trigger: 'item'
+                    },
+                    legend: {
+                        orient: 'vertical',
+                        left: 'left'
+                    },
+                    series: [
+                        {
+                            name: 'Payment Method',
+                            type: 'pie',
+                            radius: '70%',
+                            data: [
+                                { value: 735600, name: 'Online Banking', itemStyle: { color: '#94B0DF' } },
+                                { value: 310000, name: 'Credit/Debit Card', itemStyle: { color: '#356480' } },
+                                { value: 125800, name: 'Cash', itemStyle: { color: '#2c3e50' } },
+                                { value: 63400, name: 'Mobile Wallet', itemStyle: { color: '#71a0d1' } },
+                                { value: 20000, name: 'Check', itemStyle: { color: '#5c7da3' } }
+                            ],
+                            emphasis: {
+                                itemStyle: {
+                                    shadowBlur: 10,
+                                    shadowOffsetX: 0,
+                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
+                                }
+                            }
+                        }
+                    ]
+                };
+                paymentMethodsChart.setOption(paymentMethodsOption);
+            }
+            
+            // Collection Rate Chart
+            if (document.getElementById('collection-rate-chart')) {
+                const collectionRateChart = echarts.init(document.getElementById('collection-rate-chart'));
+                const collectionRateOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data: ['Collected', 'Outstanding']
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['Association Dues', 'Water Bills', 'Security Fees', 'Maintenance', 'Special Assessment']
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value}%'
+                        }
+                    },
+                    series: [
+                        {
+                            name: 'Collected',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [92, 85, 90, 81, 75],
+                            itemStyle: {
+                                color: '#94B0DF'
+                            }
+                        },
+                        {
+                            name: 'Outstanding',
+                            type: 'bar',
+                            stack: 'total',
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [8, 15, 10, 19, 25],
+                            itemStyle: {
+                                color: '#ff9999'
+                            }
+                        }
+                    ]
+                };
+                collectionRateChart.setOption(collectionRateOption);
+            }
+            
+            // Initialize facility charts if tab is visible
+            if (!document.getElementById('facility-content').classList.contains('hidden')) {
+                initializeFacilityCharts();
+            }
+        }
+        
+        function initializeFacilityCharts() {
+            // Facility usage chart initialization
+            if (document.getElementById('facility-usage-chart')) {
+                const facilityUsageChart = echarts.init(document.getElementById('facility-usage-chart'));
+                const facilityUsageOption = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    xAxis: {
+                        type: 'value'
+                    },
+                    yAxis: {
+                        type: 'category',
+                        data: ['Swimming Pool', 'Clubhouse', 'Basketball Court', 'Tennis Court', 'Playground', 'Gym', 'Function Hall']
+                    },
+                    series: [
+                        {
+                            name: 'Reservations',
+                            type: 'bar',
+                            data: [78, 52, 42, 33, 25, 15, 2],
+                            itemStyle: {
+                                color: '#94B0DF'
+                            }
+                        }
+                    ]
+                };
+                facilityUsageChart.setOption(facilityUsageOption);
+            }
+            
+            // Additional facility charts initialization
+            // (Simplified for brevity)
+        }
+        
+        // Function to refresh charts when tab changes
+        function refreshChartsInVisibleTab(tabId) {
+            if (tabId === 'financial-content') {
+                if (typeof echarts !== 'undefined') {
+                    const charts = ['revenue-expenses-chart', 'payment-methods-chart', 'collection-rate-chart'];
+                    charts.forEach(chartId => {
+                        const chart = echarts.getInstanceByDom(document.getElementById(chartId));
+                        if (chart) {
+                            chart.resize();
+                        }
+                    });
+                }
+            } else if (tabId === 'facility-content') {
+                initializeFacilityCharts();
+                if (typeof echarts !== 'undefined') {
+                    const charts = ['facility-usage-chart', 'reservation-trends-chart', 'peak-usage-chart'];
+                    charts.forEach(chartId => {
+                        const chartElement = document.getElementById(chartId);
+                        if (chartElement) {
+                            const chart = echarts.getInstanceByDom(chartElement) || echarts.init(chartElement);
+                            chart.resize();
+                        }
+                    });
+                }
+            }
+            // Add similar handling for other tabs
+        }
+        
+        // Export report function
+        function exportReport(format) {
+            // Visual feedback for export action
+            const activeTab = document.querySelector('.tab-btn.active').id.replace('-tab', '');
+            
+            // Show toast notification
+            showToast(`Exporting ${activeTab} report as ${format.toUpperCase()}...`);
+            
+            // In a real implementation, this would make an AJAX call to a controller action
+            // that generates and returns the report file
+            
+            // Simulate processing with a timeout
+            setTimeout(() => {
+                showToast(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} report exported successfully!`, 'success');
+            }, 1500);
+        }
+        
+        // Apply advanced filters function
+        function applyAdvancedFilters() {
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
+            const category = document.getElementById('filter-category').value;
+            const status = document.getElementById('filter-status').value;
+            
+            // Show toast notification
+            showToast('Applying filters to report...', 'info');
+            
+            // In a real implementation, this would make an AJAX call to refresh the data
+            // based on the selected filters
+            
+            // Simulate processing with a timeout
+            setTimeout(() => {
+                showToast('Report filters applied successfully!', 'success');
+                // Would normally update charts and tables here
+            }, 1000);
+        }
+        
+        // Generate custom report
+        function generateCustomReport() {
+            const reportType = document.getElementById('report-type').value;
+            const reportPeriod = document.getElementById('report-period').value;
+            const chartType = document.getElementById('chart-type').value;
+            
+            if (!reportType) {
+                showToast('Please select a report type', 'error');
+                return;
+            }
+            
+            // Show toast notification
+            showToast('Generating custom report...', 'info');
+            
+            // In a real implementation, this would make an AJAX call to generate
+            // the custom report data
+            
+            // Simulate processing with a timeout
+            setTimeout(() => {
+                showToast('Custom report generated successfully!', 'success');
+                
+                // For demo purposes, show a sample chart in the preview area
+                // In a real implementation, this would display actual report data
+            }, 1500);
+        }
+        
+        // Toast notification function
+        function showToast(message, type = 'info') {
+            // Create toast container if it doesn't exist
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                container.className = 'fixed top-4 right-4 z-50 flex flex-col items-end';
+                document.body.appendChild(container);
+            }
+            
+            // Create toast element
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-green-500' : 
+                            type === 'error' ? 'bg-red-500' : 
+                            type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500';
+            toast.className = `${bgColor} text-white px-4 py-3 rounded-lg shadow-lg mb-3 flex items-center transition-all duration-300 transform translate-x-full`;
+            
+            // Toast icon based on type
+            const icon = type === 'success' ? 'ph-check-circle' : 
+                         type === 'error' ? 'ph-x-circle' : 
+                         type === 'warning' ? 'ph-warning-circle' : 'ph-info';
+            
+            // Toast content
+            toast.innerHTML = `
+                <i class="ph ${icon} text-xl mr-2"></i>
+                <span>${message}</span>
+            `;
+            
+            // Add to container
+            container.appendChild(toast);
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+            
+            // Remove after 4 seconds
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 4000);
+        }
+        
+        // Handle window resize to ensure charts are responsive
+        window.addEventListener('resize', function() {
+            if (typeof echarts !== 'undefined') {
+                // Get all chart elements
+                const chartElements = document.querySelectorAll('[id$="-chart"]');
+                chartElements.forEach(element => {
+                    const chart = echarts.getInstanceByDom(element);
+                    if (chart) {
+                        chart.resize();
+                    }
+                });
+            }
+        });
+    </script>
+}

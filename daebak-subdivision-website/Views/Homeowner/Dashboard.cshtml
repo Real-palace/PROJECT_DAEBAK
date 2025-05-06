@@ -144,46 +144,90 @@
     <div class="bg-white p-6 rounded-xl shadow-md">
         <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2">
-                <i class="ph ph-chats-circle text-lg text-tertiary"></i>
-                <h3 class="font-semibold text-lg text-tertiary">Community Forum</h3>
+                <i class="ph ph-chat-circle-text text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Feedback & Complaints</h3>
             </div>
-            <a href="@Url.Action("Index", "Forum")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+            <a href="@Url.Action("Feedback", "Feedback")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
                 View All
                 <i class="ph ph-arrow-right text-xs"></i>
             </a>
         </div>
-        <ul class="space-y-4">
-            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                <div class="flex justify-between">
-                    <span class="bg-purple-100 text-purple-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-chats"></i> DISCUSSION
-                    </span>
-                    <span class="text-gray-400 text-xs">2 hours ago</span>
-                </div>
-                <p class="font-medium">Community Garden Project</p>
-                <p class="text-gray-500 text-sm">12 replies • Started by Maria Santos</p>
-            </li>
-            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                <div class="flex justify-between">
-                    <span class="bg-orange-100 text-orange-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-question"></i> QUESTION
-                    </span>
-                    <span class="text-gray-400 text-xs">12 hours ago</span>
-                </div>
-                <p class="font-medium">Waste Collection Schedule</p>
-                <p class="text-gray-500 text-sm">5 replies • Started by John Chen</p>
-            </li>
-            <li class="hover:bg-gray-50 p-2 rounded-md transition-colors">
-                <div class="flex justify-between">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-lightbulb"></i> SUGGESTION
-                    </span>
-                    <span class="text-gray-400 text-xs">2 days ago</span>
-                </div>
-                <p class="font-medium">Street Light Improvement</p>
-                <p class="text-gray-500 text-sm">8 replies • Started by Alex Johnson</p>
-            </li>
-        </ul>
+        
+        <!-- Quick Feedback Submission Form -->
+        <form asp-controller="Feedback" asp-action="Create" method="post" class="mb-4">
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-type">
+                    Type
+                </label>
+                <select id="feedback-type" name="FeedbackType" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    <option value="">Select Type</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Suggestion">Suggestion</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-description">
+                    Description
+                </label>
+                <textarea id="feedback-description" name="Description" rows="3" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required></textarea>
+            </div>
+            <button type="submit" class="bg-tertiary text-white py-2 px-4 rounded-lg hover:bg-tertiary/90 transition-colors w-full">
+                Submit
+            </button>
+        </form>
+        
+        <!-- Recent Feedback Status -->
+        <div class="mt-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Submissions</h4>
+            <ul class="space-y-2">
+                @if (ViewBag.RecentFeedback != null)
+                {
+                    foreach (var item in ViewBag.RecentFeedback)
+                    {
+                        <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <div>
+                                <p class="font-medium text-sm">@item.FeedbackType</p>
+                                <span class="text-xs text-gray-500">@item.CreatedAt.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <span class="px-2 py-1 rounded-full text-xs 
+                                @(item.Status == "Submitted" ? "bg-blue-100 text-blue-600" : 
+                                  item.Status == "In Review" ? "bg-yellow-100 text-yellow-600" :
+                                  item.Status == "In Progress" ? "bg-purple-100 text-purple-600" :
+                                  item.Status == "Resolved" ? "bg-green-100 text-green-600" :
+                                  "bg-gray-100 text-gray-600")">
+                                @item.Status
+                            </span>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <!-- Sample feedback items -->
+                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div>
+                            <p class="font-medium text-sm">Street light repair request</p>
+                            <span class="text-xs text-gray-500">Apr 03, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600">Submitted</span>
+                    </li>
+                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div>
+                            <p class="font-medium text-sm">Suggestion for playground</p>
+                            <span class="text-xs text-gray-500">Mar 28, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-600">In Review</span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-sm">Noise complaint</p>
+                            <span class="text-xs text-gray-500">Mar 15, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">Resolved</span>
+                    </li>
+                }
+            </ul>
+        </div>
     </div>
 </div>
 

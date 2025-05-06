@@ -38,6 +38,13 @@ namespace daebak_subdivision_website.Controllers
             ViewBag.EventCount = 3; // You can replace with actual data from your database
             ViewBag.RequestCount = 1; // You can replace with actual data from your database
 
+            // Load recent feedback submissions
+            ViewBag.RecentFeedback = _dbContext.Feedbacks
+                .Where(f => f.UserId == user.UserId)
+                .OrderByDescending(f => f.CreatedAt)
+                .Take(3)
+                .ToList();
+
             // Optional: Add sample events data for the calendar
             ViewBag.Events = new[]
             {
