@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using daebak_subdivision_website.Models;
 using System.Linq;
+using System;
 
 namespace daebak_subdivision_website.Controllers
 {
@@ -20,7 +22,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Dashboard()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -33,6 +37,13 @@ namespace daebak_subdivision_website.Controllers
             ViewBag.DueBills = 2; // You can replace with actual data from your database
             ViewBag.EventCount = 3; // You can replace with actual data from your database
             ViewBag.RequestCount = 1; // You can replace with actual data from your database
+
+            // Load recent feedback submissions
+            ViewBag.RecentFeedback = _dbContext.Feedbacks
+                .Where(f => f.UserId == user.UserId)
+                .OrderByDescending(f => f.CreatedAt)
+                .Take(3)
+                .ToList();
 
             // Optional: Add sample events data for the calendar
             ViewBag.Events = new[]
@@ -48,22 +59,66 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Billing()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.UserName = $"{user.FirstName} {user.LastName}";
+            ViewBag.FirstName = $"{user.FirstName}";
+            ViewBag.HouseNumber = user.HouseNumber ?? "N/A";
+            ViewBag.CurrentBalance = "5,250.00";
+            ViewBag.DueDate = "March 15, 2025";
+            ViewBag.LastPayment = "2,500.00";
+            ViewBag.LastPaymentDate = "February 15, 2025";
+            
+            // Add the ViewBag properties that are needed by the view
+            ViewBag.TotalDue = 5250.00m;
+            ViewBag.PaidThisMonth = 2500.00m;
+            ViewBag.DueThisMonth = 3750.00m;
+            ViewBag.OverdueAmount = 3000.00m;
+            
+            // Initialize ViewBag.UserBills to prevent NullReferenceException in the view
+            ViewBag.UserBills = _dbContext.UserBills
+                .Include(b => b.BillingItem)
+                .Where(b => b.UserId == user.UserId)
+                .ToList();
+            
+            // Initialize ViewBag.Payments for the payment history section
+            ViewBag.Payments = _dbContext.Payments
+                .Where(p => p.UserId == user.UserId)
+                .OrderByDescending(p => p.PaymentDate)
+                .Take(10)  // Limit to the most recent 10 payments
+                .ToList();
+                
+            // Initialize ViewBag.PaymentMethods to prevent any potential NullReferenceException
+            ViewBag.PaymentMethods = new List<dynamic>();
+            
+            // Added a UserProfileViewModel to match the model expected by the view
+            var model = new UserProfileViewModel
+            {
+                Username = user.Username,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                HouseNumber = user.HouseNumber ?? string.Empty,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt
+            };
 
-            return View();
+            return View(model);
         }
 
         public IActionResult Facilities()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -78,7 +133,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Services()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -93,7 +150,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Security()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -108,7 +167,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult Profile()
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -125,7 +186,6 @@ namespace daebak_subdivision_website.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 HouseNumber = user.HouseNumber ?? string.Empty,
-                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
                 Role = user.Role,
                 CreatedAt = user.CreatedAt
             };
@@ -142,7 +202,9 @@ namespace daebak_subdivision_website.Controllers
         public IActionResult UpdateProfile(UserProfileViewModel model)
         {
             var username = User.Identity?.Name;
-            var user = _dbContext.Users.FirstOrDefault(u => u.Username == username);
+            var user = _dbContext.Users
+                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
             {
@@ -255,6 +317,22 @@ namespace daebak_subdivision_website.Controllers
             user.LastName = model.LastName;
             user.PhoneNumber = model.PhoneNumber;
             user.UpdatedAt = DateTime.Now;
+
+            // Explicitly update the Homeowner.HouseNumber
+            if (user.Homeowner != null)
+            {
+                user.Homeowner.HouseNumber = model.HouseNumber ?? string.Empty;
+            }
+            else
+            {
+                // If Homeowner relation doesn't exist yet (shouldn't happen but just in case), create it
+                _logger.LogWarning("Homeowner relationship missing for user {Username}, creating new entry", user.Username);
+                user.Homeowner = new Homeowner
+                {
+                    UserId = user.UserId,
+                    HouseNumber = model.HouseNumber ?? string.Empty
+                };
+            }
 
             try
             {

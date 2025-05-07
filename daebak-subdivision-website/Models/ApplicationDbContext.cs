@@ -26,14 +26,11 @@ namespace daebak_subdivision_website.Models
         public DbSet<Document> Documents { get; set; }
         public DbSet<VisitorPass> VisitorPasses { get; set; }
         public DbSet<VehicleRegistration> VehicleRegistrations { get; set; }
-        public DbSet<Contact> Contacts { get; set; }
         public DbSet<Feedback> Feedbacks { get; set; }
-        public DbSet<ForumCategory> ForumCategories { get; set; }
-        public DbSet<ForumThread> ForumThreads { get; set; }
-        public DbSet<ForumPost> ForumPosts { get; set; }
-        public DbSet<ForumReport> ForumReports { get; set; }
-        public DbSet<Poll> Polls { get; set; }
-        public DbSet<PollResponse> PollResponses { get; set; }
+        public DbSet<FeedbackResponse> FeedbackResponses { get; set; }
+        public DbSet<SecurityAlert> SecurityAlerts { get; set; }
+        public DbSet<EmergencyContact> EmergencyContacts { get; set; }
+        public DbSet<UserEmergencyContact> UserEmergencyContacts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,14 +50,11 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<Document>().ToTable("DOCUMENTS");
             modelBuilder.Entity<VisitorPass>().ToTable("VISITOR_PASSES");
             modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATION");
-            modelBuilder.Entity<Contact>().ToTable("CONTACTS");
             modelBuilder.Entity<Feedback>().ToTable("FEEDBACK");
-            modelBuilder.Entity<ForumCategory>().ToTable("FORUM_CATEGORIES");
-            modelBuilder.Entity<ForumThread>().ToTable("FORUM_THREADS");
-            modelBuilder.Entity<ForumPost>().ToTable("FORUM_POSTS");
-            modelBuilder.Entity<ForumReport>().ToTable("FORUM_REPORTS");
-            modelBuilder.Entity<Poll>().ToTable("POLLS");
-            modelBuilder.Entity<PollResponse>().ToTable("POLL_RESPONSES");
+            modelBuilder.Entity<FeedbackResponse>().ToTable("FEEDBACK_RESPONSES");
+            modelBuilder.Entity<SecurityAlert>().ToTable("SECURITY_ALERTS");
+            modelBuilder.Entity<EmergencyContact>().ToTable("EMERGENCY_CONTACTS");
+            modelBuilder.Entity<UserEmergencyContact>().ToTable("USER_EMERGENCY_CONTACTS");
 
             // ✅ Explicit Column Mapping for Homeowner
             modelBuilder.Entity<Homeowner>()
@@ -78,7 +72,7 @@ namespace daebak_subdivision_website.Models
             // ✅ Define Relationships
             modelBuilder.Entity<Homeowner>()
                 .HasOne(h => h.User)
-                .WithOne()
+                .WithOne(u => u.Homeowner)
                 .HasForeignKey<Homeowner>(h => h.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -88,9 +82,10 @@ namespace daebak_subdivision_website.Models
                 .HasForeignKey<Admin>(a => a.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Fix Staff-User relationship by specifying both navigation properties
             modelBuilder.Entity<Staff>()
-                .HasOne<User>()
-                .WithOne()
+                .HasOne(s => s.User)
+                .WithOne(u => u.Staff)
                 .HasForeignKey<Staff>(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -110,6 +105,38 @@ namespace daebak_subdivision_website.Models
                 .HasOne<User>()
                 .WithMany()
                 .HasForeignKey(f => f.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Add relationship for FeedbackResponse
+            modelBuilder.Entity<FeedbackResponse>()
+                .HasOne(fr => fr.Feedback)
+                .WithMany()
+                .HasForeignKey(fr => fr.FeedbackId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            // Security related relationships
+            modelBuilder.Entity<VisitorPass>()
+                .HasOne(v => v.RequestedBy)
+                .WithMany()
+                .HasForeignKey(v => v.RequestedById)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<VehicleRegistration>()
+                .HasOne(v => v.Owner)
+                .WithMany()
+                .HasForeignKey(v => v.OwnerId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<SecurityAlert>()
+                .HasOne(a => a.CreatedBy)
+                .WithMany()
+                .HasForeignKey(a => a.CreatedById)
+                .OnDelete(DeleteBehavior.Cascade);
+                
+            modelBuilder.Entity<UserEmergencyContact>()
+                .HasOne(c => c.User)
+                .WithMany()
+                .HasForeignKey(c => c.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ✅ Unique Constraints

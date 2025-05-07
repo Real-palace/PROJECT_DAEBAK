@@ -1,0 +1,795 @@
+@{
+    ViewData["Title"] = "Service Requests Management";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-wrench text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Service Requests Management</h2>
+            <p class="text-gray-600 mt-1">Real-time management of homeowner maintenance and security requests</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mx-auto">
+    <div class="mb-6 flex justify-between items-center">
+        <h1 class="text-2xl font-semibold text-secondary">Service Requests Management</h1>
+        <div>
+            <button id="btnFilterRequests" class="bg-primary hover:bg-secondary text-white px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                <i class="ph ph-funnel"></i>
+                <span>Filter</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Service Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-blue-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500">Total Requests</p>
+                    <h3 class="text-2xl font-semibold" id="totalRequestsCount">0</h3>
+                </div>
+                <div class="bg-blue-100 rounded-full p-2">
+                    <i class="ph ph-note text-blue-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-yellow-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500">Pending</p>
+                    <h3 class="text-2xl font-semibold" id="pendingRequestsCount">0</h3>
+                </div>
+                <div class="bg-yellow-100 rounded-full p-2">
+                    <i class="ph ph-clock text-yellow-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-green-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500">Completed</p>
+                    <h3 class="text-2xl font-semibold" id="completedRequestsCount">0</h3>
+                </div>
+                <div class="bg-green-100 rounded-full p-2">
+                    <i class="ph ph-check-circle text-green-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm p-4 border-l-4 border-red-500">
+            <div class="flex justify-between items-start">
+                <div>
+                    <p class="text-sm text-gray-500">Canceled</p>
+                    <h3 class="text-2xl font-semibold" id="canceledRequestsCount">0</h3>
+                </div>
+                <div class="bg-red-100 rounded-full p-2">
+                    <i class="ph ph-x-circle text-red-500 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Requests Table -->
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-gray-200">
+            <h2 class="text-lg font-medium text-gray-800">Service Requests</h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Type</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Submitted</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="serviceRequestsTableBody">
+                    <!-- Table rows will be populated dynamically -->
+                </tbody>
+            </table>
+        </div>
+        <div id="noRequests" class="p-8 text-center hidden">
+            <i class="ph ph-note-pencil text-4xl text-gray-400"></i>
+            <p class="mt-2 text-gray-500">No service requests found.</p>
+        </div>
+        <div class="p-4 border-t border-gray-200 flex justify-between items-center">
+            <div class="text-sm text-gray-500">
+                Showing <span id="currentCount">0</span> of <span id="totalCount">0</span> requests
+            </div>
+            <div class="flex gap-2">
+                <button id="prevPage" class="px-3 py-1 rounded bg-gray-100 text-gray-700 disabled:opacity-50">
+                    <i class="ph ph-caret-left"></i>
+                </button>
+                <button id="nextPage" class="px-3 py-1 rounded bg-gray-100 text-gray-700 disabled:opacity-50">
+                    <i class="ph ph-caret-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals {
+    <!-- View Request Details Modal -->
+    <div id="requestDetailsModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="text-lg font-medium text-gray-900">Service Request Details</h3>
+                <button class="text-gray-400 hover:text-gray-500" onclick="closeRequestDetailsModal()">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <h4 class="text-sm text-gray-500">Request ID</h4>
+                        <p class="font-medium" id="detailsRequestId">-</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm text-gray-500">Submission Date</h4>
+                        <p class="font-medium" id="detailsSubmissionDate">-</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm text-gray-500">Status</h4>
+                        <p class="font-medium" id="detailsStatus">-</p>
+                    </div>
+                    <div>
+                        <h4 class="text-sm text-gray-500">Service Type</h4>
+                        <p class="font-medium" id="detailsServiceType">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h4 class="text-sm text-gray-500">Homeowner</h4>
+                        <p class="font-medium" id="detailsHomeowner">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h4 class="text-sm text-gray-500">Address</h4>
+                        <p class="font-medium" id="detailsAddress">-</p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <h4 class="text-sm text-gray-500">Contact Information</h4>
+                        <p class="font-medium" id="detailsContact">-</p>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h4 class="text-sm text-gray-500 mb-1">Description</h4>
+                    <div class="p-3 bg-gray-50 rounded-lg" id="detailsDescription">-</div>
+                </div>
+
+                <div class="mb-4" id="pictureAttachmentSection">
+                    <h4 class="text-sm text-gray-500 mb-2">Attachments</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-3" id="detailsAttachments">
+                        <!-- Images will be populated here -->
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-4 mt-4" id="adminResponseSection">
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Admin Response</h4>
+                    <textarea id="adminResponseText" class="w-full border border-gray-300 rounded-lg p-3 h-24" placeholder="Enter response to the homeowner..."></textarea>
+                </div>
+
+                <div class="flex justify-between items-center mt-6">
+                    <div>
+                        <select id="statusUpdate" class="border border-gray-300 rounded-lg px-3 py-2">
+                            <option value="">Update Status</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Scheduled">Scheduled</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Rejected">Rejected</option>
+                        </select>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="btnDeleteRequest" class="px-4 py-2 border border-red-500 text-red-500 rounded-lg hover:bg-red-50">
+                            Delete Request
+                        </button>
+                        <button id="btnUpdateRequest" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Modal -->
+    <div id="filterModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full">
+            <div class="border-b border-gray-200 p-4 flex justify-between items-center">
+                <h3 class="text-lg font-medium text-gray-900">Filter Requests</h3>
+                <button class="text-gray-400 hover:text-gray-500" onclick="closeFilterModal()">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="filterStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="">All Statuses</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Canceled">Canceled</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service Type</label>
+                    <select id="filterServiceType" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                        <option value="">All Types</option>
+                        <option value="Plumbing">Plumbing</option>
+                        <option value="Electrical">Electrical</option>
+                        <option value="HVAC">HVAC</option>
+                        <option value="Landscaping">Landscaping</option>
+                        <option value="Security">Security</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <input type="date" id="filterStartDate" class="border border-gray-300 rounded-lg px-3 py-2">
+                        <input type="date" id="filterEndDate" class="border border-gray-300 rounded-lg px-3 py-2">
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button onclick="resetFilters()" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50">
+                        Reset
+                    </button>
+                    <button onclick="applyFilters()" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90">
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4" id="confirmationTitle">Confirmation</h3>
+            <p class="text-gray-500 mb-5" id="confirmationMessage">Are you sure you want to proceed with this action?</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancelConfirmation" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">
+                    Cancel
+                </button>
+                <button id="confirmAction" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Service requests data - Static data matching homeowner service types
+        const serviceRequests = [
+            {
+                id: 1001,
+                homeownerId: "HO-001",
+                homeownerName: "John Smith",
+                address: "Block 1, Lot 12, Main Street",
+                contactInfo: "john.smith@email.com | 09123456789",
+                requestType: "Maintenance",
+                description: "The main entrance gate has a mechanical issue. The left side doesn't open completely and makes a grinding noise when operated.",
+                location: "Main entrance gate",
+                status: "In Progress",
+                createdAt: "2023-05-02T10:23:00",
+                updatedAt: "2023-05-04T09:30:00",
+                scheduledDate: "2023-05-06T09:00:00",
+                staffNotes: "Maintenance team scheduled for repair on May 6. Will check gate motor and tracking. - John (Maintenance Supervisor)",
+                attachments: [
+                    "/images/gate_repair.jpg"
+                ]
+            },
+            {
+                id: 1002,
+                homeownerId: "HO-002",
+                homeownerName: "Maria Garcia",
+                address: "Block 3, Lot 7, Maple Avenue",
+                contactInfo: "maria.garcia@email.com | 09187654321",
+                requestType: "Security",
+                description: "Suspicious activity near the playground area during late hours. Saw unknown individuals loitering around 11 PM.",
+                location: "Playground area near Maple Avenue",
+                status: "Completed",
+                createdAt: "2023-04-28T22:15:00",
+                updatedAt: "2023-04-29T10:45:00",
+                scheduledDate: null,
+                staffNotes: "Security personnel dispatched and conducted extra patrols in the area. CCTV footage reviewed. No suspicious activities detected in the subsequent nights. - Mike (Security Head)",
+                attachments: []
+            },
+            {
+                id: 1003,
+                homeownerId: "HO-003",
+                homeownerName: "Robert Johnson",
+                address: "Block 5, Lot 3, Palm Boulevard",
+                contactInfo: "robert.j@email.com | 09198765432",
+                requestType: "Maintenance",
+                description: "Street light is flickering and sometimes turns off completely. This is causing poor visibility at night and is a safety concern.",
+                location: "Street light #15 on Palm Boulevard",
+                status: "Scheduled",
+                createdAt: "2023-04-25T14:30:00",
+                updatedAt: "2023-04-27T11:20:00",
+                scheduledDate: "2023-05-03T13:00:00",
+                staffNotes: "Electrician scheduled to replace light fixture and check wiring on May 3rd. - Alex (Maintenance Team)",
+                attachments: [
+                    "/images/street_light.jpg"
+                ]
+            },
+            {
+                id: 1004,
+                homeownerId: "HO-004",
+                homeownerName: "Sarah Williams",
+                address: "Block 2, Lot 9, Acacia Lane",
+                contactInfo: "sarah.w@email.com | 09167890123",
+                requestType: "Maintenance",
+                description: "The swimming pool water appears cloudy and some debris is floating. The filtration system might need maintenance.",
+                location: "Swimming pool area",
+                status: "Open",
+                createdAt: "2023-05-05T08:45:00",
+                updatedAt: "2023-05-05T08:45:00",
+                scheduledDate: null,
+                staffNotes: "",
+                attachments: [
+                    "/images/pool_maintenance.jpg",
+                    "/images/pool_debris.jpg"
+                ]
+            },
+            {
+                id: 1005,
+                homeownerId: "HO-005",
+                homeownerName: "David Brown",
+                address: "Block 4, Lot 5, Cedar Drive",
+                contactInfo: "david.b@email.com | 09178901234",
+                requestType: "Security",
+                description: "The CCTV camera at the south entrance appears to be damaged. It's tilted sideways and doesn't seem to be recording properly.",
+                location: "South entrance CCTV",
+                status: "Completed",
+                createdAt: "2023-04-20T16:10:00",
+                updatedAt: "2023-04-22T14:35:00",
+                scheduledDate: null,
+                staffNotes: "CCTV camera replaced and tested. New camera installed with wider angle coverage. - Security Team",
+                attachments: [
+                    "/images/broken_cctv.jpg"
+                ]
+            },
+            {
+                id: 1006,
+                homeownerId: "HO-006",
+                homeownerName: "Emily Davis",
+                address: "Block 6, Lot 1, Pine Circle",
+                contactInfo: "emily.d@email.com | 09123789456",
+                requestType: "Maintenance",
+                description: "The landscaping in the central park area needs attention. There are several overgrown bushes and some dead plants that should be removed.",
+                location: "Central park area",
+                status: "Completed",
+                createdAt: "2023-04-15T09:20:00",
+                updatedAt: "2023-04-18T15:40:00",
+                scheduledDate: null,
+                staffNotes: "Landscaping team completed maintenance. Trimmed overgrown bushes, removed dead plants, and added new seasonal flowers. - Garden Management",
+                attachments: []
+            },
+            {
+                id: 1007,
+                homeownerId: "HO-007",
+                homeownerName: "Michael Wilson",
+                address: "Block 7, Lot 8, Birch Way",
+                contactInfo: "michael.w@email.com | 09156789012",
+                requestType: "Security",
+                description: "The keycard access system at the gym is not working properly. My card is registered but doesn't allow me to enter during operating hours.",
+                location: "Community gym entrance",
+                status: "Open",
+                createdAt: "2023-05-06T17:30:00",
+                updatedAt: "2023-05-06T17:30:00",
+                scheduledDate: null,
+                staffNotes: "",
+                attachments: []
+            },
+            {
+                id: 1008,
+                homeownerId: "HO-001",
+                homeownerName: "John Smith",
+                address: "Block 1, Lot 12, Main Street",
+                contactInfo: "john.smith@email.com | 09123456789",
+                requestType: "Maintenance",
+                description: "There's a water leak from the sprinkler system near the playground. The area is becoming muddy and unsafe for children.",
+                location: "Playground sprinkler system",
+                status: "Rejected",
+                createdAt: "2023-04-10T13:15:00",
+                updatedAt: "2023-04-11T10:30:00",
+                scheduledDate: null,
+                staffNotes: "This area falls under individual homeowner responsibility as it's within lot boundaries. Homeowner advised to contact their own plumber. - Management",
+                attachments: [
+                    "/images/sprinkler_leak.jpg"
+                ]
+            }
+        ];
+        
+        // Create a filtered copy for pagination and filtering
+        let filteredRequests = [...serviceRequests];
+        
+        // Variables for pagination
+        let currentPage = 1;
+        const itemsPerPage = 5;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initial load
+            updateServiceStats();
+            loadServiceRequests();
+            
+            // Setup event listeners
+            document.getElementById('btnFilterRequests').addEventListener('click', openFilterModal);
+            document.getElementById('btnUpdateRequest').addEventListener('click', updateServiceRequest);
+            document.getElementById('btnDeleteRequest').addEventListener('click', confirmDeleteRequest);
+            document.getElementById('prevPage').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadServiceRequests();
+                }
+            });
+            document.getElementById('nextPage').addEventListener('click', () => {
+                if (currentPage * itemsPerPage < filteredRequests.length) {
+                    currentPage++;
+                    loadServiceRequests();
+                }
+            });
+            
+            // Setup confirmation modal actions
+            document.getElementById('cancelConfirmation').addEventListener('click', closeConfirmationModal);
+        });
+        
+        function updateServiceStats() {
+            // Count by status
+            const total = serviceRequests.length;
+            const pending = serviceRequests.filter(r => r.status === 'Open').length;
+            const completed = serviceRequests.filter(r => r.status === 'Completed').length;
+            const canceled = serviceRequests.filter(r => r.status === 'Rejected' || r.status === 'Cancelled').length;
+            
+            // Update the UI
+            document.getElementById('totalRequestsCount').textContent = total;
+            document.getElementById('pendingRequestsCount').textContent = pending;
+            document.getElementById('completedRequestsCount').textContent = completed;
+            document.getElementById('canceledRequestsCount').textContent = canceled;
+        }
+        
+        function loadServiceRequests() {
+            const tableBody = document.getElementById('serviceRequestsTableBody');
+            const noRequestsDiv = document.getElementById('noRequests');
+            tableBody.innerHTML = '';
+            
+            // Calculate page data
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredRequests.length);
+            const pageItems = filteredRequests.slice(startIndex, endIndex);
+            
+            // Update pagination info
+            document.getElementById('currentCount').textContent = pageItems.length;
+            document.getElementById('totalCount').textContent = filteredRequests.length;
+            
+            // Enable/disable pagination buttons
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = endIndex >= filteredRequests.length;
+            
+            // Show message if no requests
+            if (pageItems.length === 0) {
+                noRequestsDiv.classList.remove('hidden');
+                return;
+            } else {
+                noRequestsDiv.classList.add('hidden');
+            }
+            
+            // Populate table
+            pageItems.forEach(request => {
+                const row = document.createElement('tr');
+                
+                // Format date
+                const submissionDate = new Date(request.createdAt);
+                const formattedDate = submissionDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                // Create status badge based on status
+                let statusClass = '';
+                switch (request.status) {
+                    case 'Open':
+                        statusClass = 'bg-yellow-100 text-yellow-800';
+                        break;
+                    case 'Processing':
+                        statusClass = 'bg-blue-100 text-blue-800';
+                        break;
+                    case 'Scheduled':
+                        statusClass = 'bg-purple-100 text-purple-800';
+                        break;
+                    case 'In Progress':
+                        statusClass = 'bg-indigo-100 text-indigo-800';
+                        break;
+                    case 'Completed':
+                        statusClass = 'bg-green-100 text-green-800';
+                        break;
+                    case 'Rejected':
+                    case 'Cancelled':
+                        statusClass = 'bg-red-100 text-red-800';
+                        break;
+                    default:
+                        statusClass = 'bg-gray-100 text-gray-800';
+                }
+                
+                // Set icon based on request type
+                let typeIcon = request.requestType === 'Maintenance' ? 
+                    '<i class="ph ph-hammer text-secondary mr-2"></i>' : 
+                    '<i class="ph ph-shield-warning text-secondary mr-2"></i>';
+                
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#SR-${request.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${request.homeownerName}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div class="flex items-center">
+                            ${typeIcon}
+                            ${request.requestType}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formattedDate}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${request.status}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-secondary hover:text-secondary/80 mr-3 view-request-btn" 
+                                data-request-id="${request.id}">View Details</button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to view buttons
+            document.querySelectorAll('.view-request-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const requestId = parseInt(button.getAttribute('data-request-id'));
+                    openRequestDetails(requestId);
+                });
+            });
+        }
+        
+        function openRequestDetails(requestId) {
+            const request = serviceRequests.find(r => r.id === requestId);
+            if (!request) return;
+            
+            // Populate modal with request details
+            document.getElementById('detailsRequestId').textContent = `#SR-${request.id}`;
+            document.getElementById('detailsSubmissionDate').textContent = new Date(request.createdAt).toLocaleString();
+            document.getElementById('detailsStatus').textContent = request.status;
+            document.getElementById('detailsServiceType').textContent = request.requestType;
+            document.getElementById('detailsHomeowner').textContent = request.homeownerName;
+            document.getElementById('detailsAddress').textContent = request.address;
+            document.getElementById('detailsContact').textContent = request.contactInfo;
+            document.getElementById('detailsDescription').textContent = request.description;
+            
+            // Set the current admin response
+            document.getElementById('adminResponseText').value = request.staffNotes || '';
+            
+            // Handle attachments
+            const attachmentsContainer = document.getElementById('detailsAttachments');
+            attachmentsContainer.innerHTML = '';
+            
+            if (request.attachments && request.attachments.length > 0) {
+                request.attachments.forEach(attachment => {
+                    const attachmentDiv = document.createElement('div');
+                    attachmentDiv.innerHTML = `
+                        <a href="${attachment}" target="_blank" class="block">
+                            <img src="${attachment}" onerror="this.src='https://placehold.co/300x200/e2e8f0/94a3b8?text=Image'" alt="Attachment" class="w-full h-32 object-cover rounded-lg">
+                        </a>
+                    `;
+                    attachmentsContainer.appendChild(attachmentDiv);
+                });
+                document.getElementById('pictureAttachmentSection').classList.remove('hidden');
+            } else {
+                document.getElementById('pictureAttachmentSection').classList.add('hidden');
+            }
+            
+            // Select current status in dropdown
+            const statusSelect = document.getElementById('statusUpdate');
+            
+            // Reset the options first
+            statusSelect.innerHTML = `
+                <option value="">Update Status</option>
+                <option value="Open">Open</option>
+                <option value="Processing">Processing</option>
+                <option value="Scheduled">Scheduled</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+            `;
+            
+            // Then set the current selection
+            for (let i = 0; i < statusSelect.options.length; i++) {
+                if (statusSelect.options[i].value === request.status) {
+                    statusSelect.selectedIndex = i;
+                    break;
+                }
+            }
+            
+            // Save the current request ID for update operation
+            document.getElementById('btnUpdateRequest').setAttribute('data-request-id', request.id);
+            document.getElementById('btnDeleteRequest').setAttribute('data-request-id', request.id);
+            
+            // Show the modal
+            document.getElementById('requestDetailsModal').classList.remove('hidden');
+        }
+        
+        function closeRequestDetailsModal() {
+            document.getElementById('requestDetailsModal').classList.add('hidden');
+        }
+        
+        function updateServiceRequest() {
+            const requestId = parseInt(document.getElementById('btnUpdateRequest').getAttribute('data-request-id'));
+            const request = serviceRequests.find(r => r.id === requestId);
+            if (!request) return;
+            
+            // Update the request with form values
+            const newStatus = document.getElementById('statusUpdate').value;
+            const staffNotes = document.getElementById('adminResponseText').value;
+            
+            if (newStatus) {
+                request.status = newStatus;
+            }
+            
+            request.staffNotes = staffNotes;
+            request.updatedAt = new Date().toISOString();
+            
+            // Update UI
+            updateServiceStats();
+            loadServiceRequests();
+            
+            // Close the modal
+            closeRequestDetailsModal();
+            
+            // Show success notification
+            alert('Service request updated successfully!');
+        }
+        
+        function confirmDeleteRequest() {
+            const requestId = parseInt(document.getElementById('btnDeleteRequest').getAttribute('data-request-id'));
+            const request = serviceRequests.find(r => r.id === requestId);
+            
+            document.getElementById('confirmationTitle').textContent = 'Delete Service Request';
+            document.getElementById('confirmationMessage').textContent = `Are you sure you want to delete service request #SR-${requestId}?`;
+            
+            // Set up confirmation action
+            document.getElementById('confirmAction').onclick = function() {
+                deleteServiceRequest(requestId);
+                closeConfirmationModal();
+            };
+            
+            // Show confirmation modal
+            document.getElementById('confirmationModal').classList.remove('hidden');
+        }
+        
+        function deleteServiceRequest(requestId) {
+            // Find the request index
+            const index = serviceRequests.findIndex(r => r.id === requestId);
+            if (index === -1) return;
+            
+            // Remove the request
+            serviceRequests.splice(index, 1);
+            filteredRequests = [...serviceRequests]; // Reset filtered list
+            
+            // Update UI
+            updateServiceStats();
+            loadServiceRequests();
+            closeRequestDetailsModal();
+            
+            // Show success notification
+            alert('Service request deleted successfully!');
+        }
+        
+        function openFilterModal() {
+            // Update the filter options to match the data
+            const serviceTypeFilter = document.getElementById('filterServiceType');
+            serviceTypeFilter.innerHTML = `
+                <option value="">All Types</option>
+                <option value="Maintenance">Maintenance</option>
+                <option value="Security">Security</option>
+            `;
+            
+            // Update status options to match the data
+            const statusFilter = document.getElementById('filterStatus');
+            statusFilter.innerHTML = `
+                <option value="">All Statuses</option>
+                <option value="Open">Open</option>
+                <option value="Scheduled">Scheduled</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Completed">Completed</option>
+                <option value="Rejected">Rejected</option>
+            `;
+            
+            document.getElementById('filterModal').classList.remove('hidden');
+        }
+        
+        function closeFilterModal() {
+            document.getElementById('filterModal').classList.add('hidden');
+        }
+        
+        function closeConfirmationModal() {
+            document.getElementById('confirmationModal').classList.add('hidden');
+        }
+        
+        function applyFilters() {
+            const status = document.getElementById('filterStatus').value;
+            const serviceType = document.getElementById('filterServiceType').value;
+            const startDate = document.getElementById('filterStartDate').value;
+            const endDate = document.getElementById('filterEndDate').value;
+            
+            // Filter the requests
+            filteredRequests = serviceRequests.filter(request => {
+                let match = true;
+                
+                if (status && request.status !== status) {
+                    match = false;
+                }
+                
+                if (serviceType && request.requestType !== serviceType) {
+                    match = false;
+                }
+                
+                if (startDate) {
+                    const requestDate = new Date(request.createdAt);
+                    const filterDate = new Date(startDate);
+                    if (requestDate < filterDate) {
+                        match = false;
+                    }
+                }
+                
+                if (endDate) {
+                    const requestDate = new Date(request.createdAt);
+                    const filterDate = new Date(endDate);
+                    // Set to end of day
+                    filterDate.setHours(23, 59, 59, 999);
+                    if (requestDate > filterDate) {
+                        match = false;
+                    }
+                }
+                
+                return match;
+            });
+            
+            // Reset to first page and update
+            currentPage = 1;
+            loadServiceRequests();
+            
+            // Close filter modal
+            closeFilterModal();
+        }
+        
+        function resetFilters() {
+            document.getElementById('filterStatus').value = '';
+            document.getElementById('filterServiceType').value = '';
+            document.getElementById('filterStartDate').value = '';
+            document.getElementById('filterEndDate').value = '';
+            
+            // Reset filtered list and update
+            filteredRequests = [...serviceRequests];
+            currentPage = 1;
+            loadServiceRequests();
+            
+            // Close filter modal
+            closeFilterModal();
+        }
+    </script>
+}

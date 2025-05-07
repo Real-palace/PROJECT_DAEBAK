@@ -1,29 +1,212 @@
-﻿<!DOCTYPE html>
+@{
+    // Add code to determine if we're on the Dashboard page
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isDashboard = (currentController == "Homeowner" && currentAction == "Dashboard");
+    var isBilling = (currentController == "Homeowner" && currentAction == "Billing");
+    var isFacilities = (currentController == "Homeowner" && currentAction == "Facilities") || 
+                       (currentController == "Facilities");
+    var isServices = (currentController == "Homeowner" && currentAction == "Services") ||
+                     (currentController == "ServiceRequests");
+    var isSecurity = (currentController == "Homeowner" && currentAction == "Security");
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Daebak Subdivision</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Add Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+
+    <!-- Custom Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    }
+                },
+                fontFamily: {
+                    sans: ['Poppins', 'sans-serif'],
+                }
+            }
+        }
+    </script>
+    <!-- Fix Poppins font import for Razor syntax -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
-<body>
+<body class="font-sans bg-light flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
+        </div>
 
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center gap-5">
+            <a href="@Url.Action("Dashboard", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isDashboard ? "text-tertiary" : "text-white") hover:text-tertiary transition-colors" title="Dashboard">
+                <i class="ph ph-house-simple text-2xl"></i>
+            </a>
+            <a href="@Url.Action("Billing", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isBilling ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
+                <i class="ph ph-credit-card"></i>
+            </a>
+            <a href="@Url.Action("Services", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isServices ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Services">
+                <i class="ph ph-wrench"></i>
+            </a>
+            <a href="@Url.Action("Facilities", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isFacilities ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Facilities">
+                <i class="ph ph-tree-structure"></i>
+            </a>
+            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center @(isSecurity ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors group" title="Security">
+                <i class="ph ph-shield"></i>
+            </a>
+        </div>
+
+        <!-- User Profile and Logout -->
+        <div class="flex flex-col items-center gap-3">
+            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </a>
+        </div>
     </div>
 
-    <footer class="footer border-top text-muted">
-        <div class="container">
-            &copy; @DateTime.Now.Year - Daebak Subdivision
-        </div>
-    </footer>
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary">@ViewData["Title"]</div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+                <div class="flex items-center gap-5">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+
+                        <!-- Notification Dropdown -->
+                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
+                            <div class="p-4 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <h3 class="font-medium text-gray-700">Notifications</h3>
+                                    <button id="mark-all-read" class="text-primary text-xs hover:underline flex items-center gap-1">
+                                        <i class="ph ph-check-circle"></i> Mark all as read
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="max-h-96 overflow-y-auto custom-scrollbar" id="notification-content">
+                                <!-- Unread Notification -->
+                                <div class="notification-item notification-unread border-l-4 border-blue-500 p-4 bg-blue-50/50 hover:bg-blue-50">
+                                    <div class="flex items-start">
+                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
+                                            <i class="ph ph-bell text-blue-500"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="flex justify-between">
+                                                <p class="text-sm font-medium text-gray-800">Community Announcement</p>
+                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
+                                                    <i class="ph ph-check-circle"></i>
+                                                </button>
+                                            </div>
+                                            <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
+                                            <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
+                            <span class="hidden md:block">@ViewBag.FirstName</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto p-6">
+            @RenderBody()
+
+            <!-- Footer -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                <div class="flex justify-end gap-4">
+                    <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                        Cancel
+                    </button>
+                    <form action="@Url.Action("Logout", "Account")" method="post">
+                        <button type="submit" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
+                            Yes, Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Notification dropdown toggle
+        const notificationBtn = document.getElementById('notification-toggle-btn');
+        const notificationDropdown = document.getElementById('notification-dropdown');
+        
+        if (notificationBtn && notificationDropdown) {
+            notificationBtn.addEventListener('click', function() {
+                notificationDropdown.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!notificationBtn.contains(event.target) && !notificationDropdown.contains(event.target)) {
+                    notificationDropdown.classList.add('hidden');
+                }
+            });
+        }
+        
+        // Logout modal
+        function confirmLogout() {
+            document.getElementById('logout-modal').classList.remove('hidden');
+        }
+        
+        const cancelLogoutBtn = document.getElementById('cancel-logout');
+        if (cancelLogoutBtn) {
+            cancelLogoutBtn.addEventListener('click', function() {
+                document.getElementById('logout-modal').classList.add('hidden');
+            });
+        }
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

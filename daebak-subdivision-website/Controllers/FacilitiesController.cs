@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 using daebak_subdivision_website.Models;
 using daebak_subdivision_website.ViewModels;
 using System;
@@ -238,6 +239,198 @@ namespace daebak_subdivision_website.Controllers
             {
                 _logger.LogError(ex, "Failed to load available times");
                 return Json(new { error = "Failed to load available times" });
+            }
+        }
+
+        // GET: /Facilities/AdminIndex
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> AdminIndex()
+        {
+            try
+            {
+                var facilities = await _context.Facilities.ToListAsync();
+                _logger.LogInformation("Admin facilities section accessed");
+                return View("~/Views/Admin/Facilities.cshtml", facilities);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading facilities for admin");
+                
+                // Use ViewBag instead of TempData to prevent the message from persisting across requests
+                ViewBag.ErrorMessage = "There was an error loading facility data.";
+                return View("~/Views/Admin/Facilities.cshtml", new List<Facility>());
+            }
+        }
+
+        // GET: /Facilities/AdminReservations
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> AdminReservations()
+        {
+            try
+            {
+                var reservations = await _context.FacilityReservations
+                    .Include(r => r.Facility)
+                    .Include(r => r.User)
+                    .OrderByDescending(r => r.ReservationDate)
+                    .ToListAsync();
+
+                return Json(reservations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading facility reservations for admin");
+                return Json(new { error = "Failed to load reservations" });
+            }
+        }
+
+        // POST: /Facilities/CreateFacility
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> CreateFacility(Facility facility)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _context.Add(facility);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Facility created: {Name}", facility.Name);
+                    return Json(new { success = true, message = "Facility created successfully" });
+                }
+                return Json(new { success = false, message = "Invalid facility data", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating facility");
+                return Json(new { success = false, message = "An error occurred while creating the facility" });
+            }
+        }
+
+        // POST: /Facilities/UpdateFacility
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> UpdateFacility(Facility facility)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    _context.Update(facility);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Facility updated: {Name}", facility.Name);
+                    return Json(new { success = true, message = "Facility updated successfully" });
+                }
+                return Json(new { success = false, message = "Invalid facility data", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating facility");
+                return Json(new { success = false, message = "An error occurred while updating the facility" });
+            }
+        }
+
+        // POST: /Facilities/DeleteFacility
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> DeleteFacility(int id)
+        {
+            try
+            {
+                var facility = await _context.Facilities.FindAsync(id);
+                if (facility == null)
+                {
+                    return NotFound();
+                }
+
+                // Check if there are any future reservations for this facility
+                var hasFutureReservations = await _context.FacilityReservations
+                    .AnyAsync(r => r.FacilityId == id && r.ReservationDate > DateTime.Now && r.Status != "Cancelled");
+
+                if (hasFutureReservations)
+                {
+                    return Json(new { success = false, message = "Cannot delete facility with future reservations" });
+                }
+
+                _context.Facilities.Remove(facility);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Facility deleted: {Name}", facility.Name);
+                return Json(new { success = true, message = "Facility deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting facility");
+                return Json(new { success = false, message = "An error occurred while deleting the facility" });
+            }
+        }
+
+        // POST: /Facilities/UpdateReservationStatus
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> UpdateReservationStatus(int id, string status)
+        {
+            try
+            {
+                var reservation = await _context.FacilityReservations.FindAsync(id);
+                if (reservation == null)
+                {
+                    return NotFound();
+                }
+
+                // Validate status
+                if (!new[] { "Pending", "Confirmed", "Cancelled", "Completed", "Denied" }.Contains(status))
+                {
+                    return BadRequest("Invalid status value");
+                }
+
+                reservation.Status = status;
+                reservation.UpdatedAt = DateTime.Now;
+                await _context.SaveChangesAsync();
+                
+                _logger.LogInformation("Reservation status updated: ID {Id} to {Status}", id, status);
+                return Json(new { success = true, message = $"Reservation status updated to {status}" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating reservation status");
+                return Json(new { success = false, message = "An error occurred while updating the reservation status" });
+            }
+        }
+
+        // GET: /Facilities/GetCalendarEvents
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> GetCalendarEvents()
+        {
+            try
+            {
+                var reservations = await _context.FacilityReservations
+                    .Include(r => r.Facility)
+                    .Include(r => r.User)
+                    .Where(r => r.Status != "Cancelled")
+                    .Select(r => new
+                    {
+                        id = r.ReservationId,
+                        title = $"{r.Facility.Name} - {r.User.FirstName} {r.User.LastName}",
+                        start = r.ReservationDate.ToString("yyyy-MM-dd'T'HH:mm:ss"),
+                        end = r.ReservationDate.AddHours(2).ToString("yyyy-MM-dd'T'HH:mm:ss"), // Default to 2-hour reservations
+                        color = r.Status == "Confirmed" ? "#90EE90" : 
+                                r.Status == "Pending" ? "#FFA07A" : 
+                                r.Status == "Completed" ? "#B0C4DE" : "#FFB6C1",
+                        extendedProps = new
+                        {
+                            status = r.Status,
+                            facility = r.Facility.Name,
+                            homeowner = $"{r.User.FirstName} {r.User.LastName}"
+                        }
+                    })
+                    .ToListAsync();
+
+                return Json(reservations);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading calendar events");
+                return Json(new { error = "Failed to load calendar events" });
             }
         }
     }

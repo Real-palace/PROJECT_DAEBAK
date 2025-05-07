@@ -1,0 +1,379 @@
+@model daebak_subdivision_website.Models.AdminPageModel
+@{
+    ViewData["Title"] = "Document Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var documents = ViewData["Documents"] as IEnumerable<daebak_subdivision_website.Models.Document>;
+}
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-file-text text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Document Management</h2>
+            <p class="text-gray-600 mt-1">Manage and organize subdivision documents, forms, and resources</p>
+        </div>
+    </div>
+</div>
+
+<!-- Success Message Toast - Non-modal top-right notification -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="success-toast" class="fixed top-5 right-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md shadow-lg transition-all duration-300 z-50 flex items-center">
+        <i class="ph ph-check-circle text-xl mr-2"></i>
+        <p>@TempData["SuccessMessage"]</p>
+        <button class="ml-auto pl-4 text-green-700 hover:text-green-900 focus:outline-none" onclick="hideSuccessToast()">
+            <i class="ph ph-x"></i>
+        </button>
+    </div>
+}
+
+<!-- All Documents Content -->
+<div id="all-docs-content">
+    <!-- Search and Filter Options -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Search Box -->
+            <div class="flex items-center relative">
+                <i class="ph ph-magnifying-glass text-gray-400 absolute left-3 top-3"></i>
+                <input type="text" id="document-search" placeholder="Search documents..." class="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
+
+            <!-- Category Filter -->
+            <div>
+                <select id="document-category-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="all">All Categories</option>
+                    <option value="FORM">Forms</option>
+                    <option value="POLICY">Policies</option>
+                    <option value="GUIDELINE">Guidelines</option>
+                    <option value="MANUAL">Manuals</option>
+                    <option value="MAP">Maps</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <!-- Date Filter -->
+            <div>
+                <select id="document-date-filter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="all">All Dates</option>
+                    <option value="recent">Recently Uploaded</option>
+                    <option value="last-month">Last Month</option>
+                    <option value="last-quarter">Last Quarter</option>
+                    <option value="last-year">Last Year</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Grid -->
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-6">All Documents</h3>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @if (documents != null && documents.Any())
+            {
+                foreach (var doc in documents)
+                {
+                    <div class="border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                        <div class="p-4 flex flex-col items-center">
+                            @{
+                                string fileExtension = System.IO.Path.GetExtension(doc.FilePath ?? string.Empty)?.ToLowerInvariant();
+                                string iconClass = fileExtension switch
+                                {
+                                    ".pdf" => "ph-file-pdf text-red-500",
+                                    ".doc" or ".docx" => "ph-file-doc text-blue-500",
+                                    ".xls" or ".xlsx" => "ph-file-xls text-green-500",
+                                    ".png" or ".jpg" or ".jpeg" => "ph-image text-purple-500",
+                                    _ => "ph-file-text text-gray-500"
+                                };
+                                string bgClass = fileExtension switch
+                                {
+                                    ".pdf" => "bg-red-50",
+                                    ".doc" or ".docx" => "bg-blue-50",
+                                    ".xls" or ".xlsx" => "bg-green-50",
+                                    ".png" or ".jpg" or ".jpeg" => "bg-purple-50",
+                                    _ => "bg-gray-50"
+                                };
+                            }
+                            <div class="@bgClass p-4 rounded-full mb-3">
+                                <i class="ph @iconClass text-2xl"></i>
+                            </div>
+                            <h4 class="font-medium text-center">@doc.Title</h4>
+                            <p class="text-sm text-gray-500 mt-1">@doc.DocumentType • @doc.FormattedFileSize</p>
+                            <div class="flex justify-center space-x-2 mt-4">
+                                <a href="@Url.Action("Details", "Documents", new { id = doc.DocumentId })" class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors" title="View">
+                                    <i class="ph ph-eye"></i>
+                                </a>
+                                <a href="@Url.Action("Download", "Documents", new { id = doc.DocumentId })" class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors" title="Download">
+                                    <i class="ph ph-download"></i>
+                                </a>
+                                <a href="@Url.Action("Edit", "Documents", new { id = doc.DocumentId })" class="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors edit-document-btn" title="Edit" data-id="@doc.DocumentId">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </a>
+                                <a href="@Url.Action("Delete", "Documents", new { id = doc.DocumentId })" class="text-red-600 hover:text-red-800 p-2 rounded-full hover:bg-red-50 transition-colors delete-document-btn" title="Delete" data-id="@doc.DocumentId">
+                                    <i class="ph ph-trash"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-span-4 p-8 text-center">
+                    <div class="mb-4">
+                        <i class="ph ph-file-x text-4xl text-gray-400"></i>
+                    </div>
+                    <h4 class="text-lg font-medium text-gray-700">No documents found</h4>
+                    <p class="text-gray-500">Upload documents to get started</p>
+                </div>
+            }
+
+            <!-- Add More Document Button -->
+            <div class="border border-gray-200 border-dashed rounded-lg hover:bg-gray-50 transition-colors cursor-pointer" id="add-document-card">
+                <div class="p-4 h-full flex flex-col items-center justify-center">
+                    <div class="bg-gray-100 p-4 rounded-full mb-3">
+                        <i class="ph ph-plus-circle text-2xl text-gray-500"></i>
+                    </div>
+                    <h4 class="font-medium text-center text-gray-500">Upload New Document</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Document Modal -->
+<div id="document-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h3 id="document-modal-title" class="text-lg font-medium text-gray-900">Upload New Document</h3>
+            <button id="close-document-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <form id="document-form" action="@Url.Action("Create", "Documents")" method="post" enctype="multipart/form-data" class="space-y-4">
+            <div>
+                <label for="document-title" class="block text-sm font-medium text-gray-700 mb-1">Document Title*</label>
+                <input type="text" id="document-title" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+            </div>
+
+            <div>
+                <label for="document-category" class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                <select id="document-category" name="Category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <option value="FORM">Form</option>
+                    <option value="POLICY">Policy</option>
+                    <option value="GUIDELINE">Guideline</option>
+                    <option value="MANUAL">Manual</option>
+                    <option value="MAP">Map</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+
+            <div>
+                <label for="document-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea id="document-description" name="Description" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Document File*</label>
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                    <input type="file" id="document-file" name="DocumentFile" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                    <label for="document-file" class="flex flex-col items-center cursor-pointer">
+                        <i class="ph ph-upload-simple text-4xl text-gray-400 mb-2"></i>
+                        <span class="text-gray-500">Click to upload or drag and drop</span>
+                        <span class="text-sm text-gray-400 mt-1">PDF, DOC, DOCX, XLS, XLSX, PNG, JPG (Max. 10MB)</span>
+                    </label>
+                    <div id="file-info" class="mt-4 hidden">
+                        <div class="flex items-center justify-between bg-gray-50 p-2 rounded-lg">
+                            <div class="flex items-center">
+                                <i class="ph ph-file-pdf text-xl text-gray-500 mr-2"></i>
+                                <span id="file-name" class="text-sm text-gray-700">filename.pdf</span>
+                            </div>
+                            <button type="button" id="remove-file" class="text-red-500 hover:text-red-700">
+                                <i class="ph ph-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" id="cancel-document-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+                <button type="submit" id="save-document-btn" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/80 transition-colors">Upload Document</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirm-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden" data-id="0">
+    <div class="bg-white rounded-lg max-w-md w-full p-6">
+        <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Delete</h3>
+        <p class="text-gray-500 mb-5" id="delete-confirm-message">Are you sure you want to delete this document? This action cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+            <button id="cancel-delete-btn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors">Cancel</button>
+            <button id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">Delete Document</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Document modal handling
+            const documentModal = document.getElementById('document-modal');
+            const addDocumentBtn = document.getElementById('add-document-btn');
+            const addDocumentCard = document.getElementById('add-document-card');
+            const closeDocumentModal = document.getElementById('close-document-modal');
+            const cancelDocumentBtn = document.getElementById('cancel-document-btn');
+            
+            function showModal(modal) {
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            }
+            
+            function hideModal(modal) {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+            
+            // Open document modal
+            [addDocumentBtn, addDocumentCard].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        // Reset form
+                        document.getElementById('document-form').reset();
+                        document.getElementById('file-info').classList.add('hidden');
+                        document.getElementById('document-modal-title').textContent = 'Upload New Document';
+                        document.getElementById('save-document-btn').textContent = 'Upload Document';
+                        showModal(documentModal);
+                    });
+                }
+            });
+            
+            // Close document modal
+            [closeDocumentModal, cancelDocumentBtn].forEach(btn => {
+                if (btn) {
+                    btn.addEventListener('click', function() {
+                        hideModal(documentModal);
+                    });
+                }
+            });
+            
+            // File upload handling
+            const documentFileInput = document.getElementById('document-file');
+            const fileInfo = document.getElementById('file-info');
+            const fileName = document.getElementById('file-name');
+            const removeFileBtn = document.getElementById('remove-file');
+            
+            if (documentFileInput) {
+                documentFileInput.addEventListener('change', function(e) {
+                    if (this.files.length > 0) {
+                        fileName.textContent = this.files[0].name;
+                        fileInfo.classList.remove('hidden');
+                    } else {
+                        fileInfo.classList.add('hidden');
+                    }
+                });
+            }
+            
+            if (removeFileBtn) {
+                removeFileBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    documentFileInput.value = '';
+                    fileInfo.classList.add('hidden');
+                });
+            }
+            
+            // Edit document
+            const editDocumentBtns = document.querySelectorAll('.edit-document-btn');
+            editDocumentBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    // Let the link handle navigation
+                    // This is now an <a> tag rather than a <button>
+                });
+            });
+            
+            // Delete document handling
+            const deleteDocumentBtns = document.querySelectorAll('.delete-document-btn');
+            const deleteConfirmModal = document.getElementById('delete-confirm-modal');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            
+            deleteDocumentBtns.forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Prevent the default link behavior
+                    
+                    const documentId = this.getAttribute('data-id');
+                    const deleteUrl = this.getAttribute('href');
+                    deleteConfirmModal.setAttribute('data-id', documentId);
+                    deleteConfirmModal.setAttribute('data-url', deleteUrl);
+                    
+                    // Get document title for confirmation message
+                    const documentCard = this.closest('.border');
+                    if (documentCard) {
+                        const title = documentCard.querySelector('h4').textContent;
+                        document.getElementById('delete-confirm-message').textContent = 
+                            `Are you sure you want to delete "${title}"? This action cannot be undone.`;
+                    }
+                    
+                    showModal(deleteConfirmModal);
+                });
+            });
+            
+            // Close delete confirmation
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', function() {
+                    hideModal(deleteConfirmModal);
+                });
+            }
+            
+            // Confirm delete
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', function() {
+                    const deleteUrl = deleteConfirmModal.getAttribute('data-url');
+                    if (deleteUrl) {
+                        window.location.href = deleteUrl;
+                    }
+                });
+            }
+            
+            // Document search functionality
+            const searchInput = document.getElementById('document-search');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    const query = this.value.toLowerCase();
+                    const documentCards = document.querySelectorAll('.border:not(#add-document-card)');
+                    
+                    documentCards.forEach(card => {
+                        const title = card.querySelector('h4').textContent.toLowerCase();
+                        if (title.includes(query)) {
+                            card.style.display = '';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            }
+            
+            // Success toast auto-hide
+            setTimeout(hideSuccessToast, 5000);
+            
+            // Function to hide the success toast
+            function hideSuccessToast() {
+                const successToast = document.getElementById('success-toast');
+                if (successToast) {
+                    successToast.classList.add('opacity-0');
+                    setTimeout(() => {
+                        successToast.classList.add('hidden');
+                    }, 300);
+                }
+            }
+        });
+    </script>
+}

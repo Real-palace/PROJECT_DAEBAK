@@ -82,6 +82,9 @@ namespace daebak_subdivision_website.Controllers
 
                 _logger.LogInformation($"User '{user.Username}' logged in successfully");
 
+                // Store first name in ViewData for welcome message on dashboard
+                TempData["DashboardWelcome"] = user.FirstName;
+
                 // Redirect based on role
                 switch (user.Role.ToUpper())
                 {
@@ -103,8 +106,8 @@ namespace daebak_subdivision_website.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            _logger.LogInformation("DEBUG: User logged out.");
-            return RedirectToAction("Index", "Home");
+            _logger.LogInformation("User logged out.");
+            return RedirectToAction("Login", "Account");
         }
 
         public IActionResult Profile()
@@ -133,7 +136,7 @@ namespace daebak_subdivision_website.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 HouseNumber = homeowner.HouseNumber ?? string.Empty,
-                ProfilePicture = user.ProfilePicture ?? "/images/profile/default.jpg",
+                ProfilePicture = "/images/profile/default.jpg", // Always use default image since ProfilePicture column doesn't exist
                 Role = "Homeowner",
                 CreatedAt = user.CreatedAt
             };

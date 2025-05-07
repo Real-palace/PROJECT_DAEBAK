@@ -1,0 +1,128 @@
+@model daebak_subdivision_website.Models.User
+@{
+    ViewData["Title"] = "Delete User";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Delete User Confirmation Section -->
+<div class="p-6">
+    <div class="flex items-center mb-6">
+        <a href="@Url.Action("Index", "UserManagement")" class="mr-3 text-gray-500 hover:text-gray-700">
+            <i class="ph ph-arrow-left text-lg"></i>
+        </a>
+        <h2 class="text-2xl font-semibold text-gray-800">Delete User</h2>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="rounded-lg border border-red-200 bg-red-50 p-5 mb-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="ph ph-warning-circle text-red-600 text-2xl mr-3"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-red-600 mb-1">Warning: This action cannot be undone</h3>
+                    <p class="text-red-600">
+                        You are about to permanently delete this user account. This will remove all associated data including
+                        profile information, account history, and associated records. Please confirm that you want to proceed.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <h3 class="font-medium text-gray-700 border-b pb-2 mb-4">User Information</h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- User details -->
+            <div class="space-y-4">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center text-primary text-2xl mr-4">
+                            @Model.FirstName[0]@Model.LastName[0]
+                        </div>
+                        <div>
+                            <h4 class="text-xl font-medium">@Model.FirstName @Model.LastName</h4>
+                            <p class="text-gray-500">@Model.Role</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2">
+                            <div class="text-sm font-medium text-gray-500">Username:</div>
+                            <div class="text-sm">@Model.Username</div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2">
+                            <div class="text-sm font-medium text-gray-500">Email:</div>
+                            <div class="text-sm">@Model.Email</div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2">
+                            <div class="text-sm font-medium text-gray-500">Phone Number:</div>
+                            <div class="text-sm">@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</div>
+                        </div>
+                        @if (Model.Homeowner != null)
+                        {
+                            <div class="grid grid-cols-1 sm:grid-cols-2">
+                                <div class="text-sm font-medium text-gray-500">House Number:</div>
+                                <div class="text-sm">@(string.IsNullOrEmpty(Model.Homeowner.HouseNumber) ? "Not provided" : Model.Homeowner.HouseNumber)</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account details -->
+            <div class="space-y-4">
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="text-lg font-medium mb-3">Account Information</h4>
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2">
+                            <div class="text-sm font-medium text-gray-500">Account Created:</div>
+                            <div class="text-sm">@Model.CreatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                        <div class="grid grid-cols-2">
+                            <div class="text-sm font-medium text-gray-500">Last Updated:</div>
+                            <div class="text-sm">@Model.UpdatedAt.ToString("MMM dd, yyyy")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form for delete confirmation -->
+                <form asp-action="DeleteConfirmed" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.UserId" />
+                    <div class="mt-6">
+                        <div class="flex items-start mb-4">
+                            <div class="flex items-center h-5">
+                                <input id="confirm-delete" name="confirmDelete" type="checkbox" value="true" class="h-4 w-4 text-red-600 border-gray-300 rounded" required>
+                            </div>
+                            <label for="confirm-delete" class="ml-2 text-sm text-gray-700">
+                                I understand that this action will permanently delete this user account and all associated data.
+                            </label>
+                        </div>
+                        <div class="flex justify-end">
+                            <a href="@Url.Action("Index", "UserManagement")" class="mr-3 px-5 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                                Cancel
+                            </a>
+                            <button type="submit" id="delete-btn" class="px-5 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                Delete User
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const confirmCheckbox = document.getElementById('confirm-delete');
+            const deleteButton = document.getElementById('delete-btn');
+
+            // Enable/disable delete button based on checkbox
+            confirmCheckbox.addEventListener('change', function() {
+                deleteButton.disabled = !this.checked;
+            });
+        });
+    </script>
+}

@@ -1,0 +1,533 @@
+@{
+    ViewData["Title"] = ViewData["Title"] ?? "Daebak Subdivision | Admin Dashboard";
+
+    // Add logic to check if current page is dashboard
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    var isDashboard = (currentController == "Admin" && currentAction == "Dashboard");
+    
+    // Add logic to check for reports page
+    var isReports = (currentController == "Admin" && currentAction == "Reports");
+    
+    // Add logic to check for each section
+    var isUserManagement = (currentController == "UserManagement");
+    var isAnnouncements = (currentController == "Announcements");
+    var isBilling = (currentController == "Billing" && currentAction == "AdminBilling");
+    var isServiceRequests = (currentController == "ServiceRequests" && currentAction == "AdminServiceRequestsPage");
+    var isFacilities = (currentController == "Facilities" && currentAction == "AdminIndex") || 
+                       (currentController == "Admin" && currentAction == "Facilities") || 
+                       (currentController == "FacilityReservations");
+    var isSecurity = (currentController == "Security" && currentAction == "Admin") || 
+                     (currentController == "Admin" && currentAction == "Security");
+    var isFeedback = (currentController == "Feedback" && (currentAction == "AdminFeedback" || 
+                      currentAction == "Index"));
+    
+    // Updated: Check for Documents page - include both Admin controller and Documents controller
+    var isDocuments = (currentController == "Admin" && currentAction == "Documents") || 
+                      (currentController == "Documents" && currentAction == "AdminIndex");
+    
+    // Flag to check if any management section is active
+    var isAnyManagementActive = isUserManagement || isAnnouncements || isBilling || 
+                              isServiceRequests || isFacilities || isSecurity || 
+                              isFeedback || isDocuments;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" ="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#94B0DF',
+                        secondary: '#356480',
+                        tertiary: '#2c3e50',
+                        light: '#FCFDFF',
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                },
+            },
+        };
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(0, 0, 0, 0.2);
+            }
+
+        .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: transparent transparent;
+        }
+
+            .custom-scrollbar:hover {
+                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
+            }
+
+        .fc {
+            font-family: 'Poppins', sans-serif;
+        }
+
+            .fc .fc-toolbar-title {
+                font-size: 1.25em;
+                font-weight: 500;
+                color: #356480;
+            }
+
+            .fc .fc-button-primary {
+                background-color: #356480;
+                border-color: #356480;
+                font-family: 'Poppins', sans-serif;
+                font-weight: 500;
+            }
+
+                .fc .fc-button-primary:hover {
+                    background-color: #94B0DF;
+                    border-color: #94B0DF;
+                }
+
+                .fc .fc-button-primary:disabled {
+                    background-color: #94B0DF;
+                    border-color: #94B0DF;
+                    opacity: 0.7;
+                }
+
+            .fc .fc-daygrid-day.fc-day-today {
+                background-color: rgba(148, 176, 223, 0.2);
+            }
+
+            .fc .fc-daygrid-day-number {
+                font-weight: 500;
+                font-size: 0.9rem;
+                padding: 8px;
+            }
+
+            .fc .fc-event {
+                border-radius: 4px;
+                font-size: 0.85em;
+                border: none;
+                padding: 2px 4px;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .fc .fc-col-header-cell-cushion {
+                font-weight: 500;
+                color: #4b5563;
+                padding: 8px 4px;
+                text-transform: uppercase;
+                font-size: 0.75rem;
+            }
+
+            .fc .fc-event-main {
+                padding: 2px 4px;
+            }
+
+            .fc .fc-button {
+                font-size: 0.85rem;
+                padding: 0.3rem 0.6rem;
+                font-family: 'Poppins', sans-serif;
+            }
+
+            .fc .fc-view-harness {
+                background-color: #ffffff;
+                border-radius: 0.5rem;
+            }
+
+        .management-dropdown {
+            display: none;
+            position: fixed;
+            left: 80px;
+            /* Fixed position at 120px from top */
+            top: 120px; 
+            z-index: 50;
+            background-color: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            min-width: 200px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            pointer-events: none;
+        }
+
+            .management-dropdown.active,
+            .management-dropdown.show {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+        .management-item {
+            position: relative;
+        }
+
+            .management-item:hover .management-dropdown {
+                display: block;
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .management-item.active button i {
+                color: #2c3e50 !important;
+            }
+
+        .management-dropdown-item {
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            transition: all 0.2s ease;
+            color: #356480;
+            font-size: 0.95rem;
+        }
+
+            .management-dropdown-item:hover {
+                background-color: rgba(148, 176, 223, 0.1);
+            }
+
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .management-dropdown-item.active {
+            background-color: rgba(148, 176, 223, 0.3);
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .sidebar-icon-active {
+            color: #2c3e50 !important;
+        }
+    </style>
+
+    @RenderSection("Styles", required: false)
+</head>
+
+<body class="font-sans bg-light flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
+        <!-- Logo -->
+        <div class="w-full flex justify-center py-4">
+            <img src="@Url.Content("~/images/daebak_logo.png")" alt="Daebak Logo" class="w-12 h-auto">
+        </div>
+
+        <!-- Menu Items -->
+        <div class="flex flex-col items-center gap-5">
+            <!-- Home Link with active state indicator - Using only color change, no line indicator -->
+            <a href="@Url.Action("Dashboard", "Admin")" class="relative w-full h-14 flex justify-center items-center @(isDashboard ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Home">
+                <i class="ph ph-house-simple @(isDashboard ? "sidebar-icon-active" : "")"></i>
+            </a>
+
+            <!-- Management Link with Dropdown -->
+            <div class="management-item relative w-full h-14 @(isAnyManagementActive ? "active" : "")">
+                <button type="button" id="management-btn" class="w-full h-full flex justify-center items-center @(isAnyManagementActive ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Management">
+                    <i class="ph ph-sliders-horizontal @(isAnyManagementActive ? "sidebar-icon-active" : "")"></i>
+                </button>
+
+                <!-- Management Dropdown Menu - Fixed to use direct links instead of JavaScript-dependent dropdown -->
+                <div id="management-dropdown" class="management-dropdown py-2">
+                    <a href="@Url.Action("Index", "UserManagement")" class="management-dropdown-item @(isUserManagement ? "active" : "")" onclick="window.location.href='@Url.Action("Index", "UserManagement")'; return false;">
+                        <i class="ph ph-person text-secondary mr-3"></i>
+                        <span>Users</span>
+                    </a>
+                    <a href="@Url.Action("Index", "Announcements")" class="management-dropdown-item @(isAnnouncements ? "active" : "")" onclick="window.location.href='@Url.Action("Index", "Announcements")'; return false;">
+                        <i class="ph ph-megaphone text-secondary mr-3"></i>
+                        <span>Announcements</span>
+                    </a>
+                    <a href="@Url.Action("AdminBilling", "Billing")" class="management-dropdown-item @(isBilling ? "active" : "")" onclick="window.location.href='@Url.Action("AdminBilling", "Billing")'; return false;">
+                        <i class="ph ph-currency-circle-dollar text-secondary mr-3"></i>
+                        <span>Billings & Payments</span>
+                    </a>
+                    <a href="@Url.Action("AdminServiceRequestsPage", "ServiceRequests")" class="management-dropdown-item @(isServiceRequests ? "active" : "")" onclick="window.location.href='@Url.Action("AdminServiceRequestsPage", "ServiceRequests")'; return false;">
+                        <i class="ph ph-wrench text-secondary mr-3"></i>
+                        <span>Services</span>
+                    </a>
+                    <a href="@Url.Action("AdminIndex", "Facilities")" class="management-dropdown-item @(isFacilities ? "active" : "")" onclick="window.location.href='@Url.Action("AdminIndex", "Facilities")'; return false;">
+                        <i class="ph ph-tree-structure text-secondary mr-3"></i>
+                        <span>Facilities</span>
+                    </a>
+                    <a href="@Url.Action("Security", "Admin")" class="management-dropdown-item @(isSecurity ? "active" : "")" onclick="window.location.href='@Url.Action("Security", "Admin")'; return false;">
+                        <i class="ph ph-shield text-secondary mr-3"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="@Url.Action("AdminFeedback", "Feedback")" class="management-dropdown-item @(isFeedback ? "active" : "")" onclick="window.location.href='@Url.Action("AdminFeedback", "Feedback")'; return false;">
+                        <i class="ph ph-chat-circle-text text-secondary mr-3"></i>
+                        <span>Feedbacks</span>
+                    </a>
+                    <a href="@Url.Action("AdminIndex", "Documents")" class="management-dropdown-item @(isDocuments ? "active" : "")" onclick="window.location.href='@Url.Action("AdminIndex", "Documents")'; return false;">
+                        <i class="ph ph-file-text text-secondary mr-3"></i>
+                        <span>Documents</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Reports Link -->
+            <a href="@Url.Action("Reports", "Admin")" class="relative w-full h-14 flex justify-center items-center @(isReports ? "text-tertiary" : "text-white") text-2xl hover:text-tertiary transition-colors" title="Reports">
+                <i class="ph ph-chart-line @(isReports ? "sidebar-icon-active" : "")"></i>
+            </a>
+        </div>
+
+        <!-- Logout -->
+        <div class="flex flex-col items-center gap-3">
+            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
+                <i class="ph ph-sign-out"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
+        <!-- Top Navigation Bar -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
+                <div class="text-lg font-medium text-tertiary" id="page-title">@ViewData["Title"]</div>
+
+                <div class="flex items-center gap-5">
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
+                            <i class="ph ph-bell text-2xl"></i>
+                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <div class="flex items-center gap-2 text-gray-700 transition-colors">
+                            <span class="hidden md:block">Administrator</span>
+                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
+                                <i class="ph ph-user"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            @RenderBody()
+
+            <!-- Footer with copyright -->
+            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
+                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logout-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Confirm Logout</h3>
+            <p class="text-gray-500 mb-5">Are you sure you want to log out of your account?</p>
+            <div class="flex justify-end gap-3">
+                <button id="cancel-logout" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
+                <button id="confirm-logout" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">Yes, Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Render the Modals section -->
+    @RenderSection("Modals", required: false)
+
+    <!-- Scripts -->
+    <script>
+        // Logout confirmation function
+        function confirmLogout() {
+            const logoutModal = document.getElementById('logout-modal');
+            if (!logoutModal) return;
+
+            logoutModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+            // Directly set up logout modal buttons here to ensure they work
+            const cancelLogoutBtn = document.getElementById('cancel-logout');
+            const confirmLogoutBtn = document.getElementById('confirm-logout');
+
+            if (cancelLogoutBtn) {
+                // Cancel logout - hide modal
+                cancelLogoutBtn.onclick = function() {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = ''; // Re-enable scrolling
+                };
+            }
+
+            if (confirmLogoutBtn) {
+                // Confirm logout - redirect to logout action
+                confirmLogoutBtn.onclick = function() {
+                    window.location.href = '@Url.Action("Logout", "Account")';
+                };
+            }
+
+            // Close modal when clicking outside
+            logoutModal.addEventListener('click', function(e) {
+                if (e.target === logoutModal) {
+                    logoutModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Management dropdown enhancement
+            const managementItem = document.querySelector('.management-item');
+            const managementBtn = document.getElementById('management-btn');
+            const managementDropdown = document.querySelector('.management-dropdown');
+
+            if (managementItem && managementDropdown && managementBtn) {
+                let timeout;
+
+                // Show dropdown with a slight delay to prevent accidental triggering
+                managementItem.addEventListener('mouseenter', function() {
+                    clearTimeout(timeout);
+                    managementDropdown.classList.add('active');
+                    // Removed the positioning function call
+                });
+
+                // Hide dropdown with a delay to prevent accidental closing
+                managementItem.addEventListener('mouseleave', function() {
+                    timeout = setTimeout(function() {
+                        if (!managementDropdown.matches(':hover')) {
+                            managementDropdown.classList.remove('active');
+                        }
+                    }, 300); // 300ms delay before hiding
+                });
+
+                // When entering the dropdown itself, clear the timeout to prevent closing
+                managementDropdown.addEventListener('mouseenter', function() {
+                    clearTimeout(timeout);
+                });
+
+                // When leaving the dropdown, set a timeout to hide it with delay
+                managementDropdown.addEventListener('mouseleave', function() {
+                    timeout = setTimeout(function() {
+                        managementDropdown.classList.remove('active');
+                    }, 300); // 300ms delay before hiding
+                });
+
+                // Click handler for touch devices
+                managementItem.addEventListener('click', function(e) {
+                    // Prevent click from immediately closing the menu
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Toggle active class
+                    if (managementDropdown.classList.contains('active')) {
+                        managementDropdown.classList.remove('active');
+                    } else {
+                        managementDropdown.classList.add('active');
+                        // Removed the positioning function call
+                    }
+                });
+
+                // Removed resize event handler for positioning
+            }
+
+            // Check for window resize to refresh charts if they exist
+            window.addEventListener('resize', function() {
+                if (typeof echarts !== 'undefined') {
+                    // Try to get charts if they exist on the page
+                    const chartElements = document.querySelectorAll('[id$="Chart"]');
+                    chartElements.forEach(element => {
+                        const chart = echarts.getInstanceByDom(element);
+                        if (chart) {
+                            chart.resize();
+                        }
+                    });
+                }
+
+                // Resize calendar if it exists
+                if (typeof FullCalendar !== 'undefined') {
+                    const calendarElements = document.querySelectorAll('.fc');
+                    calendarElements.forEach(element => {
+                        const calendar = element._calendar;
+                        if (calendar) {
+                            calendar.updateSize();
+                        }
+                    });
+                }
+            });
+        });
+
+        // Highlight management icon when in management section
+        document.addEventListener('DOMContentLoaded', function() {
+            // This function is now redundant as we're handling active states directly in the Razor markup
+            // But keeping it for backward compatibility
+        });
+
+        // Set specific title in topbar based on current section
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname.toLowerCase();
+            const pageTitle = document.getElementById('page-title');
+
+            if (pageTitle) {
+                if (currentPath.includes('/usermanagement')) {
+                    pageTitle.textContent = 'User Management';
+                } else if (currentPath.includes('/announcements')) {
+                    pageTitle.textContent = 'Announcements & Notifications';
+                } else if (currentPath.includes('/billing/adminbilling')) {
+                    pageTitle.textContent = 'Billing & Payment';
+                } else if (currentPath.includes('/admin/facilities')) {
+                    pageTitle.textContent = 'Facilities';
+                } else if (currentPath.includes('/admin/servicerequests')) {
+                    pageTitle.textContent = 'Services';
+                } else if (currentPath.includes('/admin/documents')) {
+                    pageTitle.textContent = 'Documents';
+                }
+                // Otherwise, keep the ViewData["Title"]
+            }
+        });
+
+        // Force management icon highlighting when any management section is active
+        document.addEventListener('DOMContentLoaded', function() {
+            const isManagementActive = @Json.Serialize(isAnyManagementActive);
+            if (isManagementActive) {
+                const managementBtn = document.getElementById('management-btn');
+                const managementIcon = managementBtn.querySelector('i');
+                
+                if (managementBtn && managementIcon) {
+                    managementBtn.classList.add('text-tertiary');
+                    managementIcon.classList.add('sidebar-icon-active');
+                    
+                    // Show dropdown initially on page load when in management section
+                    const managementDropdown = document.getElementById('management-dropdown');
+                    if (managementDropdown) {
+                        setTimeout(function() {
+                            managementDropdown.classList.add('active');
+                        }, 100);
+                    }
+                }
+            }
+        });
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

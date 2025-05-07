@@ -1,1074 +1,557 @@
 ﻿@{
     ViewData["Title"] = "Home - Subdivision Homeowner's Portal";
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <!-- Add Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+<!-- Success Message Toast - Non-modal top-right notification -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div id="success-toast" class="fixed top-5 right-5 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded-md shadow-lg transition-all duration-300 z-50 flex items-center">
+        <i class="ph ph-check-circle text-xl mr-2"></i>
+        <p>@TempData["SuccessMessage"]</p>
+        <button class="ml-auto pl-4 text-green-700 hover:text-green-900 focus:outline-none" onclick="hideSuccessToast()">
+            <i class="ph ph-x"></i>
+        </button>
+    </div>
+}
 
-    <!-- Replace Phosphor Icons import with a working version -->
-    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+<!-- Welcome Card -->
+<div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
+    <img src="~/images/subdivision_banner.jpg" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
+    <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
+        <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.FirstName!</span></h2>
+        <p class="text-gray-700 font-light mt-2">Stay updated with the latest announcements, events, and community discussions.</p>
+    </div>
+</div>
 
-    <!-- Custom Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#94B0DF',
-                        secondary: '#356480',
-                        tertiary: '#2c3e50',
-                        light: '#FCFDFF',
-                    }
-                },
-                fontFamily: {
-                    sans: ['Poppins', 'sans-serif'],
+<!-- Quick Stats -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+    <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-blue-500">
+        <div class="bg-blue-100 p-3 rounded-full mr-4">
+            <i class="ph ph-credit-card text-2xl text-blue-500"></i>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Due Bills</p>
+            <p class="text-xl font-semibold">@ViewBag.DueBills</p>
+        </div>
+        <a href="@Url.Action("Bills", "Home")" class="ml-auto text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors">
+            <i class="ph ph-arrow-right text-xl"></i>
+        </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-green-500">
+        <div class="bg-green-100 p-3 rounded-full mr-4">
+            <i class="ph ph-calendar-check text-2xl text-green-500"></i>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Upcoming Events</p>
+            <p class="text-xl font-semibold">@ViewBag.EventCount</p>
+        </div>
+        <a href="@Url.Action("Events", "Home")" class="ml-auto text-green-500 hover:bg-green-50 p-2 rounded-full transition-colors">
+            <i class="ph ph-arrow-right text-xl"></i>
+        </a>
+    </div>
+
+    <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-purple-500">
+        <div class="bg-purple-100 p-3 rounded-full mr-4">
+            <i class="ph ph-clipboard-text text-2xl text-purple-500"></i>
+        </div>
+        <div>
+            <p class="text-gray-500 text-sm">Pending Requests</p>
+            <p class="text-xl font-semibold">@ViewBag.RequestCount</p>
+        </div>
+        <a href="@Url.Action("Requests", "Home")" class="ml-auto text-purple-500 hover:bg-purple-50 p-2 rounded-full transition-colors">
+            <i class="ph ph-arrow-right text-xl"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Calendar Section -->
+<!-- Rest of the Dashboard content -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="ph ph-calendar-check text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">Community Calendar</h3>
+        </div>
+        <div id="calendar"></div>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">Upcoming Events</h3>
+        </div>
+        <ul id="event-list" class="space-y-3">
+            @* Event items will be inserted by JS *@
+        </ul>
+    </div>
+</div>
+
+<!-- Announcements and Forum -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-megaphone text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
+            </div>
+            <button id="view-all-announcements" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                View All
+                <i class="ph ph-arrow-right text-xs"></i>
+            </button>
+        </div>
+        <ul class="space-y-4">
+            @if (ViewBag.Announcements != null)
+            {
+                foreach (var announcement in ViewBag.Announcements)
+                {
+                    <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                        <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
+                        <p class="font-medium">@announcement.Title</p>
+                        <p class="text-gray-500 text-sm">@announcement.Content</p>
+                    </li>
                 }
             }
-        }
-    </script>
-    <!-- Fix Poppins font import for Razor syntax -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
-
-    <style>
-        /* Custom scrollbar styling */
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-
-            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                background-color: rgba(0, 0, 0, 0.2);
+            else
+            {
+                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                        <i class="ph ph-drop"></i> NOTICE
+                    </span>
+                    <p class="font-medium">Water Supply Update</p>
+                    <p class="text-gray-500 text-sm">Scheduled maintenance on March 10.</p>
+                </li>
+                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
+                    <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                        <i class="ph ph-shield-warning"></i> SECURITY
+                    </span>
+                    <p class="font-medium">Security Notice</p>
+                    <p class="text-gray-500 text-sm">New visitor guidelines effective March 15.</p>
+                </li>
+                <li class="hover:bg-gray-50 p-2 rounded-md transition-colors">
+                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                        <i class="ph ph-confetti"></i> EVENT
+                    </span>
+                    <p class="font-medium">Community Gathering</p>
+                    <p class="text-gray-500 text-sm">Join us for a BBQ night on March 20!</p>
+                </li>
             }
+        </ul>
+    </div>
 
-        /* Hide scrollbar when not hovering */
-        .custom-scrollbar {
-            scrollbar-width: thin;
-            scrollbar-color: transparent transparent;
-        }
-
-            .custom-scrollbar:hover {
-                scrollbar-color: rgba(0, 0, 0, 0.1) transparent;
-            }
-    </style>
-</head>
-<body class="font-sans bg-light flex min-h-screen">
-    <!-- Sidebar -->
-    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
-        <!-- Logo -->
-        <div class="w-full flex justify-center py-4">
-            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
-        </div>
-
-        <!-- Menu Items -->
-        <div class="flex flex-col items-center gap-5">
-            <a href="@Url.Action("Dashboard", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors" title="Dashboard">
-                <i class="ph ph-house-simple"></i>
-            </a>
-            <a href="@Url.Action("Billing", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
-                <i class="ph ph-credit-card"></i>
-            </a>
-            <a href="@Url.Action("Facilities", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Facilities">
-                <i class="ph ph-tree-structure"></i>
-            </a>
-            <a href="@Url.Action("Services", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
-                <i class="ph ph-wrench"></i>
-            </a>
-            <a href="@Url.Action("Security", "Homeowner")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
-                <i class="ph ph-shield"></i>
+    <!-- Forum Section -->
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-chat-circle-text text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Feedback & Complaints</h3>
+            </div>
+            <a href="@Url.Action("Feedback", "Feedback")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                View All
+                <i class="ph ph-arrow-right text-xs"></i>
             </a>
         </div>
+        
+        <!-- Quick Feedback Submission Form -->
+        <form asp-controller="Feedback" asp-action="Create" method="post" class="mb-4">
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-type">
+                    Type
+                </label>
+                <select id="feedback-type" name="FeedbackType" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    <option value="">Select Type</option>
+                    <option value="Feedback">Feedback</option>
+                    <option value="Complaint">Complaint</option>
+                    <option value="Suggestion">Suggestion</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-description">
+                    Description
+                </label>
+                <textarea id="feedback-description" name="Description" rows="3" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required></textarea>
+            </div>
+            <button type="submit" class="bg-tertiary text-white py-2 px-4 rounded-lg hover:bg-tertiary/90 transition-colors w-full">
+                Submit
+            </button>
+        </form>
+        
+        <!-- Recent Feedback Status -->
+        <div class="mt-4">
+            <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Submissions</h4>
+            <ul class="space-y-2">
+                @if (ViewBag.RecentFeedback != null)
+                {
+                    foreach (var item in ViewBag.RecentFeedback)
+                    {
+                        <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                            <div>
+                                <p class="font-medium text-sm">@item.FeedbackType</p>
+                                <span class="text-xs text-gray-500">@item.CreatedAt.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <span class="px-2 py-1 rounded-full text-xs 
+                                @(item.Status == "Submitted" ? "bg-blue-100 text-blue-600" : 
+                                  item.Status == "In Review" ? "bg-yellow-100 text-yellow-600" :
+                                  item.Status == "In Progress" ? "bg-purple-100 text-purple-600" :
+                                  item.Status == "Resolved" ? "bg-green-100 text-green-600" :
+                                  "bg-gray-100 text-gray-600")">
+                                @item.Status
+                            </span>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <!-- Sample feedback items -->
+                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div>
+                            <p class="font-medium text-sm">Street light repair request</p>
+                            <span class="text-xs text-gray-500">Apr 03, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600">Submitted</span>
+                    </li>
+                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
+                        <div>
+                            <p class="font-medium text-sm">Suggestion for playground</p>
+                            <span class="text-xs text-gray-500">Mar 28, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-600">In Review</span>
+                    </li>
+                    <li class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-sm">Noise complaint</p>
+                            <span class="text-xs text-gray-500">Mar 15, 2025</span>
+                        </div>
+                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">Resolved</span>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
 
-        <!-- User Profile and Logout -->
-        <div class="flex flex-col items-center gap-3">
-            <a href="javascript:void(0);" onclick="confirmLogout()" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
-                <i class="ph ph-sign-out"></i>
+<!-- Documents & Resources -->
+<div class="mt-8">
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-file-text text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Documents & Resources</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                <div class="bg-blue-50 p-3 rounded-full mb-2">
+                    <i class="ph ph-book-open text-xl text-blue-500"></i>
+                </div>
+                <span class="text-sm font-medium text-center">Homeowner's Manual</span>
+            </a>
+
+            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                <div class="bg-green-50 p-3 rounded-full mb-2">
+                    <i class="ph ph-file-pdf text-xl text-green-500"></i>
+                </div>
+                <span class="text-sm font-medium text-center">Community Guidelines</span>
+            </a>
+
+            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                <div class="bg-yellow-50 p-3 rounded-full mb-2">
+                    <i class="ph ph-clipboard text-xl text-yellow-500"></i>
+                </div>
+                <span class="text-sm font-medium text-center">Visitor Request Form</span>
+            </a>
+
+            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
+                <div class="bg-purple-50 p-3 rounded-full mb-2">
+                    <i class="ph ph-map-pin text-xl text-purple-500"></i>
+                </div>
+                <span class="text-sm font-medium text-center">Community Map</span>
             </a>
         </div>
     </div>
+</div>
 
-    <!-- Main Content -->
-    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
-        <!-- Top Navigation Bar -->
-        <div class="bg-white shadow-sm sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-                <div class="text-lg font-medium text-tertiary">Dashboard</div>
-
-                <div class="flex items-center gap-5">
-                    <!-- Search Bar removed -->
-                    <!-- Notifications -->
-                    <div class="relative">
-                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
-                            <i class="ph ph-bell text-2xl"></i>
-                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
-                        </button>
-
-                        <!-- Notification Dropdown - Fixed scrolling issue -->
-                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
-                            <div class="p-4 border-b border-gray-200">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="font-medium text-gray-700">Notifications</h3>
-                                    <button id="mark-all-read" class="text-primary text-xs hover:underline flex items-center gap-1">
-                                        <i class="ph ph-check-circle"></i> Mark all as read
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="max-h-96 overflow-y-auto custom-scrollbar" id="notification-content">
-                                <!-- Unread Notification -->
-                                <div class="notification-item notification-unread border-l-4 border-blue-500 p-4 bg-blue-50/50 hover:bg-blue-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-bell text-blue-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <p class="text-sm font-medium text-gray-800">Community Announcement</p>
-                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
-                                                    <i class="ph ph-check-circle"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
-                                            <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Unread Notification -->
-                                <div class="notification-item notification-unread border-l-4 border-green-500 p-4 bg-green-50/50 hover:bg-green-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-green-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-check-circle text-green-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <p class="text-sm font-medium text-gray-800">Payment Confirmed</p>
-                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
-                                                    <i class="ph ph-check-circle"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1">Your payment of ₱2,500 for March dues has been received.</p>
-                                            <p class="text-xs text-gray-400 mt-2">5 hours ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Unread Notification -->
-                                <div class="notification-item notification-unread border-l-4 border-yellow-500 p-4 bg-yellow-50/50 hover:bg-yellow-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-yellow-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-calendar text-yellow-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <p class="text-sm font-medium text-gray-800">New Community Event</p>
-                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
-                                                    <i class="ph ph-check-circle"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1">Easter Egg Hunt event scheduled for April 9 at the community park.</p>
-                                            <p class="text-xs text-gray-400 mt-2">Yesterday</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Read Notification -->
-                                <div class="notification-item p-4 hover:bg-gray-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-purple-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-chat-text text-purple-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-gray-800">New Forum Post</p>
-                                            <p class="text-xs text-gray-500 mt-1">Maria posted in "Community Garden Project": "Looking for volunteers this weekend!"</p>
-                                            <p class="text-xs text-gray-400 mt-2">2 days ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Additional Read Notification -->
-                                <div class="notification-item p-4 hover:bg-gray-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-info text-blue-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-gray-800">Maintenance Complete</p>
-                                            <p class="text-xs text-gray-500 mt-1">The scheduled maintenance of the swimming pool has been completed. The facility is now open for use.</p>
-                                            <p class="text-xs text-gray-400 mt-2">3 days ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
-                            <span class="hidden md:block">@ViewBag.FirstName</span>
-                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                                <i class="ph ph-user"></i>
-                            </div>
-                        </a>
-                    </div>
-                </div>
-            </div>
+<!-- Quick Contact Directory -->
+<div class="mt-8">
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="ph ph-phone text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">Important Contacts</h3>
         </div>
 
-        <div class="p-6">
-            <!-- Welcome Card -->
-            <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
-                <img src="~/images/subdivision_banner.jpg" alt="Home Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
-                <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Welcome, <span id="username">@ViewBag.FirstName</span>!</h2>
-                    <p class="text-gray-700 font-light mt-2">Stay updated with the latest announcements, events, and community discussions.</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                <div class="bg-red-50 p-3 rounded-full">
+                    <i class="ph ph-first-aid text-xl text-red-500"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium">Emergency</h4>
+                    <a href="tel:911" class="text-blue-600 hover:underline">911</a>
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-blue-500">
-                    <div class="bg-blue-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-credit-card text-2xl text-blue-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Due Bills</p>
-                        <p class="text-xl font-semibold">@ViewBag.DueBills</p>
-                    </div>
-                    <a href="@Url.Action("Bills", "Home")" class="ml-auto text-blue-500 hover:bg-blue-50 p-2 rounded-full transition-colors">
-                        <i class="ph ph-arrow-right text-xl"></i>
-                    </a>
+            <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                <div class="bg-blue-50 p-3 rounded-full">
+                    <i class="ph ph-shield-star text-xl text-blue-500"></i>
                 </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-green-500">
-                    <div class="bg-green-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-calendar-check text-2xl text-green-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Upcoming Events</p>
-                        <p class="text-xl font-semibold">@ViewBag.EventCount</p>
-                    </div>
-                    <a href="@Url.Action("Events", "Home")" class="ml-auto text-green-500 hover:bg-green-50 p-2 rounded-full transition-colors">
-                        <i class="ph ph-arrow-right text-xl"></i>
-                    </a>
-                </div>
-
-                <div class="bg-white p-5 rounded-xl shadow-md hover:shadow-lg transition-shadow flex items-center border-l-4 border-purple-500">
-                    <div class="bg-purple-100 p-3 rounded-full mr-4">
-                        <i class="ph ph-clipboard-text text-2xl text-purple-500"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Pending Requests</p>
-                        <p class="text-xl font-semibold">@ViewBag.RequestCount</p>
-                    </div>
-                    <a href="@Url.Action("Requests", "Home")" class="ml-auto text-purple-500 hover:bg-purple-50 p-2 rounded-full transition-colors">
-                        <i class="ph ph-arrow-right text-xl"></i>
-                    </a>
+                <div>
+                    <h4 class="font-medium">Security Office</h4>
+                    <a href="tel:+639171234567" class="text-blue-600 hover:underline">+63 917 123 4567</a>
                 </div>
             </div>
 
-            <!-- Calendar Section -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-calendar-check text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Community Calendar</h3>
-                    </div>
-                    <div id="calendar"></div>
+            <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                <div class="bg-green-50 p-3 rounded-full">
+                    <i class="ph ph-buildings text-xl text-green-500"></i>
                 </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Upcoming Events</h3>
-                    </div>
-                    <ul id="event-list" class="space-y-3">
-                        @* Event items will be inserted by JS *@
-                    </ul>
+                <div>
+                    <h4 class="font-medium">Admin Office</h4>
+                    <a href="tel:+639189876543" class="text-blue-600 hover:underline">+63 918 987 6543</a>
                 </div>
-            </div>
-
-            <!-- Announcements and Forum -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-megaphone text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Latest Announcements</h3>
-                        </div>
-                        <button id="view-all-announcements" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
-                            View All
-                            <i class="ph ph-arrow-right text-xs"></i>
-                        </button>
-                    </div>
-                    <ul class="space-y-4">
-                        @if (ViewBag.Announcements != null)
-                        {
-                            foreach (var announcement in ViewBag.Announcements)
-                            {
-                                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                    <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
-                                    <p class="font-medium">@announcement.Title</p>
-                                    <p class="text-gray-500 text-sm">@announcement.Content</p>
-                                </li>
-                            }
-                        }
-                        else
-                        {
-                            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                    <i class="ph ph-drop"></i> NOTICE
-                                </span>
-                                <p class="font-medium">Water Supply Update</p>
-                                <p class="text-gray-500 text-sm">Scheduled maintenance on March 10.</p>
-                            </li>
-                            <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                    <i class="ph ph-shield-warning"></i> SECURITY
-                                </span>
-                                <p class="font-medium">Security Notice</p>
-                                <p class="text-gray-500 text-sm">New visitor guidelines effective March 15.</p>
-                            </li>
-                            <li class="hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                    <i class="ph ph-confetti"></i> EVENT
-                                </span>
-                                <p class="font-medium">Community Gathering</p>
-                                <p class="text-gray-500 text-sm">Join us for a BBQ night on March 20!</p>
-                            </li>
-                        }
-                    </ul>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-chats text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Community Forum</h3>
-                        </div>
-                        <a href="@Url.Action("Forum", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
-                            View All
-                            <i class="ph ph-arrow-right text-xs"></i>
-                        </a>
-                    </div>
-                    <ul class="space-y-4">
-                        @if (ViewBag.ForumThreads != null)
-                        {
-                            foreach (var thread in ViewBag.ForumThreads)
-                            {
-                                <li class="border-b border-gray-100 pb-3">
-                                    <a href="@Url.Action("ThreadDetails", "Forum", new { id = thread.Id })" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                        <p class="font-medium text-secondary hover:text-blue-600 transition-colors">@thread.Title</p>
-                                        <div class="flex items-center text-sm text-gray-500 mt-1">
-                                            <i class="ph ph-chat-centered-text mr-1"></i> @thread.ReplyCount replies
-                                            <span class="mx-2">•</span>
-                                            <i class="ph ph-clock-counter-clockwise mr-1"></i> @thread.TimeAgo
-                                        </div>
-                                    </a>
-                                </li>
-                            }
-                        }
-                        else
-                        {
-                            <li class="border-b border-gray-100 pb-3">
-                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
-                                        <i class="ph ph-question mr-1 text-blue-500"></i>
-                                        How to report a maintenance issue?
-                                    </p>
-                                    <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph ph-chat-centered-text mr-1"></i> 12 replies
-                                        <span class="mx-2">•</span>
-                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 2 days ago
-                                    </div>
-                                </a>
-                            </li>
-                            <li class="border-b border-gray-100 pb-3">
-                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
-                                        <i class="ph ph-shield mr-1 text-yellow-500"></i>
-                                        Best ways to improve community security?
-                                    </p>
-                                    <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph ph-chat-centered-text mr-1"></i> 8 replies
-                                        <span class="mx-2">•</span>
-                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 4 days ago
-                                    </div>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="#" class="block hover:bg-gray-50 p-2 rounded-md transition-colors">
-                                    <p class="font-medium text-secondary hover:text-blue-600 transition-colors">
-                                        <i class="ph ph-lightbulb mr-1 text-green-500"></i>
-                                        Ideas for the next homeowners' event?
-                                    </p>
-                                    <div class="flex items-center text-sm text-gray-500 mt-1">
-                                        <i class="ph ph-chat-centered-text mr-1"></i> 15 replies
-                                        <span class="mx-2">•</span>
-                                        <i class="ph ph-clock-counter-clockwise mr-1"></i> 1 week ago
-                                    </div>
-                                </a>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Announcements Modal -->
-            <div id="announcements-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-megaphone text-xl text-tertiary"></i>
-                            <h3 class="font-semibold text-xl text-tertiary">All Announcements</h3>
-                        </div>
-                        <button id="close-announcements-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                            <i class="ph ph-x text-xl"></i>
-                        </button>
-                    </div>
-                    <div class="p-6 overflow-y-auto">
-                        <ul class="space-y-6">
-                            @if (ViewBag.AllAnnouncements != null)
-                            {
-                                foreach (var announcement in ViewBag.AllAnnouncements)
-                                {
-                                    <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
-                                        <div class="flex justify-between items-start">
-                                            <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
-                                            <span class="text-gray-400 text-sm">@announcement.Date.ToString("MMM dd, yyyy")</span>
-                                        </div>
-                                        <h4 class="font-medium text-lg">@announcement.Title</h4>
-                                        <p class="text-gray-500">@announcement.Content</p>
-                                    </li>
-                                }
-                            }
-                            else
-                            {
-                                <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
-                                    <div class="flex justify-between items-start">
-                                        <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                            <i class="ph ph-drop"></i> NOTICE
-                                        </span>
-                                        <span class="text-gray-400 text-sm">Mar 05, 2025</span>
-                                    </div>
-                                    <h4 class="font-medium text-lg">Water Supply Update</h4>
-                                    <p class="text-gray-500">There will be a scheduled maintenance of our water supply system on March 10, 2025, from 10:00 AM to 2:00 PM. Please store enough water for your needs during this period. We apologize for any inconvenience this may cause.</p>
-                                </li>
-                                <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
-                                    <div class="flex justify-between items-start">
-                                        <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                            <i class="ph ph-shield-warning"></i> SECURITY
-                                        </span>
-                                        <span class="text-gray-400 text-sm">Mar 03, 2025</span>
-                                    </div>
-                                    <h4 class="font-medium text-lg">Security Notice</h4>
-                                    <p class="text-gray-500">New visitor guidelines will be implemented starting March 15, 2025. All visitors must be registered at least 4 hours before arrival and must present a valid ID at the gate. These measures are being implemented to enhance community security.</p>
-                                </li>
-                                <li class="hover:bg-gray-50 p-4 rounded-md transition-colors">
-                                    <div class="flex justify-between items-start">
-                                        <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                                            <i class="ph ph-confetti"></i> EVENT
-                                        </span>
-                                        <span class="text-gray-400 text-sm">Feb 28, 2025</span>
-                                    </div>
-                                    <h4 class="font-medium text-lg">Community Gathering</h4>
-                                    <p class="text-gray-500">Join us for a BBQ night on March 20, 5, at the community park! This is a great opportunity to meet your neighbors and enjoy a fun evening together. Please bring your own drinks. Food will be provided by the HOA. The event starts at 6:00 PM and will end at 9:00 PM.</p>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Logout Confirmation Modal -->
-            <div id="logout-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
-                    <div class="p-6 border-b border-gray-100">
-                        <h3 class="font-semibold text-xl text-tertiary">Confirm Logout</h3>
-                    </div>
-                    <div class="p-6">
-                        <p class="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                        <div class="flex justify-end gap-4">
-                            <button id="cancel-logout" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                                Cancel
-                            </button>
-                            <button id="confirm-logout" class="px-4 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition-colors">
-                                Yes, Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Documents & Resources -->
-            <div class="mt-8">
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-2">
-                            <i class="ph ph-file-text text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Documents & Resources</h3>
-                        </div>
-                        <a href="@Url.Action("Documents", "Home")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
-                            View All
-                            <i class="ph ph-arrow-right text-xs"></i>
-                        </a>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                            <div class="bg-blue-50 p-3 rounded-full mb-2">
-                                <i class="ph ph-book-open text-xl text-blue-500"></i>
-                            </div>
-                            <span class="text-sm font-medium text-center">Homeowner's Manual</span>
-                        </a>
-
-                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                            <div class="bg-green-50 p-3 rounded-full mb-2">
-                                <i class="ph ph-file-pdf text-xl text-green-500"></i>
-                            </div>
-                            <span class="text-sm font-medium text-center">Community Guidelines</span>
-                        </a>
-
-                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                            <div class="bg-yellow-50 p-3 rounded-full mb-2">
-                                <i class="ph ph-clipboard text-xl text-yellow-500"></i>
-                            </div>
-                            <span class="text-sm font-medium text-center">Visitor Request Form</span>
-                        </a>
-
-                        <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                            <div class="bg-purple-50 p-3 rounded-full mb-2">
-                                <i class="ph ph-map-pin text-xl text-purple-500"></i>
-                            </div>
-                            <span class="text-sm font-medium text-center">Community Map</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quick Contact Directory -->
-            <div class="mt-8">
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-phone text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Important Contacts</h3>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
-                            <div class="bg-red-50 p-3 rounded-full">
-                                <i class="ph ph-first-aid text-xl text-red-500"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium">Emergency</h4>
-                                <a href="tel:911" class="text-blue-600 hover:underline">911</a>
-                            </div>
-                        </div>
-
-                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
-                            <div class="bg-blue-50 p-3 rounded-full">
-                                <i class="ph ph-shield-star text-xl text-blue-500"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium">Security Office</h4>
-                                <a href="tel:+639171234567" class="text-blue-600 hover:underline">+63 917 123 4567</a>
-                            </div>
-                        </div>
-
-                        <div class="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
-                            <div class="bg-green-50 p-3 rounded-full">
-                                <i class="ph ph-buildings text-xl text-green-500"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-medium">Admin Office</h4>
-                                <a href="tel:+639189876543" class="text-blue-600 hover:underline">+63 918 987 6543</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Footer with copyright -->
-            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
-                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
             </div>
         </div>
     </div>
+</div>
 
+<!-- Announcements Modal -->
+<div id="announcements-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-megaphone text-xl text-tertiary"></i>
+                <h3 class="font-semibold text-xl text-tertiary">All Announcements</h3>
+            </div>
+            <button id="close-announcements-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto">
+            <ul class="space-y-6">
+                @if (ViewBag.AllAnnouncements != null)
+                {
+                    foreach (var announcement in ViewBag.AllAnnouncements)
+                    {
+                        <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
+                            <div class="flex justify-between items-start">
+                                <span class="bg-@announcement.CategoryColor-100 text-@announcement.CategoryColor-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block">@announcement.Category</span>
+                                <span class="text-gray-400 text-sm">@announcement.Date.ToString("MMM dd, yyyy")</span>
+                            </div>
+                            <h4 class="font-medium text-lg">@announcement.Title</h4>
+                            <p class="text-gray-500">@announcement.Content</p>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <!-- Sample announcements if no data provided -->
+                    <li class="border-b border-gray-100 pb-6 hover:bg-gray-50 p-4 rounded-md transition-colors">
+                        <div class="flex justify-between items-start">
+                            <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
+                                <i class="ph ph-drop"></i> NOTICE
+                            </span>
+                            <span class="text-gray-400 text-sm">Mar 05, 2025</span>
+                        </div>
+                        <h4 class="font-medium text-lg">Water Supply Update</h4>
+                        <p class="text-gray-500">There will be a scheduled maintenance of our water supply system on March 10, 2025, from 10:00 AM to 2:00 PM. Please store enough water for your needs during this period. We apologize for any inconvenience this may cause.</p>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
     <script>
-        // Logout confirmation function
-        function confirmLogout() {
-            const logoutModal = document.getElementById('logout-modal');
-            logoutModal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling
-
-            // Directly set up logout modal buttons here to ensure they work
-            const cancelLogoutBtn = document.getElementById('cancel-logout');
-            const confirmLogoutBtn = document.getElementById('confirm-logout');
-
-            // Cancel logout - hide modal
-            cancelLogoutBtn.onclick = function() {
-                logoutModal.classList.add('hidden');
-                document.body.style.overflow = ''; // Re-enable scrolling
-            };
-
-            // Confirm logout - redirect to logout action
-            confirmLogoutBtn.onclick = function() {
-                window.location.href = '@Url.Action("Logout", "Account")';
-            };
-
-            // Close modal when clicking outside
-            logoutModal.addEventListener('click', function(e) {
-                if (e.target === logoutModal) {
-                    logoutModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             // Setup notification functionality
-            const notificationBtn = document.getElementById('notification-toggle-btn');
-            const notificationDropdown = document.getElementById('notification-dropdown');
-            const markAllReadBtn = document.getElementById('mark-all-read');
-            const markReadBtns = document.querySelectorAll('.mark-read-btn');
-            const notificationCount = document.querySelector('.notification-count');
+            setupNotifications();
+            
+            // Setup announcements modal
+            setupAnnouncementsModal();
+            
+            // Initialize calendar
+            initializeCalendar();
+            
+            // Success toast auto-hide
+            setTimeout(hideSuccessToast, 5000);
+        });
 
-            // Toggle notifications dropdown
-            notificationBtn.addEventListener('click', function() {
-                notificationDropdown.classList.toggle('hidden');
-            });
-
-            // Close notifications when clicking elsewhere
-            document.addEventListener('click', function(e) {
-                if (!notificationBtn.contains(e.target) && !notificationDropdown.contains(e.target)) {
-                    notificationDropdown.classList.add('hidden');
-                }
-            });
-
-            // Prevent notification scrolling from affecting main page
-            const notificationContent = document.getElementById('notification-content');
-            notificationContent.addEventListener('wheel', function(event) {
-                const maxScrollTop = this.scrollHeight - this.clientHeight;
-                const currentScroll = this.scrollTop;
-
-                // If scrolling up and already at top
-                if (event.deltaY < 0 && currentScroll <= 0) {
-                    event.preventDefault();
-                }
-
-                // If scrolling down and already at bottom
-                if (event.deltaY > 0 && currentScroll >= maxScrollTop) {
-                    event.preventDefault();
-                }
-
-                // Otherwise prevent default to handle scroll internally
-                event.stopPropagation();
-            }, { passive: false });
-
-            // Mark all notifications as read
-            markAllReadBtn.addEventListener('click', function() {
-                const unreadNotifications = document.querySelectorAll('.notification-unread');
-                unreadNotifications.forEach(notification => {
-                    notification.classList.remove('notification-unread', 'border-l-4', 'bg-blue-50/50', 'bg-green-50/50', 'bg-yellow-50/50');
-                    notification.classList.add('bg-white');
-                });
-                notificationCount.textContent = '0';
-                // In a real app, you would send an AJAX request to update read status in the database
-            });
-
-            // Mark individual notification as read
-            markReadBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const notification = this.closest('.notification-item');
-                    if (notification.classList.contains('notification-unread')) {
-                        notification.classList.remove('notification-unread', 'border-l-4', 'bg-blue-50/50', 'bg-green-50/50', 'bg-yellow-50/50');
-                        notification.classList.add('bg-white');
-
-                        // Update counter
-                        const currentCount = parseInt(notificationCount.textContent);
-                        notificationCount.textContent = Math.max(0, currentCount - 1);
-                        // In a real app, you would send an AJAX request to update read status in the database
-                    }
-                });
-            });
-
-            // Search functionality
-            const searchInput = document.getElementById('search-input');
-            const searchButton = document.getElementById('search-button');
-
-            function performSearch() {
-                const query = searchInput.value.trim().toLowerCase();
-                if (query.length < 2) {
-                    alert('Please enter at least 2 characters to search.');
-                    return;
-                }
-
-                // Get all searchable content from the page
-                const searchableElements = document.querySelectorAll('h2, h3, h4, p, a, span:not(.notification-count)');
-                const results = [];
-
-                searchableElements.forEach(el => {
-                    const text = el.textContent.toLowerCase();
-                    if (text.includes(query)) {
-                        // Find the closest parent section or div that makes sense as a result
-                        let resultElement = el.closest('.bg-white') || el.closest('a') || el;
-
-                        // Don't duplicate results from the same container
-                        const alreadyIncluded = results.some(r => r.element === resultElement);
-                        if (!alreadyIncluded) {
-                            results.push({
-                                element: resultElement,
-                                text: el.textContent,
-                                originalPosition: getElementPosition(resultElement)
-                            });
-                        }
-                    }
-                });
-
-                if (results.length === 0) {
-                    alert('No results found for "' + query + '"');
-                } else {
-                    displaySearchResults(results, query);
-                }
-            }
-
-            function getElementPosition(element) {
-                let rect = element.getBoundingClientRect();
-                return {
-                    top: rect.top + window.pageYOffset,
-                    left: rect.left + window.pageXOffset
-                };
-            }
-
-            function displaySearchResults(results, query) {
-                // Create a search results modal
-                let modal = document.createElement('div');
-                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                modal.id = 'search-results-modal';
-
-                let modalContent = document.createElement('div');
-                modalContent.className = 'bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col';
-
-                let modalHeader = document.createElement('div');
-                modalHeader.className = 'p-6 border-b border-gray-100 flex items-center justify-between';
-                modalHeader.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <i class="ph ph-magnifying-glass text-xl text-tertiary"></i>
-                        <h3 class="font-semibold text-xl text-tertiary">Search Results for "${query}"</h3>
-                    </div>
-                    <button id="close-search-results" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                        <i class="ph ph-x text-xl"></i>
-                    </button>
-                `;
-
-                let modalBody = document.createElement('div');
-                modalBody.className = 'p-6 overflow-y-auto';
-
-                let resultsList = document.createElement('ul');
-                resultsList.className = 'space-y-4';
-
-                results.forEach((result, index) => {
-                    let resultItem = document.createElement('li');
-                    resultItem.className = 'border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors';
-
-                    // Highlight the query in the text
-                    let highlightedText = result.text.replace(new RegExp(query, 'gi'), match => `<mark class="bg-yellow-200">${match}</mark>`);
-
-                    resultItem.innerHTML = `
-                        <div class="flex items-center gap-2">
-                            <div class="bg-blue-100 rounded-full p-2 text-blue-500">
-                                <i class="ph ph-${index + 1} text-lg"></i>
-                            </div>
-                            <div>
-                                <p class="font-medium">${highlightedText}</p>
-                            </div>
-                        </div>
-                    `;
-
-                    resultItem.addEventListener('click', () => {
-                        // Close the modal
-                        document.body.removeChild(modal);
-                        document.body.style.overflow = '';
-
-                        // Scroll to the result
-                        window.scrollTo({
-                            top: result.originalPosition.top - 100,
-                            behavior: 'smooth'
-                        });
-
-                        // Highlight the element temporarily
-                        result.element.style.transition = 'background-color 0.5s';
-                        result.element.style.backgroundColor = '#FEFCE8';
-                        setTimeout(() => {
-                            result.element.style.backgroundColor = '';
-                        }, 2000);
-                    });
-
-                    resultsList.appendChild(resultItem);
-                });
-
-                modalBody.appendChild(resultsList);
-                modalContent.appendChild(modalHeader);
-                modalContent.appendChild(modalBody);
-                modal.appendChild(modalContent);
-
-                document.body.style.overflow = 'hidden';
-                document.body.appendChild(modal);
-
-                // Setup close button
-                document.getElementById('close-search-results').addEventListener('click', () => {
-                    document.body.removeChild(modal);
-                    document.body.style.overflow = '';
-                });
-
-                // Close when clicking outside
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        document.body.removeChild(modal);
-                        document.body.style.overflow = '';
-                    }
-                });
-            }
-
-            // Add event listeners for search
-            searchButton.addEventListener('click', performSearch);
-            searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            // Setup logout modal buttons
-            const logoutModal = document.getElementById('logout-modal');
-            const cancelLogoutBtn = document.getElementById('cancel-logout');
-            const confirmLogoutBtn = document.getElementById('confirm-logout');
-
-            cancelLogoutBtn.addEventListener('click', function() {
-                logoutModal.classList.add('hidden');
-                document.body.style.overflow = ''; // Re-enable scrolling
-            });
-
-            confirmLogoutBtn.addEventListener('click', function() {
-                window.location.href = '@Url.Action("Logout", "Account")';
-            });
-
-            // Close logout modal when clicking outside of it
-            logoutModal.addEventListener('click', function(e) {
-                if (e.target === logoutModal) {
-                    logoutModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-            });
-
-            // Define default events outside of any function so it's available in the global scope
-            var defaultEvents = [
+        // Calendar functionality
+        function initializeCalendar() {
+            const calendarEl = document.getElementById('calendar');
+            const eventListEl = document.getElementById('event-list');
+            
+            if (!calendarEl) return;
+            
+            // Default events as fallback
+            const defaultEvents = [
                 { title: "Homeowners Meeting", start: "2025-04-15", color: "#FF9AA2" },
                 { title: "Facility Maintenance", start: "2025-04-20", color: "#B5EAD7" },
                 { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" },
-                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" },
-                { title: "Garden Committee", start: "2025-04-29", color: "#98D8AA" }
+                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" }
             ];
-
-            // Calendar Setup - Completely rewritten for reliability
-            function initializeCalendar() {
-                var calendarEl = document.getElementById('calendar');
-                var eventListEl = document.getElementById('event-list');
-
-                if (!calendarEl) {
-                    console.error('Calendar element not found');
-                    return;
-                }
-
-                // Make sure the calendar element is visible and has height
-                calendarEl.style.minHeight = '400px';
-
-                try {
-                    // Get events from server with proper error handling
-                    var events = defaultEvents;
-
-        @if (ViewBag.Events != null)
-        {
-            <text>
-                            try {
-                                var serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
-                                if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                                    events = serverEvents;
-                                }
-                            } catch (e) {
-                                console.error("Error parsing server events:", e);
-                            }
-            </text>
-        }
-
-                    // Create calendar instance
-                    var calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        initialDate: '2025-04-24',
-                        themeSystem: 'standard',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek'
-                        },
-                        height: 450,
-                        events: events,
-                        dayMaxEvents: true, // Show "more" link when too many events
-                        displayEventTime: false // Don't show event time
-                    });
-
-                    // Render calendar
-                    calendar.render();
-
-                    // Update the event list
-                    updateEventList(eventListEl, events);
-
-                } catch (error) {
-                    console.error('Calendar initialization failed:', error);
-                    // Show error message
-                    calendarEl.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-64 bg-red-50 rounded-lg p-4">
-                            <i class="ph ph-calendar-x text-4xl text-red-400 mb-2"></i>
-                            <p class="text-red-600">Could not load the calendar.</p>
-                            <button onclick="initializeCalendar()" class="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                                Try Again
-                            </button>
-                        </div>
-                    `;
-
-                    // Add fallback event list
-                    if (eventListEl) {
-                        eventListEl.innerHTML = `
-                            <li class="p-3 border border-gray-200 rounded-lg">
-                                <div class="text-center text-gray-500">
-                                    <i class="ph ph-calendar-x text-2xl mb-2"></i>
-                                    <p>Could not load events.</p>
-                                </div>
-                            </li>
-                        `;
+            
+            try {
+                // Use server events if available, otherwise default
+                let events = defaultEvents;
+                
+                @if (ViewBag.Events != null)
+                {
+                    <text>
+                    try {
+                        const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                        if (Array.isArray(serverEvents) && serverEvents.length > 0) {
+                            events = serverEvents;
+                        }
+                    } catch (e) {
+                        console.error("Error with server events:", e);
                     }
+                    </text>
+                }
+                
+                // Basic calendar configuration
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    initialDate: new Date(),
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek'
+                    },
+                    height: 'auto',
+                    events: events,
+                    dayMaxEvents: 3
+                });
+                
+                calendar.render();
+                
+                // Update event list
+                if (eventListEl) {
+                    updateEventList(eventListEl, events);
+                }
+            } catch (error) {
+                console.error("Calendar error:", error);
+                // Fallback simple display
+                calendarEl.innerHTML = '<div class="p-4 text-red-500">Calendar could not be loaded</div>';
+                
+                // Still update event list
+                if (eventListEl) {
+                    updateEventList(eventListEl, defaultEvents);
                 }
             }
-
-            // Helper function to update event list
-            function updateEventList(eventListEl, events) {
-                if (!eventListEl) return;
-
-                // Clear existing events
-                eventListEl.innerHTML = '';
-
-                if (!events || events.length === 0) {
-                    eventListEl.innerHTML = `
-                        <li class="p-3 border border-gray-200 rounded-lg">
-                            <div class="text-center text-gray-500">
-                                <i class="ph ph-calendar text-2xl mb-2"></i>
-                                <p>No upcoming events.</p>
-                            </div>
-                        </li>
-                    `;
-                    return;
-                }
-
-                // Sort events by date
-                events.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-                // Add events to the list
-                events.forEach(function(event) {
-                    let li = document.createElement('li');
-
-                    // Format date
-                    const eventDate = new Date(event.start);
-                    const formattedDate = eventDate.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric'
-                    });
-
-                    // Set icon based on event title
-                    let icon = 'ph-calendar-check';
-                    if (event.title.toLowerCase().includes('meeting')) {
-                        icon = 'ph-users';
-                    } else if (event.title.toLowerCase().includes('maintenance')) {
-                        icon = 'ph-wrench';
-                    } else if (event.title.toLowerCase().includes('clean')) {
-                        icon = 'ph-broom';
-                    } else if (event.title.toLowerCase().includes('easter')) {
-                        icon = 'ph-egg';
-                    } else if (event.title.toLowerCase().includes('garden')) {
-                        icon = 'ph-plant';
-                    }
-
-                    // Create event list item
-                    li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
-                    li.style.borderLeftColor = event.color || '#94B0DF';
-                    li.innerHTML = `
-                        <div class="flex items-center">
-                            <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
-                                <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
-                            </div>
-                            <div>
-                                <p class="font-medium flex items-center">
-                                    <i class="ph ${icon} mr-2" style="color: ${event.color || '#94B0DF'}"></i>
-                                    ${event.title}
-                                </p>
-                            </div>
+        }
+        
+        function updateEventList(eventListEl, events) {
+            if (!eventListEl || !events) return;
+            
+            // Clear list
+            eventListEl.innerHTML = '';
+            
+            // No events message
+            if (events.length === 0) {
+                eventListEl.innerHTML = `
+                    <li class="p-3 border border-gray-200 rounded-lg">
+                        <div class="text-center text-gray-500">
+                            <i class="ph ph-calendar text-2xl mb-2"></i>
+                            <p>No upcoming events.</p>
                         </div>
-                    `;
-                    eventListEl.appendChild(li);
+                    </li>
+                `;
+                return;
+            }
+            
+            // Sort and filter upcoming events
+            events.sort((a, b) => new Date(a.start) - new Date(b.start));
+            const today = new Date();
+            const upcomingEvents = events.filter(event => new Date(event.start) >= today);
+            const displayEvents = upcomingEvents.length > 0 ? upcomingEvents : events;
+            
+            // Display events
+            displayEvents.forEach(event => {
+                const eventDate = new Date(event.start);
+                const formattedDate = eventDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                let icon = 'ph-calendar-check';
+                if (event.title.toLowerCase().includes('meeting')) icon = 'ph-users';
+                else if (event.title.toLowerCase().includes('maintenance')) icon = 'ph-wrench';
+                else if (event.title.toLowerCase().includes('clean')) icon = 'ph-broom';
+                else if (event.title.toLowerCase().includes('easter')) icon = 'ph-egg';
+                
+                const li = document.createElement('li');
+                li.className = 'p-3 rounded-lg border-l-4 transition-all hover:bg-gray-50';
+                li.style.borderLeftColor = event.color || '#94B0DF';
+                li.innerHTML = `
+                    <div class="flex items-center">
+                        <div class="text-center mr-3 bg-gray-50 rounded-full h-10 w-10 flex items-center justify-center">
+                            <span class="block text-sm font-bold text-gray-600">${formattedDate}</span>
+                        </div>
+                        <div>
+                            <p class="font-medium flex items-center">
+                                <i class="ph ${icon} mr-2" style="color: ${event.color || '#94B0DF'}"></i>
+                                ${event.title}
+                            </p>
+                        </div>
+                    </div>
+                `;
+                eventListEl.appendChild(li);
+            });
+        }
+        
+        function setupNotifications() {
+            const notificationBtn = document.getElementById('notification-toggle-btn');
+            const notificationDropdown = document.getElementById('notification-dropdown');
+            
+            if (notificationBtn && notificationDropdown) {
+                notificationBtn.addEventListener('click', function() {
+                    notificationDropdown.classList.toggle('hidden');
+                });
+                
+                document.addEventListener('click', function(event) {
+                    if (!notificationBtn.contains(event.target) && !notificationDropdown.contains(event.target)) {
+                        notificationDropdown.classList.add('hidden');
+                    }
                 });
             }
-
-            // Initialize the calendar
-            initializeCalendar();
-
-            // Announcements Modal
+        }
+        
+        function setupAnnouncementsModal() {
             const announcementsModal = document.getElementById('announcements-modal');
             const viewAllAnnouncementsBtn = document.getElementById('view-all-announcements');
             const closeAnnouncementsModalBtn = document.getElementById('close-announcements-modal');
-
-            viewAllAnnouncementsBtn.addEventListener('click', function() {
-                announcementsModal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
-            });
-
-            closeAnnouncementsModalBtn.addEventListener('click', function() {
-                announcementsModal.classList.add('hidden');
-                document.body.style.overflow = ''; // Re-enable scrolling
-            });
-
-            // Close modal when clicking outside of it
-            announcementsModal.addEventListener('click', function(e) {
-                if (e.target === announcementsModal) {
+            
+            if (viewAllAnnouncementsBtn && announcementsModal && closeAnnouncementsModalBtn) {
+                viewAllAnnouncementsBtn.addEventListener('click', function() {
+                    announcementsModal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                });
+                
+                closeAnnouncementsModalBtn.addEventListener('click', function() {
                     announcementsModal.classList.add('hidden');
                     document.body.style.overflow = '';
-                }
-            });
-
-            // Close modal with escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && !announcementsModal.classList.contains('hidden')) {
-                    announcementsModal.classList.add('hidden');
-                    document.body.style.overflow = '';
-                }
-            });
-        });
+                });
+                
+                announcementsModal.addEventListener('click', function(e) {
+                    if (e.target === announcementsModal) {
+                        announcementsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        }
+        
+        function hideSuccessToast() {
+            const successToast = document.getElementById('success-toast');
+            if (successToast) {
+                successToast.classList.add('hidden');
+            }
+        }
     </script>
-</body>
-</html>
+}

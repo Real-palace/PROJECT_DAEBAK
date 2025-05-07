@@ -1,418 +1,329 @@
 @{
     ViewData["Title"] = "Facilities - Subdivision Homeowner's Portal";
-    Layout = null;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"]</title>
-    <!-- Add Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
-    
-    <!-- Replace Phosphor Icons import with a working version -->
-    <script src="https://unpkg.com/@@phosphor-icons/web"></script>
+<!-- Include the FullCalendar CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
 
-    <!-- Custom Tailwind Configuration -->
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#94B0DF',
-                        secondary: '#356480',
-                        tertiary: '#2c3e50',
-                        light: '#FCFDFF',
-                    }
-                },
-                fontFamily: {
-                    sans: ['Poppins', 'sans-serif'],
-                }
-            }
-        }
-    </script>
-    <!-- Fix Poppins font import for Razor syntax -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap">
-</head>
-<body class="font-sans bg-light flex min-h-screen">
-    <!-- Sidebar -->
-    <div class="fixed top-0 left-0 h-screen w-20 bg-primary flex flex-col items-center justify-between py-5 shadow-md z-10">
-        <!-- Logo -->
-        <div class="w-full flex justify-center py-4">
-            <img src="~/images/daebak_logo.png" alt="Subdivision Logo" class="w-12 h-auto">
+<!-- Facility Banner -->
+<div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
+    <img src="~/images/facilities_banner.jpg" alt="Facilities Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
+    <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
+        <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Subdivision Facilities</h2>
+        <p class="text-gray-700 font-light mt-2">Browse and book our community facilities for your events and activities.</p>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="flex border-b border-gray-200 mt-8">
+    <button id="book-tab" class="py-3 px-6 border-b-2 border-secondary text-secondary font-medium">Book a Facility</button>
+    <button id="reservations-tab" class="py-3 px-6 text-gray-500 font-medium">My Reservations</button>
+</div>
+
+<!-- Book a Facility Section -->
+<div id="book-section" class="mt-6">
+    <!-- Facility Selection Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- These cards will be populated from the database -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="1">
+            <img src="~/images/clubhouse.jpg" alt="Clubhouse" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Clubhouse</h3>
+                <p class="text-gray-600 text-sm">Perfect for parties and gatherings</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Main Avenue, Community Center</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 50</span>
+                </div>
+            </div>
         </div>
-
-        <!-- Menu Items -->
-        <div class="flex flex-col items-center gap-5">
-            <a href="@Url.Action("Home", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Dashboard">
-                <i class="ph ph-house-simple"></i>
-            </a>
-            <a href="@Url.Action("Billing", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Billing & Payments">
-                <i class="ph ph-credit-card"></i>
-            </a>
-            <a href="@Url.Action("Facilities", "Home")" class="relative w-full h-14 flex justify-center items-center text-tertiary text-2xl transition-colors group" title="Facilities">
-                <i class="ph ph-tree-structure"></i>
-            </a>
-            <a href="@Url.Action("Services", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Services">
-                <i class="ph ph-wrench"></i>
-            </a>
-            <a href="@Url.Action("Security", "Home")" class="relative w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors group" title="Security">
-                <i class="ph ph-shield"></i>
-            </a>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="2">
+            <img src="~/images/swimming_pool.jpg" alt="Swimming Pool" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Swimming Pool</h3>
+                <p class="text-gray-600 text-sm">Olympic-sized pool with lanes</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Recreational Zone, Block C</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 30</span>
+                </div>
+            </div>
         </div>
-
-        <!-- User Profile and Logout -->
-        <div class="flex flex-col items-center gap-3">
-            <a href="@Url.Action("Logout", "Account")" class="w-full h-14 flex justify-center items-center text-white text-2xl hover:text-tertiary transition-colors" title="Logout">
-                <i class="ph ph-sign-out"></i>
-            </a>
+        
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="3">
+            <img src="~/images/basketball_court.jpg" alt="Basketball Court" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Basketball Court</h3>
+                <p class="text-gray-600 text-sm">Full-sized court with lighting</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Sports Complex, East Wing</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 20</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Facility: Gameroom -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="4">
+            <img src="~/images/gameroom.jpg" alt="Gameroom" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Gameroom</h3>
+                <p class="text-gray-600 text-sm">Billiards, ping pong, and board games</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Community Center, 2nd Floor</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 15</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Facility: Gym & Fitness Center -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="5">
+            <img src="~/images/gym.jpg" alt="Gym & Fitness Center" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Gym & Fitness Center</h3>
+                <p class="text-gray-600 text-sm">Modern equipment for cardio and strength training</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Health Plaza, Block A</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 25</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- New Facility: Multi-purpose Hall -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="6">
+            <img src="~/images/multipurpose_hall.jpg" alt="Multi-purpose Hall" class="w-full h-40 object-cover">
+            <div class="p-4">
+                <h3 class="font-semibold text-lg">Multi-Purpose Hall</h3>
+                <p class="text-gray-600 text-sm">Flexible space for events and activities</p>
+                <div class="flex items-center mt-2 text-xs text-gray-500">
+                    <i class="ph ph-map-pin mr-1"></i>
+                    <span>Events Center, West Entrance</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
+                    <span class="text-sm text-gray-600">Capacity: 100</span>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="ml-20 w-full min-h-screen bg-gradient-to-r from-light to-blue-100">
-        <!-- Top Navigation Bar -->
-        <div class="bg-white shadow-sm sticky top-0 z-10">
-            <div class="max-w-7xl mx-auto px-6 py-3 flex justify-between items-center">
-                <div class="text-lg font-medium text-tertiary">Facilities</div>
-
-                <div class="flex items-center gap-5">
-                    <!-- Search Bar -->
-                    <div class="hidden md:flex relative">
-                        <input type="text" placeholder="Search..." class="bg-gray-100 rounded-full py-1.5 px-4 pr-10 w-56 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                        <button class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                            <i class="ph ph-magnifying-glass"></i>
-                        </button>
-                    </div>
-
-                    <!-- Notifications -->
-                    <div class="relative">
-                        <button class="relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
-                            <i class="ph ph-bell text-2xl"></i>
-                            <span class="absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
-                        </button>
-                    </div>
-
-                    <!-- User Menu -->
-                    <div class="relative">
-                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
-                            <span class="hidden md:block">@ViewBag.UserName</span>
-                            <div class="w-9 h-9 bg-primary/20 rounded-full flex items-center justify-center text-primary">
-                                <i class="ph ph-user"></i>
-                            </div>
-                        </a>
-                    </div>
-                </div>
+    <!-- Booking Form and Calendar -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Calendar -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph ph-calendar-check text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Availability Calendar</h3>
             </div>
+            <div id="facility-calendar"></div>
         </div>
-
-        <div class="p-6">
-            <!-- Facility Banner -->
-            <div class="bg-primary rounded-xl shadow-lg overflow-hidden flex items-end justify-between mt-4 relative">
-                <img src="~/images/facilities_banner.jpg" alt="Facilities Image" class="absolute bottom-0 left-0 h-48 md:h-auto md:w-72 lg:w-80">
-                <div class="ml-0 md:ml-72 lg:ml-80 p-6 md:p-8">
-                    <h2 class="text-2xl md:text-3xl font-semibold text-tertiary">Subdivision Facilities</h2>
-                    <p class="text-gray-700 font-light mt-2">Browse and book our community facilities for your events and activities.</p>
-                </div>
-            </div>
-
-            <!-- Tab Navigation -->
-            <div class="flex border-b border-gray-200 mt-8">
-                <button id="book-tab" class="py-3 px-6 border-b-2 border-secondary text-secondary font-medium">Book a Facility</button>
-                <button id="reservations-tab" class="py-3 px-6 text-gray-500 font-medium">My Reservations</button>
-            </div>
-
-            <!-- Book a Facility Section -->
-            <div id="book-section" class="mt-6">
-                <!-- Facility Selection Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- These cards will be populated from the database -->
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="1">
-                        <img src="~/images/clubhouse.jpg" alt="Clubhouse" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Clubhouse</h3>
-                            <p class="text-gray-600 text-sm">Perfect for parties and gatherings</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Main Avenue, Community Center</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 50</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="2">
-                        <img src="~/images/swimming_pool.jpg" alt="Swimming Pool" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Swimming Pool</h3>
-                            <p class="text-gray-600 text-sm">Olympic-sized pool with lanes</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Recreational Zone, Block C</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 30</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="3">
-                        <img src="~/images/basketball_court.jpg" alt="Basketball Court" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Basketball Court</h3>
-                            <p class="text-gray-600 text-sm">Full-sized court with lighting</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Sports Complex, East Wing</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 20</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- New Facility: Gameroom -->
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="4">
-                        <img src="~/images/gameroom.jpg" alt="Gameroom" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Gameroom</h3>
-                            <p class="text-gray-600 text-sm">Billiards, ping pong, and board games</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Community Center, 2nd Floor</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 15</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- New Facility: Gym & Fitness Center -->
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="5">
-                        <img src="~/images/gym.jpg" alt="Gym & Fitness Center" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Gym & Fitness Center</h3>
-                            <p class="text-gray-600 text-sm">Modern equipment for cardio and strength training</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Health Plaza, Block A</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 25</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- New Facility: Multi-purpose Hall -->
-                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer facility-card" data-id="6">
-                        <img src="~/images/multipurpose_hall.jpg" alt="Multi-purpose Hall" class="w-full h-40 object-cover">
-                        <div class="p-4">
-                            <h3 class="font-semibold text-lg">Multi-Purpose Hall</h3>
-                            <p class="text-gray-600 text-sm">Flexible space for events and activities</p>
-                            <div class="flex items-center mt-2 text-xs text-gray-500">
-                                <i class="ph ph-map-pin mr-1"></i>
-                                <span>Events Center, West Entrance</span>
-                            </div>
-                            <div class="mt-3 flex items-center justify-between">
-                                <span class="text-sm font-medium bg-green-100 text-green-700 px-2 py-1 rounded">Available</span>
-                                <span class="text-sm text-gray-600">Capacity: 100</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Booking Form and Calendar -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Calendar -->
-                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-                        <div class="flex items-center gap-2 mb-4">
-                            <i class="ph ph-calendar-check text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Availability Calendar</h3>
-                        </div>
-                        <div id="facility-calendar"></div>
-                    </div>
-                    
-                    <!-- Booking Form -->
-                    <div class="bg-white p-6 rounded-xl shadow-md">
-                        <div class="flex items-center gap-2 mb-4">
-                            <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
-                            <h3 class="font-semibold text-lg text-tertiary">Book Facility</h3>
-                        </div>
-                        
-                        <form id="booking-form" asp-controller="Facilities" asp-action="BookFacility" method="post">
-                            <input type="hidden" id="facility-id" name="FacilityId" value="">
-                            
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-medium mb-2" for="selected-facility">
-                                    Selected Facility
-                                </label>
-                                <input type="text" id="selected-facility" class="bg-gray-100 p-2 rounded w-full" readonly>
-                            </div>
-                            
-                            <div class="mb-4">
-                                <label class="block text-gray-700 text-sm font-medium mb-2" for="reservation-date">
-                                    Reservation Date
-                                </label>
-                                <input type="datetime-local" id="reservation-date" name="ReservationDate" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary">
-                            </div>
-                            
-                            <div class="mt-6">
-                                <button type="submit" class="bg-secondary text-white py-2 px-4 rounded-lg hover:bg-secondary/90 transition-colors w-full">
-                                    Submit Reservation
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                
-                <!-- Cancellation Policy -->
-                <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-4">
-                        <i class="ph ph-info text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Reservation & Cancellation Policy</h3>
-                    </div>
-                    <div class="space-y-3 text-gray-700">
-                        <p><span class="font-medium">Booking Rules:</span> Facilities can be booked up to 30 days in advance. Each homeowner is limited to 2 active reservations at a time.</p>
-                        <p><span class="font-medium">Confirmation:</span> You will receive an email confirmation once your reservation is approved by the administration.</p>
-                        <p><span class="font-medium">Cancellation Policy:</span> Reservations can be cancelled up to 48 hours before the scheduled time without penalty.</p>
-                        <p><span class="font-medium">Late Cancellation:</span> Cancellations made less than 48 hours before the reservation may result in a penalty fee of $25.</p>
-                        <p><span class="font-medium">No-Show Policy:</span> Failure to use a reserved facility without cancellation may result in reservation privileges being suspended.</p>
-                    </div>
-                </div>
+        
+        <!-- Booking Form -->
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <div class="flex items-center gap-2 mb-4">
+                <i class="ph ph-calendar-plus text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-tertiary">Book Facility</h3>
             </div>
             
-            <!-- My Reservations Section (Hidden initially) -->
-            <div id="reservations-section" class="mt-6 hidden">
-                <div class="bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-6">
-                        <i class="ph ph-calendar text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">My Current Reservations</h3>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200" id="reservations-table-body">
-                                <!-- Sample Data - Will be replaced with actual data -->
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="text-sm font-medium text-gray-900">Clubhouse</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">March 15, 2025 • 2:00 PM</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmed</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button class="text-red-600 hover:text-red-900 mr-3">Cancel</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="text-sm font-medium text-gray-900">Swimming Pool</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">March 20, 2025 • 10:00 AM</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                        <button class="text-red-600 hover:text-red-900 mr-3">Cancel</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <!-- No reservations message (hidden by default) -->
-                    <div id="no-reservations" class="text-center py-8 hidden">
-                        <div class="text-gray-400 mb-2"><i class="ph ph-calendar-x text-4xl"></i></div>
-                        <p class="text-gray-500">You don't have any active reservations.</p>
-                        <button id="make-reservation-btn" class="mt-4 bg-primary text-white py-2 px-4 rounded hover:bg-primary/90 transition-colors">
-                            Book a Facility
-                        </button>
-                    </div>
+            <form id="booking-form" asp-controller="Facilities" asp-action="BookFacility" method="post">
+                <input type="hidden" id="facility-id" name="FacilityId" value="">
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="selected-facility">
+                        Selected Facility
+                    </label>
+                    <input type="text" id="selected-facility" class="bg-gray-100 p-2 rounded w-full" readonly>
                 </div>
                 
-                <!-- Reservation History -->
-                <div class="mt-6 bg-white p-6 rounded-xl shadow-md">
-                    <div class="flex items-center gap-2 mb-6">
-                        <i class="ph ph-clock-counter-clockwise text-lg text-tertiary"></i>
-                        <h3 class="font-semibold text-lg text-tertiary">Reservation History</h3>
-                    </div>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <!-- Sample Data - Will be replaced with actual data -->
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="text-sm font-medium text-gray-900">Basketball Court</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">February 12, 2025 • 4:00 PM</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Completed</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="text-sm font-medium text-gray-900">Clubhouse</div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">January 25, 2025 • 7:00 PM</div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelled</span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="start-date-time">
+                        Start Date & Time*
+                    </label>
+                    <input type="datetime-local" id="start-date-time" name="StartDateTime" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
                 </div>
-            </div>
-
-            <!-- Footer with copyright -->
-            <div class="text-center mt-10 mb-4 text-sm text-gray-500">
-                © @DateTime.Now.Year Daebak Subdivision. All rights reserved.
-            </div>
+                
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="end-date-time">
+                        End Date & Time*
+                    </label>
+                    <input type="datetime-local" id="end-date-time" name="EndDateTime" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div class="mt-6">
+                    <button type="submit" class="bg-secondary text-white py-2 px-4 rounded-lg hover:bg-secondary/90 transition-colors w-full">
+                        Submit Reservation
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
+    
+    <!-- Cancellation Policy -->
+    <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center gap-2 mb-4">
+            <i class="ph ph-info text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">Reservation & Cancellation Policy</h3>
+        </div>
+        <div class="space-y-3 text-gray-700">
+            <p><span class="font-medium">Booking Rules:</span> Facilities can be booked up to 30 days in advance. Each homeowner is limited to 2 active reservations at a time.</p>
+            <p><span class="font-medium">Confirmation:</span> You will receive an email confirmation once your reservation is approved by the administration.</p>
+            <p><span class="font-medium">Cancellation Policy:</span> Reservations can be cancelled up to 48 hours before the scheduled time without penalty.</p>
+            <p><span class="font-medium">Late Cancellation:</span> Cancellations made less than 48 hours before the reservation may result in a penalty fee of $25.</p>
+            <p><span class="font-medium">No-Show Policy:</span> Failure to use a reserved facility without cancellation may result in reservation privileges being suspended.</p>
+        </div>
+    </div>
+</div>
 
+<!-- My Reservations Section (Hidden initially) -->
+<div id="reservations-section" class="mt-6 hidden">
+    <div class="bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center gap-2 mb-6">
+            <i class="ph ph-calendar text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">My Current Reservations</h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date & Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date & Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" id="reservations-table-body">
+                    <!-- Sample Data - Will be replaced with actual data -->
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-gray-900">Clubhouse</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">March 15, 2025 • 2:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">March 15, 2025 • 6:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Confirmed</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-red-600 hover:text-red-900 mr-3">Cancel</button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-gray-900">Swimming Pool</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">March 20, 2025 • 10:00 AM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">March 20, 2025 • 12:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Pending</span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button class="text-red-600 hover:text-red-900 mr-3">Cancel</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- No reservations message (hidden by default) -->
+        <div id="no-reservations" class="text-center py-8 hidden">
+            <div class="text-gray-400 mb-2"><i class="ph ph-calendar-x text-4xl"></i></div>
+            <p class="text-gray-500">You don't have any active reservations.</p>
+            <button id="make-reservation-btn" class="mt-4 bg-primary text-white py-2 px-4 rounded hover:bg-primary/90 transition-colors">
+                Book a Facility
+            </button>
+        </div>
+    </div>
+    
+    <!-- Reservation History -->
+    <div class="mt-6 bg-white p-6 rounded-xl shadow-md">
+        <div class="flex items-center gap-2 mb-6">
+            <i class="ph ph-clock-counter-clockwise text-lg text-tertiary"></i>
+            <h3 class="font-semibold text-lg text-tertiary">Reservation History</h3>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Facility</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date & Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Date & Time</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Sample Data - Will be replaced with actual data -->
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-gray-900">Basketball Court</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">February 12, 2025 • 4:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">February 12, 2025 • 6:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Completed</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="text-sm font-medium text-gray-900">Clubhouse</div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">January 25, 2025 • 7:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">January 25, 2025 • 9:00 PM</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Cancelled</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -434,12 +345,23 @@
                 },
                 selectable: true,
                 select: function(info) {
-                    // Set the selected date in the booking form
-                    document.getElementById('reservation-date').value = 
-                        info.startStr.replace(/T.*$/, '') + 'T12:00:00';
+                    // Get the selected date
+                    const selectedDate = info.startStr.replace(/T.*$/, '');
                     
-                    // Alert user about selection (in production, would update UI more elegantly)
-                    alert('Selected date: ' + info.startStr);
+                    // Set default times - event starts at selected time and ends 2 hours later
+                    const startTime = selectedDate + 'T12:00:00';
+                    
+                    // Create date objects for calculation
+                    const startDate = new Date(startTime);
+                    const endDate = new Date(startDate.getTime() + (2 * 60 * 60 * 1000)); // Add 2 hours
+                    
+                    // Format end date for the input
+                    const endTime = endDate.toISOString().slice(0, 16);
+                    
+                    // Set the values in the form fields
+                    document.getElementById('start-date-time').value = startTime;
+                    document.getElementById('end-date-time').value = endTime;
+                    
                     calendar.unselect();
                 },
                 events: reservations,
@@ -502,5 +424,4 @@
             }
         });
     </script>
-</body>
-</html>
+}

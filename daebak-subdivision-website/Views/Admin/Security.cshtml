@@ -1,0 +1,2002 @@
+@{
+    ViewData["Title"] = "Security Management";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-shield text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Security Management</h2>
+            <p class="text-gray-600 mt-1">Manage visitor passes, vehicle registrations, and security alerts for the subdivision</p>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="flex border-b border-gray-200 mb-6">
+    <button id="visitor-tab" class="tab-btn active px-6 py-3 border-b-2 border-primary font-medium text-primary">Visitor Passes</button>
+    <button id="vehicle-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Vehicles</button>
+    <button id="emergency-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Emergency Contacts</button>
+    <button id="alerts-tab" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">Security Alerts</button>
+</div>
+
+<!-- Visitor Passes Section -->
+<div id="visitor-section" class="tab-content">
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-identification-card text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-gray-900">Visitor Pass Management</h3>
+            </div>
+            <div>
+                <button id="create-visitor-pass-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                    <i class="ph ph-plus mr-1"></i> Create Pass
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="pass-status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="pass-status-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="all">All</option>
+                        <option value="approved">Approved</option>
+                        <option value="pending">Pending</option>
+                        <option value="used">Used</option>
+                        <option value="expired">Expired</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="visitor-date-filter" class="block text-sm font-medium text-gray-700 mb-1">Visit Date</label>
+                    <input type="date" id="visitor-date-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+                <div>
+                    <label for="homeowner-filter" class="block text-sm font-medium text-gray-700 mb-1">Homeowner</label>
+                    <input type="text" id="homeowner-filter" placeholder="Search by name..." class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+                <div class="flex items-end">
+                    <button id="apply-visitor-filters-btn" class="px-4 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                        <i class="ph ph-funnel mr-1"></i> Filter
+                    </button>
+                    <button id="clear-visitor-filters-btn" class="ml-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visitor Pass Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pass ID</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visitor Name</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Visit Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Sample data rows -->
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">VP12345</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">John Smith</div>
+                            <div class="text-xs text-gray-500">0917-123-4567</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">Maria Garcia</div>
+                            <div class="text-xs text-gray-500">House #102</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 15, 2025 • 2:00 PM</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Family Visit</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Approved
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button class="view-pass-btn text-blue-600 hover:text-blue-800" data-id="VP12345">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                                <button class="edit-pass-btn text-blue-600 hover:text-blue-800" data-id="VP12345">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </button>
+                                <button class="cancel-pass-btn text-red-600 hover:text-red-800" data-id="VP12345">
+                                    <i class="ph ph-x-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">VP12346</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">Jane Doe</div>
+                            <div class="text-xs text-gray-500">0919-876-5432</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">Roberto Tan</div>
+                            <div class="text-xs text-gray-500">House #105</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Mar 20, 2025 • 4:30 PM</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Friend Visit</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Pending
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button class="view-pass-btn text-blue-600 hover:text-blue-800" data-id="VP12346">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                                <button class="approve-pass-btn text-green-600 hover:text-green-800" data-id="VP12346">
+                                    <i class="ph ph-check-circle"></i>
+                                </button>
+                                <button class="cancel-pass-btn text-red-600 hover:text-red-800" data-id="VP12346">
+                                    <i class="ph ph-x-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                Showing <span id="current-count">2</span> of <span id="total-count">25</span> passes
+            </div>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Previous
+                </button>
+                <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Registration Section -->
+<div id="vehicle-section" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-car text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-gray-900">Vehicle Registry</h3>
+            </div>
+            <div>
+                <button id="add-vehicle-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                    <i class="ph ph-plus mr-1"></i> Add Vehicle
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Options -->
+        <div class="bg-gray-50 p-4 rounded-lg mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="vehicle-status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                    <select id="vehicle-status-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="all">All</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="vehicle-type-filter" class="block text-sm font-medium text-gray-700 mb-1">Vehicle Type</label>
+                    <select id="vehicle-type-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        <option value="all">All Types</option>
+                        <option value="sedan">Sedan</option>
+                        <option value="suv">SUV</option>
+                        <option value="truck">Truck</option>
+                        <option value="motorcycle">Motorcycle</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="vehicle-search" class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                    <input type="text" id="vehicle-search" placeholder="Plate # or owner name..." class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                </div>
+                <div class="flex items-end">
+                    <button id="apply-vehicle-filters-btn" class="px-4 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                        <i class="ph ph-funnel mr-1"></i> Filter
+                    </button>
+                    <button id="clear-vehicle-filters-btn" class="ml-2 px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                        Clear
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehicle Table -->
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plate Number</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle Details</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <!-- Sample data rows -->
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">ABC-1234</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">Honda Civic (2020)</div>
+                            <div class="text-xs text-gray-500">Silver • Sedan</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">Juan Dela Cruz</div>
+                            <div class="text-xs text-gray-500">House #101</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Jan 15, 2025</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Active
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button class="view-vehicle-btn text-blue-600 hover:text-blue-800" data-id="ABC-1234">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                                <button class="edit-vehicle-btn text-blue-600 hover:text-blue-800" data-id="ABC-1234">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </button>
+                                <button class="deactivate-vehicle-btn text-red-600 hover:text-red-800" data-id="ABC-1234">
+                                    <i class="ph ph-x-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">XYZ-5678</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">Toyota RAV4 (2022)</div>
+                            <div class="text-xs text-gray-500">Blue • SUV</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm text-gray-900">Maria Santos</div>
+                            <div class="text-xs text-gray-500">House #102</div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Feb 20, 2025</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Active
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div class="flex space-x-2">
+                                <button class="view-vehicle-btn text-blue-600 hover:text-blue-800" data-id="XYZ-5678">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                                <button class="edit-vehicle-btn text-blue-600 hover:text-blue-800" data-id="XYZ-5678">
+                                    <i class="ph ph-pencil-simple"></i>
+                                </button>
+                                <button class="deactivate-vehicle-btn text-red-600 hover:text-red-800" data-id="XYZ-5678">
+                                    <i class="ph ph-x-circle"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4 flex items-center justify-between">
+            <div class="text-sm text-gray-500">
+                Showing <span id="vehicle-current-count">2</span> of <span id="vehicle-total-count">38</span> vehicles
+            </div>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Previous
+                </button>
+                <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Emergency Contacts Section -->
+<div id="emergency-section" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-phone text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-gray-900">Emergency Contact Directory</h3>
+            </div>
+            <div>
+                <button id="edit-contacts-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                    <i class="ph ph-pencil-simple mr-1"></i> Edit Directory
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Security Office -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-red-100 p-3 rounded-full">
+                        <i class="ph ph-shield-star text-xl text-red-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Security Office</h4>
+                        <a href="tel:+639171234567" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 917 123 4567
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">Available 24/7 for security concerns and emergencies within the subdivision.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Office -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-blue-100 p-3 rounded-full">
+                        <i class="ph ph-buildings text-xl text-blue-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Administration Office</h4>
+                        <a href="tel:+639189876543" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 918 987 6543
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">For administrative concerns and inquiries. Office hours: 8:00 AM - 5:00 PM, Monday to Friday.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Maintenance -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-green-100 p-3 rounded-full">
+                        <i class="ph ph-wrench text-xl text-green-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Maintenance Department</h4>
+                        <a href="tel:+639191234567" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 919 123 4567
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">For urgent maintenance and repair concerns within common areas.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Local Police -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-indigo-100 p-3 rounded-full">
+                        <i class="ph ph-police-car text-xl text-indigo-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Police Station</h4>
+                        <a href="tel:+6391234567890" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 912 345 6789
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">Local police station for emergencies outside the subdivision or serious incidents.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Fire Department -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-orange-100 p-3 rounded-full">
+                        <i class="ph ph-fire-extinguisher text-xl text-orange-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Fire Department</h4>
+                        <a href="tel:+639765432109" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 976 543 2109
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">Fire emergencies and related concerns.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Medical Emergency -->
+            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex items-start gap-3">
+                    <div class="bg-pink-100 p-3 rounded-full">
+                        <i class="ph ph-first-aid-kit text-xl text-pink-500"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-medium text-lg">Medical Emergency</h4>
+                        <a href="tel:+639876543210" class="text-blue-600 hover:underline flex items-center gap-1 mt-1">
+                            <i class="ph ph-phone"></i> +63 987 654 3210
+                        </a>
+                        <p class="text-sm text-gray-500 mt-2">For medical emergencies and ambulance requests.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Emergency Protocol Settings -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium text-lg text-tertiary flex items-center">
+                    <i class="ph ph-lifebuoy mr-2"></i>
+                    Emergency Protocols
+                </h4>
+                <button id="edit-protocols-btn" class="text-sm text-blue-600 flex items-center gap-1">
+                    <i class="ph ph-pencil-simple"></i> Edit Protocols
+                </button>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <div class="flex items-start gap-2">
+                    <i class="ph ph-info text-blue-500 mt-0.5"></i>
+                    <div>
+                        <h4 class="font-medium text-blue-800">Standard Emergency Procedures</h4>
+                        <ul class="list-disc list-inside text-sm text-blue-700 mt-2 space-y-1">
+                            <li>Security personnel must respond to all emergency calls within 3 minutes.</li>
+                            <li>Document all incidents in the incident report system immediately.</li>
+                            <li>For medical emergencies, contact both the security office and emergency medical services.</li>
+                            <li>In case of fire, evacuate the affected area and follow the fire safety protocol.</li>
+                            <li>All gates must remain accessible for emergency vehicles at all times.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Security Alerts Section -->
+<div id="alerts-section" class="tab-content hidden">
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-warning text-lg text-tertiary"></i>
+                <h3 class="font-semibold text-lg text-gray-900">Security Alerts & Advisories</h3>
+            </div>
+            <div>
+                <button id="create-alert-btn" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors flex items-center">
+                    <i class="ph ph-plus mr-1"></i> Create Alert
+                </button>
+            </div>
+        </div>
+        
+        <div class="space-y-6">
+            <!-- Alert 1 -->
+            <div class="border-l-4 border-yellow-400 bg-yellow-50 p-4 rounded-r-lg relative">
+                <div class="absolute top-2 right-2 flex space-x-2">
+                    <button class="edit-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="delete-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="ph ph-warning-circle text-yellow-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-yellow-800">Gate Access System Maintenance</h3>
+                        <div class="mt-2 text-sm text-yellow-700">
+                            <p>The main gate access system will undergo maintenance on March 15, 2025, from 10:00 AM to 2:00 PM. Please expect slight delays during entry and exit.</p>
+                        </div>
+                        <div class="mt-1 text-xs text-yellow-600">Posted on March 10, 2025</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alert 2 -->
+            <div class="border-l-4 border-red-400 bg-red-50 p-4 rounded-r-lg relative">
+                <div class="absolute top-2 right-2 flex space-x-2">
+                    <button class="edit-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="delete-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="ph ph-warning-octagon text-red-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-red-800">Suspicious Activity Alert</h3>
+                        <div class="mt-2 text-sm text-red-700">
+                            <p>There have been reports of suspicious individuals posing as utility workers in neighboring subdivisions. Please verify all service personnel with the security office before allowing entry.</p>
+                        </div>
+                        <div class="mt-1 text-xs text-red-600">Posted on March 8, 2025</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Alert 3 -->
+            <div class="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-r-lg relative">
+                <div class="absolute top-2 right-2 flex space-x-2">
+                    <button class="edit-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-pencil-simple"></i>
+                    </button>
+                    <button class="delete-alert-btn text-gray-600 hover:text-gray-800">
+                        <i class="ph ph-trash"></i>
+                    </button>
+                </div>
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="ph ph-info text-blue-400 text-xl"></i>
+                    </div>
+                    <div class="ml-3">
+                        <h3 class="text-sm font-medium text-blue-800">Updated Visitor Policy</h3>
+                        <div class="mt-2 text-sm text-blue-700">
+                            <p>The homeowners' association has approved an updated visitor policy effective April 1, 2025. All visitors must be registered at least 4 hours in advance. Please check your email for the complete policy update.</p>
+                        </div>
+                        <div class="mt-1 text-xs text-blue-600">Posted on March 5, 2025</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Security Policy Management -->
+        <div class="mt-8">
+            <div class="flex items-center justify-between mb-4">
+                <h4 class="font-medium text-lg text-tertiary flex items-center">
+                    <i class="ph ph-file-text mr-2"></i>
+                    Security Policies
+                </h4>
+                <button id="manage-policies-btn" class="text-sm text-blue-600 flex items-center gap-1">
+                    <i class="ph ph-pencil-simple"></i> Manage Policies
+                </button>
+            </div>
+            
+            <div class="border rounded-lg divide-y">
+                <!-- Policy 1 -->
+                <div class="p-4">
+                    <div class="flex justify-between">
+                        <h5 class="font-medium">Visitor Access Policy</h5>
+                        <div class="text-sm text-gray-500">Last updated: Feb 15, 2025</div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Guidelines for visitor registration, identification requirements, and entry procedures.</p>
+                    <div class="mt-2 flex">
+                        <a href="#" class="text-sm text-blue-600 flex items-center gap-1">
+                            <i class="ph ph-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Policy 2 -->
+                <div class="p-4">
+                    <div class="flex justify-between">
+                        <h5 class="font-medium">Vehicle Registration Policy</h5>
+                        <div class="text-sm text-gray-500">Last updated: Jan 20, 2025</div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Requirements and procedures for registering resident and visitor vehicles.</p>
+                    <div class="mt-2 flex">
+                        <a href="#" class="text-sm text-blue-600 flex items-center gap-1">
+                            <i class="ph ph-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Policy 3 -->
+                <div class="p-4">
+                    <div class="flex justify-between">
+                        <h5 class="font-medium">Emergency Response Protocol</h5>
+                        <div class="text-sm text-gray-500">Last updated: Mar 5, 2025</div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">Standardized procedures for security personnel during emergency situations.</p>
+                    <div class="mt-2 flex">
+                        <a href="#" class="text-sm text-blue-600 flex items-center gap-1">
+                            <i class="ph ph-eye"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Visitor Pass Modal -->
+<div id="view-pass-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-md w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-tertiary">Visitor Pass Details</h3>
+            <button id="close-pass-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <div class="text-center mb-4">
+            <div class="mx-auto mb-4 w-48 h-48 flex items-center justify-center bg-gray-100">
+                <img id="qr-code-image" src="~/images/qr-code-sample.jpg" alt="QR Code" class="max-w-full max-h-full">
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div>
+                <p class="text-sm text-gray-500">Pass ID</p>
+                <p id="modal-pass-id" class="font-medium">VP12345</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Status</p>
+                <p id="modal-status" class="font-medium"><span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Approved</span></p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Visitor Name</p>
+                <p id="modal-visitor-name" class="font-medium">John Smith</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Phone Number</p>
+                <p id="modal-visitor-phone" class="font-medium">0917-123-4567</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Homeowner</p>
+                <p id="modal-homeowner" class="font-medium">Maria Garcia (House #102)</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Visit Date & Time</p>
+                <p id="modal-visit-date" class="font-medium">March 15, 2025 • 2:00 PM</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Purpose</p>
+                <p id="modal-purpose" class="font-medium">Family Visit</p>
+            </div>
+            <div>
+                <p class="text-sm text-gray-500">Vehicle Plate</p>
+                <p id="modal-vehicle" class="font-medium">ABC-1234</p>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm text-gray-500">Additional Notes</p>
+            <p id="modal-notes" class="text-sm bg-gray-50 p-3 rounded-lg">Staying for dinner. Will leave by 8:00 PM.</p>
+        </div>
+        
+        <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+            <button id="print-pass-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1">
+                <i class="ph ph-printer"></i> Print
+            </button>
+            <button id="close-view-pass-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Create Visitor Pass Modal -->
+<div id="create-pass-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-tertiary">Create Visitor Pass</h3>
+            <button id="close-create-pass-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="create-pass-form" asp-controller="Security" asp-action="CreateVisitorPass" method="post">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-homeowner">
+                        Homeowner
+                    </label>
+                    <select id="create-homeowner" name="RequestedById" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Homeowner</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visitor-name">
+                        Visitor Name
+                    </label>
+                    <input type="text" id="create-visitor-name" name="VisitorName" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visitor-phone">
+                        Visitor Phone Number
+                    </label>
+                    <input type="tel" id="create-visitor-phone" name="VisitorPhone" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visit-date">
+                        Visit Date
+                    </label>
+                    <input type="date" id="create-visit-date" name="VisitDate" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visit-time">
+                        Expected Arrival Time
+                    </label>
+                    <input type="time" id="create-visit-time" name="VisitTime" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-vehicle-plate">
+                        Vehicle Plate Number (if applicable)
+                    </label>
+                    <input type="text" id="create-vehicle-plate" name="VehiclePlate" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary">
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visit-purpose">
+                        Purpose of Visit
+                    </label>
+                    <select id="create-visit-purpose" name="Purpose" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Purpose</option>
+                        <option value="Family Visit">Family Visit</option>
+                        <option value="Friend Visit">Friend Visit</option>
+                        <option value="Service Provider">Service Provider</option>
+                        <option value="Delivery">Delivery</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-visit-notes">
+                        Additional Notes
+                    </label>
+                    <textarea id="create-visit-notes" name="Notes" rows="3" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary"></textarea>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="create-pass-status">
+                        Status
+                    </label>
+                    <select id="create-pass-status" name="Status" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Denied">Denied</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+                <button type="button" id="cancel-create-pass" class="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-secondary text-white py-2 px-4 rounded-lg hover:bg-secondary/90 transition-colors">
+                    Create Pass
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Create/Edit Alert Modal -->
+<div id="alert-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="alert-modal-title" class="text-lg font-semibold text-tertiary">Create Security Alert</h3>
+            <button id="close-alert-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="alert-form">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="alert-title">
+                        Alert Title*
+                    </label>
+                    <input type="text" id="alert-title" name="title" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="alert-type">
+                        Alert Type*
+                    </label>
+                    <select id="alert-type" name="type" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="info">Information</option>
+                        <option value="warning">Warning</option>
+                        <option value="danger">Danger/Emergency</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="alert-content">
+                        Alert Content*
+                    </label>
+                    <textarea id="alert-content" name="content" rows="4" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Notification Options</label>
+                    <div class="space-y-2">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="notify-app" name="notifyApp" class="rounded text-primary focus:ring-primary/50 mr-2">
+                            <label for="notify-app" class="text-sm text-gray-700">Send app notification to residents</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="notify-email" name="notifyEmail" class="rounded text-primary focus:ring-primary/50 mr-2">
+                            <label for="notify-email" class="text-sm text-gray-700">Send email to residents</label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="notify-sms" name="notifySms" class="rounded text-primary focus:ring-primary/50 mr-2">
+                            <label for="notify-sms" class="text-sm text-gray-700">Send SMS to residents (emergency only)</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1" for="alert-expiry">
+                        Alert Expiry Date
+                    </label>
+                    <input type="date" id="alert-expiry" name="expiry" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary">
+                    <p class="mt-1 text-xs text-gray-500">Leave blank for indefinite alerts</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end gap-3">
+                <button type="button" id="cancel-alert" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors">
+                    Publish Alert
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Create/Edit Vehicle Modal -->
+<div id="vehicle-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg max-w-2xl w-full p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h3 id="vehicle-modal-title" class="text-lg font-semibold text-tertiary">Add Vehicle</h3>
+            <button id="close-vehicle-modal" class="text-gray-500 hover:text-gray-700">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        
+        <form id="vehicle-form" asp-controller="Security" asp-action="RegisterVehicle" method="post" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-owner">
+                        Owner
+                    </label>
+                    <select id="vehicle-owner" name="OwnerId" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Owner</option>
+                        <!-- Will be populated dynamically -->
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="plate-number">
+                        License Plate Number
+                    </label>
+                    <input type="text" id="plate-number" name="PlateNumber" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-make">
+                        Vehicle Make
+                    </label>
+                    <input type="text" id="vehicle-make" name="VehicleMake" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-model">
+                        Vehicle Model
+                    </label>
+                    <input type="text" id="vehicle-model" name="VehicleModel" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-color">
+                        Vehicle Color
+                    </label>
+                    <input type="text" id="vehicle-color" name="VehicleColor" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-year">
+                        Year
+                    </label>
+                    <input type="number" id="vehicle-year" name="VehicleYear" min="1900" max="2099" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-type">
+                        Vehicle Type
+                    </label>
+                    <select id="vehicle-type" name="VehicleType" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="">Select Type</option>
+                        <option value="Sedan">Sedan</option>
+                        <option value="SUV">SUV</option>
+                        <option value="Truck">Truck</option>
+                        <option value="Van">Van</option>
+                        <option value="Motorcycle">Motorcycle</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-status">
+                        Status
+                    </label>
+                    <select id="vehicle-status" name="Status" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+                
+                <div class="md:col-span-2">
+                    <label class="block text-gray-700 text-sm font-medium mb-2" for="vehicle-photo">
+                        Vehicle Photo (Optional)
+                    </label>
+                    <div class="border border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <input type="file" id="vehicle-photo" name="VehiclePhotoFile" accept="image/*" class="hidden">
+                        <label for="vehicle-photo" class="cursor-pointer flex flex-col items-center justify-center gap-2">
+                            <i class="ph ph-image text-3xl text-gray-400"></i>
+                            <span class="text-sm text-gray-600">Click to upload image</span>
+                        </label>
+                    </div>
+                    <div id="vehicle-preview" class="mt-3 hidden">
+                        <img src="" alt="Vehicle preview" class="h-40 object-contain mx-auto">
+                        <button type="button" id="remove-vehicle-photo" class="text-red-500 text-sm flex items-center justify-center mt-2 mx-auto">
+                            <i class="ph ph-trash mr-1"></i> Remove Photo
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3">
+                <button type="button" id="cancel-vehicle" class="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-secondary text-white py-2 px-4 rounded-lg hover:bg-secondary/90 transition-colors">
+                    Save Vehicle
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab Navigation
+            const visitorTab = document.getElementById('visitor-tab');
+            const vehicleTab = document.getElementById('vehicle-tab');
+            const emergencyTab = document.getElementById('emergency-tab');
+            const alertsTab = document.getElementById('alerts-tab');
+            
+            const visitorSection = document.getElementById('visitor-section');
+            const vehicleSection = document.getElementById('vehicle-section');
+            const emergencySection = document.getElementById('emergency-section');
+            const alertsSection = document.getElementById('alerts-section');
+            
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            function setActiveTab(tab, section) {
+                // Remove active states from all tabs
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('active', 'border-primary', 'text-primary');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                // Add active state to selected tab
+                tab.classList.add('active', 'border-primary', 'text-primary');
+                tab.classList.remove('border-transparent', 'text-gray-500');
+                
+                // Hide all sections
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                // Show selected section
+                section.classList.remove('hidden');
+            }
+            
+            visitorTab.addEventListener('click', () => setActiveTab(visitorTab, visitorSection));
+            vehicleTab.addEventListener('click', () => setActiveTab(vehicleTab, vehicleSection));
+            emergencyTab.addEventListener('click', () => setActiveTab(emergencyTab, emergencySection));
+            alertsTab.addEventListener('click', () => setActiveTab(alertsTab, alertsSection));
+            
+            // Create Visitor Pass Modal
+            const createPassModal = document.getElementById('create-pass-modal');
+            const createPassBtn = document.getElementById('create-visitor-pass-btn');
+            const closeCreatePassModal = document.getElementById('close-create-pass-modal');
+            const cancelCreatePass = document.getElementById('cancel-create-pass');
+            const createPassForm = document.getElementById('create-pass-form');
+            
+            // Load homeowners list for the dropdown
+            function loadHomeownersList() {
+                fetch('/Security/GetHomeowners')
+                    .then(response => response.json())
+                    .then(homeowners => {
+                        const dropdown = document.getElementById('create-homeowner');
+                        dropdown.innerHTML = '<option value="">Select Homeowner</option>';
+                        homeowners.forEach(homeowner => {
+                            dropdown.innerHTML += `<option value="${homeowner.userId}">${homeowner.firstName} ${homeowner.lastName} (House #${homeowner.homeowner.houseNumber})</option>`;
+                        });
+                    })
+                    .catch(error => console.error('Error loading homeowners:', error));
+            }
+            
+            createPassBtn.addEventListener('click', function() {
+                createPassForm.reset();
+                // Set default date to today
+                document.getElementById('create-visit-date').valueAsDate = new Date();
+                // Load homeowners list
+                loadHomeownersList();
+                createPassModal.classList.remove('hidden');
+            });
+            
+            closeCreatePassModal.addEventListener('click', function() {
+                createPassModal.classList.add('hidden');
+            });
+            
+            cancelCreatePass.addEventListener('click', function() {
+                createPassModal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            createPassModal.addEventListener('click', function(e) {
+                if (e.target === createPassModal) {
+                    createPassModal.classList.add('hidden');
+                }
+            });
+            
+            // Handle form submission
+            createPassForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(createPassForm);
+                fetch('/Security/CreateVisitorPass', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Visitor pass created successfully!');
+                        createPassModal.classList.add('hidden');
+                        // Reload visitor passes list
+                        loadVisitorPasses();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while creating the visitor pass.');
+                });
+            });
+            
+            // View Visitor Pass Modal
+            const viewPassModal = document.getElementById('view-pass-modal');
+            const closePassModal = document.getElementById('close-pass-modal');
+            const closeViewPassBtn = document.getElementById('close-view-pass-btn');
+            const printPassBtn = document.getElementById('print-pass-btn');
+            
+            closePassModal.addEventListener('click', function() {
+                viewPassModal.classList.add('hidden');
+            });
+            
+            closeViewPassBtn.addEventListener('click', function() {
+                viewPassModal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            viewPassModal.addEventListener('click', function(e) {
+                if (e.target === viewPassModal) {
+                    viewPassModal.classList.add('hidden');
+                }
+            });
+            
+            // Print pass
+            printPassBtn.addEventListener('click', function() {
+                const passId = document.getElementById('modal-pass-id').textContent;
+                window.open(`/Security/PrintVisitorPass/${passId.replace('VP', '')}`, '_blank');
+            });
+            
+            // Load visitor passes from server
+            function loadVisitorPasses(status = null, date = null, homeowner = null) {
+                let url = '/Security/GetAllVisitorPasses';
+                const params = new URLSearchParams();
+                
+                if (status && status !== 'all') {
+                    params.append('status', status);
+                }
+                
+                if (date) {
+                    params.append('date', date);
+                }
+                
+                if (homeowner) {
+                    params.append('homeowner', homeowner);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(passes => {
+                        const tbody = document.querySelector('#visitor-section table tbody');
+                        tbody.innerHTML = ''; // Clear existing rows
+                        
+                        // Update count
+                        document.getElementById('current-count').textContent = passes.length;
+                        document.getElementById('total-count').textContent = passes.length;
+                        
+                        if (passes.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">No visitor passes found</td></tr>`;
+                            return;
+                        }
+                        
+                        passes.forEach(pass => {
+                            // Format date
+                            const visitDate = new Date(pass.visitDate);
+                            const formattedDate = visitDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            });
+                            
+                            // Format time
+                            const visitTime = pass.visitTime ? pass.visitTime.substring(0, 5) : ''; // HH:MM format
+                            
+                            // Status badge color
+                            let statusClass = '';
+                            switch(pass.status.toLowerCase()) {
+                                case 'approved':
+                                    statusClass = 'bg-green-100 text-green-800';
+                                    break;
+                                case 'pending':
+                                    statusClass = 'bg-yellow-100 text-yellow-800';
+                                    break;
+                                case 'denied':
+                                case 'cancelled':
+                                    statusClass = 'bg-red-100 text-red-800';
+                                    break;
+                                case 'used':
+                                    statusClass = 'bg-blue-100 text-blue-800';
+                                    break;
+                                default:
+                                    statusClass = 'bg-gray-100 text-gray-800';
+                            }
+                            
+                            // Action buttons based on status
+                            let actionButtons = `
+                                <button class="view-pass-btn text-blue-600 hover:text-blue-800" data-id="${pass.passId}">
+                                    <i class="ph ph-eye"></i>
+                                </button>
+                            `;
+                            
+                            if (pass.status === 'Pending') {
+                                actionButtons += `
+                                    <button class="approve-pass-btn text-green-600 hover:text-green-800" data-id="${pass.passId}">
+                                        <i class="ph ph-check-circle"></i>
+                                    </button>
+                                    <button class="deny-pass-btn text-red-600 hover:text-red-800" data-id="${pass.passId}">
+                                        <i class="ph ph-x-circle"></i>
+                                    </button>
+                                `;
+                            } else {
+                                actionButtons += `
+                                    <button class="edit-pass-btn text-blue-600 hover:text-blue-800" data-id="${pass.passId}">
+                                        <i class="ph ph-pencil-simple"></i>
+                                    </button>
+                                `;
+                                
+                                if (pass.status !== 'Denied' && pass.status !== 'Cancelled') {
+                                    actionButtons += `
+                                        <button class="cancel-pass-btn text-red-600 hover:text-red-800" data-id="${pass.passId}">
+                                            <i class="ph ph-x-circle"></i>
+                                        </button>
+                                    `;
+                                }
+                            }
+                            
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">VP${pass.passId}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">${pass.visitorName}</div>
+                                        <div class="text-xs text-gray-500">${pass.visitorPhone}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">${pass.homeowner}</div>
+                                        <div class="text-xs text-gray-500">${pass.homeownerAddress}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedDate} • ${visitTime}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${pass.purpose}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                            ${pass.status}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            ${actionButtons}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        // Attach event listeners to new buttons
+                        attachPassButtonListeners();
+                    })
+                    .catch(error => {
+                        console.error('Error loading visitor passes:', error);
+                    });
+            }
+            
+            // Apply visitor filters
+            const applyVisitorFiltersBtn = document.getElementById('apply-visitor-filters-btn');
+            const clearVisitorFiltersBtn = document.getElementById('clear-visitor-filters-btn');
+            
+            applyVisitorFiltersBtn.addEventListener('click', function() {
+                const status = document.getElementById('pass-status-filter').value;
+                const date = document.getElementById('visitor-date-filter').value;
+                const homeowner = document.getElementById('homeowner-filter').value;
+                
+                loadVisitorPasses(status, date, homeowner);
+            });
+            
+            clearVisitorFiltersBtn.addEventListener('click', function() {
+                document.getElementById('pass-status-filter').value = 'all';
+                document.getElementById('visitor-date-filter').value = '';
+                document.getElementById('homeowner-filter').value = '';
+                
+                loadVisitorPasses();
+            });
+            
+            // Function to attach event listeners to pass action buttons
+            function attachPassButtonListeners() {
+                // View pass buttons
+                document.querySelectorAll('.view-pass-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const passId = this.getAttribute('data-id');
+                        viewVisitorPass(passId);
+                    });
+                });
+                
+                // Approve pass buttons
+                document.querySelectorAll('.approve-pass-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const passId = this.getAttribute('data-id');
+                        approveVisitorPass(passId);
+                    });
+                });
+                
+                // Deny pass buttons
+                document.querySelectorAll('.deny-pass-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const passId = this.getAttribute('data-id');
+                        denyOrCancelPass(passId, 'deny');
+                    });
+                });
+                
+                // Cancel pass buttons
+                document.querySelectorAll('.cancel-pass-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const passId = this.getAttribute('data-id');
+                        denyOrCancelPass(passId, 'cancel');
+                    });
+                });
+                
+                // Edit pass buttons
+                document.querySelectorAll('.edit-pass-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const passId = this.getAttribute('data-id');
+                        editVisitorPass(passId);
+                    });
+                });
+            }
+            
+            // View a visitor pass
+            function viewVisitorPass(passId) {
+                fetch(`/Security/GetVisitorPassDetails/${passId}`)
+                    .then(response => response.json())
+                    .then(pass => {
+                        // Populate modal with pass details
+                        document.getElementById('modal-pass-id').textContent = `VP${pass.passId}`;
+                        
+                        // Set status with appropriate styling
+                        let statusClass = '';
+                        switch(pass.status.toLowerCase()) {
+                            case 'approved':
+                                statusClass = 'bg-green-100 text-green-800';
+                                break;
+                            case 'pending':
+                                statusClass = 'bg-yellow-100 text-yellow-800';
+                                break;
+                            case 'denied':
+                            case 'cancelled':
+                                statusClass = 'bg-red-100 text-red-800';
+                                break;
+                            case 'used':
+                                statusClass = 'bg-blue-100 text-blue-800';
+                                break;
+                            default:
+                                statusClass = 'bg-gray-100 text-gray-800';
+                        }
+                        document.getElementById('modal-status').innerHTML = `<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">${pass.status}</span>`;
+                        
+                        document.getElementById('modal-visitor-name').textContent = pass.visitorName;
+                        document.getElementById('modal-visitor-phone').textContent = pass.visitorPhone;
+                        document.getElementById('modal-homeowner').textContent = `${pass.homeowner} (${pass.homeownerAddress})`;
+                        
+                        // Format date and time
+                        const visitDate = new Date(pass.visitDate);
+                        const formattedDate = visitDate.toLocaleDateString('en-US', {
+                            month: 'long',
+                            day: 'numeric',
+                            year: 'numeric'
+                        });
+                        const visitTime = pass.visitTime ? pass.visitTime.substring(0, 5) : ''; // HH:MM format
+                        document.getElementById('modal-visit-date').textContent = `${formattedDate} • ${visitTime}`;
+                        
+                        document.getElementById('modal-purpose').textContent = pass.purpose;
+                        document.getElementById('modal-vehicle').textContent = pass.vehiclePlate || 'None';
+                        document.getElementById('modal-notes').textContent = pass.notes || 'No additional notes.';
+                        
+                        // Update QR code if applicable
+                        const qrCodeImage = document.getElementById('qr-code-image');
+                        if (pass.qrCodeUrl) {
+                            qrCodeImage.src = pass.qrCodeUrl;
+                        } else {
+                            qrCodeImage.src = '/images/qr-code-sample.jpg';
+                        }
+                        
+                        // Show the modal
+                        viewPassModal.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        console.error('Error loading pass details:', error);
+                        alert('Could not load pass details.');
+                    });
+            }
+            
+            // Edit visitor pass
+            function editVisitorPass(passId) {
+                fetch(`/Security/GetVisitorPassDetails/${passId}`)
+                    .then(response => response.json())
+                    .then(pass => {
+                        // Reuse the create form but pre-populate it
+                        document.getElementById('create-pass-form').reset();
+                        
+                        // Update modal title
+                        document.querySelector('#create-pass-modal h3').textContent = 'Edit Visitor Pass';
+                        
+                        // Load homeowners list
+                        loadHomeownersList();
+                        
+                        // We need to wait for the homeowners to load before selecting
+                        setTimeout(() => {
+                            // Pre-populate form fields
+                            document.getElementById('create-visit-date').value = pass.visitDate.split('T')[0];
+                            document.getElementById('create-visitor-name').value = pass.visitorName;
+                            document.getElementById('create-visitor-phone').value = pass.visitorPhone;
+                            document.getElementById('create-visit-time').value = pass.visitTime;
+                            document.getElementById('create-vehicle-plate').value = pass.vehiclePlate || '';
+                            document.getElementById('create-visit-purpose').value = pass.purpose;
+                            document.getElementById('create-visit-notes').value = pass.notes || '';
+                            document.getElementById('create-pass-status').value = pass.status;
+                            
+                            try {
+                                // Set the homeowner (this might need adjustment based on your data structure)
+                                const homeownerSelect = document.getElementById('create-homeowner');
+                                for(let i = 0; i < homeownerSelect.options.length; i++) {
+                                    if (homeownerSelect.options[i].text.includes(pass.homeowner)) {
+                                        homeownerSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Error setting homeowner:", e);
+                            }
+                        }, 500);
+                        
+                        // Add passId as hidden field if it doesn't exist
+                        let passIdField = document.getElementById('edit-pass-id');
+                        if (!passIdField) {
+                            passIdField = document.createElement('input');
+                            passIdField.type = 'hidden';
+                            passIdField.id = 'edit-pass-id';
+                            passIdField.name = 'PassId';
+                            createPassForm.appendChild(passIdField);
+                        }
+                        passIdField.value = passId;
+                        
+                        // Change form action
+                        createPassForm.setAttribute('action', '/Security/UpdateVisitorPass');
+                        
+                        // Change submit button text
+                        const submitButton = createPassForm.querySelector('button[type="submit"]');
+                        submitButton.textContent = 'Update Pass';
+                        
+                        createPassModal.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        console.error('Error loading pass details for edit:', error);
+                        alert('Could not load pass details.');
+                    });
+            }
+            
+            // Approve a visitor pass
+            function approveVisitorPass(passId) {
+                if (confirm('Are you sure you want to approve this visitor pass?')) {
+                    fetch(`/Security/ApproveVisitorPass/${passId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Visitor pass approved successfully!');
+                            loadVisitorPasses(); // Reload the list
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while approving the visitor pass.');
+                    });
+                }
+            }
+            
+            // Deny or cancel a visitor pass
+            function denyOrCancelPass(passId, action) {
+                const reason = prompt(`Please provide a reason for ${action === 'deny' ? 'denying' : 'cancelling'} this pass:`);
+                if (reason !== null) {
+                    const endpoint = action === 'deny' ? 'RejectVisitorPass' : 'CancelVisitorPass';
+                    
+                    fetch(`/Security/${endpoint}/${passId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ reason: reason })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert(`Visitor pass ${action === 'deny' ? 'rejected' : 'cancelled'} successfully!`);
+                            loadVisitorPasses(); // Reload the list
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert(`An error occurred while ${action === 'deny' ? 'rejecting' : 'cancelling'} the visitor pass.`);
+                    });
+                }
+            }
+            
+            // Vehicle Modal
+            const vehicleModal = document.getElementById('vehicle-modal');
+            const addVehicleBtn = document.getElementById('add-vehicle-btn');
+            const closeVehicleModal = document.getElementById('close-vehicle-modal');
+            const cancelVehicle = document.getElementById('cancel-vehicle');
+            const vehicleForm = document.getElementById('vehicle-form');
+            
+            addVehicleBtn.addEventListener('click', function() {
+                // Reset form and set title
+                vehicleForm.reset();
+                document.getElementById('vehicle-modal-title').textContent = 'Add Vehicle';
+                
+                // Load homeowners list
+                loadHomeownersList();
+                
+                // Reset any hidden fields and file preview
+                const vehiclePreview = document.getElementById('vehicle-preview');
+                if (vehiclePreview) {
+                    vehiclePreview.classList.add('hidden');
+                }
+                
+                // Reset form action
+                vehicleForm.setAttribute('action', '/Security/RegisterVehicle');
+                
+                // Show modal
+                vehicleModal.classList.remove('hidden');
+            });
+            
+            closeVehicleModal.addEventListener('click', function() {
+                vehicleModal.classList.add('hidden');
+            });
+            
+            cancelVehicle.addEventListener('click', function() {
+                vehicleModal.classList.add('hidden');
+            });
+            
+            // Close modal when clicking outside
+            vehicleModal.addEventListener('click', function(e) {
+                if (e.target === vehicleModal) {
+                    vehicleModal.classList.add('hidden');
+                }
+            });
+            
+            // Vehicle photo preview
+            const vehiclePhoto = document.getElementById('vehicle-photo');
+            const vehiclePreview = document.getElementById('vehicle-preview');
+            const vehiclePreviewImage = vehiclePreview.querySelector('img');
+            const removeVehiclePhoto = document.getElementById('remove-vehicle-photo');
+            
+            vehiclePhoto.addEventListener('change', function() {
+                if (this.files && this.files[0]) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        vehiclePreviewImage.src = e.target.result;
+                        vehiclePreview.classList.remove('hidden');
+                    };
+                    
+                    reader.readAsDataURL(this.files[0]);
+                }
+            });
+            
+            removeVehiclePhoto.addEventListener('click', function() {
+                vehiclePhoto.value = '';
+                vehiclePreview.classList.add('hidden');
+                vehiclePreviewImage.src = '';
+            });
+            
+            // Handle vehicle form submission
+            vehicleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(vehicleForm);
+                const url = vehicleForm.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const isNewVehicle = !formData.get('VehicleId');
+                        alert(isNewVehicle ? 'Vehicle registered successfully!' : 'Vehicle updated successfully!');
+                        vehicleModal.classList.add('hidden');
+                        // Reload vehicles list
+                        loadVehicles();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while saving the vehicle information.');
+                });
+            });
+            
+            // Load vehicles from server
+            function loadVehicles(status = null, type = null, search = null) {
+                let url = '/Security/GetAllVehicles';
+                const params = new URLSearchParams();
+                
+                if (status && status !== 'all') {
+                    params.append('status', status);
+                }
+                
+                if (type && type !== 'all') {
+                    params.append('type', type);
+                }
+                
+                if (search) {
+                    params.append('search', search);
+                }
+                
+                if (params.toString()) {
+                    url += '?' + params.toString();
+                }
+                
+                fetch(url)
+                    .then(response => response.json())
+                    .then(vehicles => {
+                        const tbody = document.querySelector('#vehicle-section table tbody');
+                        tbody.innerHTML = ''; // Clear existing rows
+                        
+                        // Update count
+                        const currentCountEl = document.getElementById('vehicle-current-count');
+                        const totalCountEl = document.getElementById('vehicle-total-count');
+                        
+                        if (currentCountEl && totalCountEl) {
+                            currentCountEl.textContent = vehicles.length;
+                            totalCountEl.textContent = vehicles.length;
+                        }
+                        
+                        if (vehicles.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-gray-500">No vehicles found</td></tr>`;
+                            return;
+                        }
+                        
+                        vehicles.forEach(vehicle => {
+                            // Format date
+                            const regDate = new Date(vehicle.registrationDate);
+                            const formattedDate = regDate.toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric'
+                            });
+                            
+                            // Status badge color
+                            let statusClass = vehicle.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+                            
+                            tbody.innerHTML += `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${vehicle.plateNumber}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900">${vehicle.vehicleMake} ${vehicle.vehicleModel} (${vehicle.vehicleYear})</div>
+                                        <div class="text-xs text-gray-500">${vehicle.vehicleColor} • ${vehicle.vehicleType}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900">${vehicle.owner}</div>
+                                        <div class="text-xs text-gray-500">${vehicle.ownerAddress}</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${formattedDate}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                            ${vehicle.status}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <div class="flex space-x-2">
+                                            <button class="view-vehicle-btn text-blue-600 hover:text-blue-800" data-id="${vehicle.registrationId}">
+                                                <i class="ph ph-eye"></i>
+                                            </button>
+                                            <button class="edit-vehicle-btn text-blue-600 hover:text-blue-800" data-id="${vehicle.registrationId}">
+                                                <i class="ph ph-pencil-simple"></i>
+                                            </button>
+                                            <button class="deactivate-vehicle-btn text-red-600 hover:text-red-800" data-id="${vehicle.registrationId}">
+                                                <i class="ph ph-x-circle"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        // Attach event listeners to new buttons
+                        attachVehicleButtonListeners();
+                    })
+                    .catch(error => {
+                        console.error('Error loading vehicles:', error);
+                    });
+            }
+            
+            // Apply vehicle filters
+            const applyVehicleFiltersBtn = document.getElementById('apply-vehicle-filters-btn');
+            const clearVehicleFiltersBtn = document.getElementById('clear-vehicle-filters-btn');
+            
+            applyVehicleFiltersBtn.addEventListener('click', function() {
+                const status = document.getElementById('vehicle-status-filter').value;
+                const type = document.getElementById('vehicle-type-filter').value;
+                const search = document.getElementById('vehicle-search').value;
+                
+                loadVehicles(status, type, search);
+            });
+            
+            clearVehicleFiltersBtn.addEventListener('click', function() {
+                document.getElementById('vehicle-status-filter').value = 'all';
+                document.getElementById('vehicle-type-filter').value = 'all';
+                document.getElementById('vehicle-search').value = '';
+                
+                loadVehicles();
+            });
+            
+            // Function to attach event listeners to vehicle action buttons
+            function attachVehicleButtonListeners() {
+                // View vehicle buttons
+                document.querySelectorAll('.view-vehicle-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const vehicleId = this.getAttribute('data-id');
+                        viewVehicle(vehicleId);
+                    });
+                });
+                
+                // Edit vehicle buttons
+                document.querySelectorAll('.edit-vehicle-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const vehicleId = this.getAttribute('data-id');
+                        editVehicle(vehicleId);
+                    });
+                });
+                
+                // Deactivate vehicle buttons
+                document.querySelectorAll('.deactivate-vehicle-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const vehicleId = this.getAttribute('data-id');
+                        deactivateVehicle(vehicleId);
+                    });
+                });
+            }
+            
+            // View vehicle details
+            function viewVehicle(vehicleId) {
+                editVehicle(vehicleId, true); // Reuse edit function but set readonly=true
+            }
+            
+            // Edit vehicle
+            function editVehicle(vehicleId, readonly = false) {
+                fetch(`/Security/GetVehicleDetails/${vehicleId}`)
+                    .then(response => response.json())
+                    .then(vehicle => {
+                        // Reset form
+                        vehicleForm.reset();
+                        
+                        // Update modal title
+                        document.getElementById('vehicle-modal-title').textContent = readonly ? 'View Vehicle' : 'Edit Vehicle';
+                        
+                        // Load homeowners list
+                        loadHomeownersList();
+                        
+                        // We need to wait for the homeowners to load before selecting
+                        setTimeout(() => {
+                            // Pre-populate form fields
+                            document.getElementById('plate-number').value = vehicle.plateNumber;
+                            document.getElementById('vehicle-make').value = vehicle.vehicleMake;
+                            document.getElementById('vehicle-model').value = vehicle.vehicleModel;
+                            document.getElementById('vehicle-color').value = vehicle.vehicleColor;
+                            document.getElementById('vehicle-year').value = vehicle.vehicleYear;
+                            document.getElementById('vehicle-type').value = vehicle.vehicleType;
+                            document.getElementById('vehicle-status').value = vehicle.status;
+                            
+                            // If readonly, disable all inputs
+                            if (readonly) {
+                                const allInputs = vehicleForm.querySelectorAll('input, select');
+                                allInputs.forEach(input => {
+                                    input.setAttribute('disabled', 'disabled');
+                                });
+                                
+                                // Change button text
+                                const submitButton = vehicleForm.querySelector('button[type="submit"]');
+                                submitButton.textContent = 'Close';
+                                submitButton.type = 'button';
+                                submitButton.onclick = function() {
+                                    vehicleModal.classList.add('hidden');
+                                };
+                            } else {
+                                // Ensure inputs are enabled
+                                const allInputs = vehicleForm.querySelectorAll('input, select');
+                                allInputs.forEach(input => {
+                                    input.removeAttribute('disabled');
+                                });
+                                
+                                // Change button text back
+                                const submitButton = vehicleForm.querySelector('button[type="submit"]');
+                                submitButton.textContent = 'Save Vehicle';
+                                submitButton.type = 'submit';
+                                submitButton.onclick = null;
+                            }
+                            
+                            try {
+                                // Set the owner (this might need adjustment based on your data structure)
+                                const ownerSelect = document.getElementById('vehicle-owner');
+                                for(let i = 0; i < ownerSelect.options.length; i++) {
+                                    if (ownerSelect.options[i].text.includes(vehicle.owner)) {
+                                        ownerSelect.selectedIndex = i;
+                                        break;
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Error setting owner:", e);
+                            }
+                            
+                            // Show vehicle photo if available
+                            if (vehicle.photoUrl) {
+                                vehiclePreviewImage.src = vehicle.photoUrl;
+                                vehiclePreview.classList.remove('hidden');
+                            } else {
+                                vehiclePreview.classList.add('hidden');
+                            }
+                        }, 500);
+                        
+                        // Add vehicleId as hidden field if it doesn't exist
+                        let vehicleIdField = document.getElementById('edit-vehicle-id');
+                        if (!vehicleIdField) {
+                            vehicleIdField = document.createElement('input');
+                            vehicleIdField.type = 'hidden';
+                            vehicleIdField.id = 'edit-vehicle-id';
+                            vehicleIdField.name = 'VehicleId';
+                            vehicleForm.appendChild(vehicleIdField);
+                        }
+                        vehicleIdField.value = vehicleId;
+                        
+                        // Change form action if not readonly
+                        if (!readonly) {
+                            vehicleForm.setAttribute('action', '/Security/UpdateVehicle');
+                        }
+                        
+                        vehicleModal.classList.remove('hidden');
+                    })
+                    .catch(error => {
+                        console.error('Error loading vehicle details:', error);
+                        alert('Could not load vehicle details.');
+                    });
+            }
+            
+            // Deactivate a vehicle
+            function deactivateVehicle(vehicleId) {
+                if (confirm('Are you sure you want to deactivate this vehicle?')) {
+                    fetch(`/Security/DeactivateVehicle/${vehicleId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Vehicle deactivated successfully!');
+                            loadVehicles(); // Reload the list
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while deactivating the vehicle.');
+                    });
+                }
+            }
+            
+            // Alert Modal
+            const alertModal = document.getElementById('alert-modal');
+            const closeAlertModal = document.getElementById('close-alert-modal');
+            const cancelAlert = document.getElementById('cancel-alert');
+            const createAlertBtn = document.getElementById('create-alert-btn');
+            const alertForm = document.getElementById('alert-form');
+            
+            if (createAlertBtn) {
+                createAlertBtn.addEventListener('click', function() {
+                    document.getElementById('alert-modal-title').textContent = 'Create Security Alert';
+                    alertForm.reset();
+                    alertModal.classList.remove('hidden');
+                });
+            }
+            
+            // Set up edit alert buttons
+            document.querySelectorAll('.edit-alert-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const alertContainer = this.closest('div.border-l-4');
+                    const title = alertContainer.querySelector('h3').textContent;
+                    const content = alertContainer.querySelector('.text-sm:not(.text-xs)').textContent;
+                    const type = alertContainer.classList.contains('border-yellow-400') ? 'warning' : 
+                              alertContainer.classList.contains('border-red-400') ? 'danger' : 'info';
+                    
+                    // Set form values
+                    document.getElementById('alert-modal-title').textContent = 'Edit Security Alert';
+                    document.getElementById('alert-title').value = title;
+                    document.getElementById('alert-type').value = type;
+                    document.getElementById('alert-content').value = content;
+                    
+                    // Show modal
+                    alertModal.classList.remove('hidden');
+                });
+            });
+            
+            if (closeAlertModal) {
+                closeAlertModal.addEventListener('click', function() {
+                    alertModal.classList.add('hidden');
+                });
+            }
+            
+            if (cancelAlert) {
+                cancelAlert.addEventListener('click', function() {
+                    alertModal.classList.add('hidden');
+                });
+            }
+            
+            // Close modal when clicking outside
+            if (alertModal) {
+                alertModal.addEventListener('click', function(e) {
+                    if (e.target === alertModal) {
+                        alertModal.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Handle alert form submission
+            if (alertForm) {
+                alertForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(alertForm);
+                    fetch('/Security/CreateSecurityAlert', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Security alert published successfully!');
+                            alertModal.classList.add('hidden');
+                            // Reload alerts section or page
+                            window.location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('An error occurred while publishing the security alert.');
+                    });
+                });
+            }
+            
+            // Delete Alert
+            document.querySelectorAll('.delete-alert-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('Are you sure you want to delete this security alert?')) {
+                        const alertContainer = this.closest('div.border-l-4');
+                        const title = alertContainer.querySelector('h3').textContent;
+                        
+                        fetch('/Security/DeleteSecurityAlert', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({ title: title })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Security alert deleted successfully!');
+                                alertContainer.remove();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred while deleting the security alert.');
+                        });
+                    }
+                });
+            });
+            
+            // Emergency Contacts - Edit Policy Button
+            const editProtocolsBtn = document.getElementById('edit-protocols-btn');
+            if (editProtocolsBtn) {
+                editProtocolsBtn.addEventListener('click', function() {
+                    alert('Emergency Protocol editing feature will be added in the next update.');
+                });
+            }
+            
+            // Security Policies - Manage Policies Button
+            const managePoliciesBtn = document.getElementById('manage-policies-btn');
+            if (managePoliciesBtn) {
+                managePoliciesBtn.addEventListener('click', function() {
+                    alert('Security Policy management feature will be added in the next update.');
+                });
+            }
+            
+            // Initial data loading
+            loadVisitorPasses();
+            loadVehicles();
+        });
+    </script>
+}

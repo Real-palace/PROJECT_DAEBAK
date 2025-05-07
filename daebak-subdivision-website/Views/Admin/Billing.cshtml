@@ -1,0 +1,1546 @@
+@model AdminPageModel
+@{
+    ViewData["Title"] = "Billing & Payment";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- Page Header -->
+<div class="bg-white rounded-xl shadow-sm p-6 mb-6">
+    <div class="flex items-center">
+        <div class="flex-shrink-0 mr-4">
+            <div class="bg-primary/10 p-3 rounded-full">
+                <i class="ph ph-currency-circle-dollar text-3xl text-primary"></i>
+            </div>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Billing & Payments</h2>
+            <p class="text-gray-600 mt-1">Manage association dues, billing statements, and payment records</p>
+        </div>
+    </div>
+</div>
+
+<!-- Billing Dashboard Main Content -->
+<div class="space-y-6">
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Total Payments Received -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-primary/10 rounded-lg p-3">
+                    <i class="ph ph-money text-2xl text-primary"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-gray-500">Total Payments</h3>
+                    <p class="text-lg font-semibold text-gray-900">₱@(Model.PaymentsReceived.HasValue ? Model.PaymentsReceived.Value.ToString("N2") : "0.00")</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Bills -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-yellow-50 rounded-lg p-3">
+                    <i class="ph ph-hourglass text-2xl text-yellow-500"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-gray-500">Pending Bills</h3>
+                    <p class="text-lg font-semibold text-gray-900">@ViewBag.PendingBillsCount</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Paid Bills -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-green-50 rounded-lg p-3">
+                    <i class="ph ph-check-circle text-2xl text-green-500"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-gray-500">Paid Bills</h3>
+                    <p class="text-lg font-semibold text-gray-900">@ViewBag.PaidBillsCount</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Overdue Bills -->
+        <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-red-50 rounded-lg p-3">
+                    <i class="ph ph-warning text-2xl text-red-500"></i>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-sm font-medium text-gray-500">Overdue Bills</h3>
+                    <p class="text-lg font-semibold text-gray-900">@ViewBag.OverdueBillsCount</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="bg-white rounded-lg shadow-sm">
+        <div class="border-b border-gray-200">
+            <div class="flex -mb-px">
+                <button id="tab-btn-billing-items" class="tab-btn active px-6 py-3 border-b-2 border-primary font-medium text-primary">
+                    Billing Items
+                </button>
+                <button id="tab-btn-bills" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Bills
+                </button>
+                <button id="tab-btn-payments" class="tab-btn px-6 py-3 border-b-2 border-transparent font-medium text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Payments
+                </button>
+            </div>
+        </div>
+        
+        <!-- Tab Content -->
+        <div class="p-6">
+            <!-- Billing Items Tab -->
+            <div id="tab-billing-items" class="tab-content">
+                <div class="flex justify-between mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Billing Items</h2>
+                    <button id="new-billing-item-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 flex items-center">
+                        <i class="ph ph-plus mr-1"></i> New Billing Item
+                    </button>
+                </div>
+                
+                <!-- Billing Items Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                <th class="py-3 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Static billing items data -->
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">Association Dues</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly association dues for subdivision maintenance</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Dues</span></td>
+                                <td class="py-3 px-4 text-sm text-gray-500">15th of each month</td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="1">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="1">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="1">
+                                            <i class="ph ph-user-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">Water Bill</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly water consumption charges</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Varies</td>
+                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-cyan-100 text-cyan-800">Water</span></td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Last day of each month</td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="2">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="2">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="2">
+                                            <i class="ph ph-user-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">Security Fee</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly security service fee</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱1,000.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Security</span></td>
+                                <td class="py-3 px-4 text-sm text-gray-500">15th of each month</td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="3">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="3">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="3">
+                                            <i class="ph ph-user-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">Maintenance Fee</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Special maintenance services fee</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Maintenance</span></td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Last day of each month</td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="4">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="4">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="4">
+                                            <i class="ph ph-user-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">Special Assessment</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Pool renovation contribution</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱5,000.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Special</span></td>
+                                <td class="py-3 px-4 text-sm text-gray-500">June 30, 2025</td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="5">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="5">
+                                            <i class="ph ph-trash"></i>
+                                        </button>
+                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="5">
+                                            <i class="ph ph-user-plus"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bills Tab -->
+            <div id="tab-bills" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Homeowner Bills</h2>
+                    <div class="flex space-x-3">
+                        <div class="relative">
+                            <input type="text" id="bill-search" placeholder="Search bills..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button id="generate-bills-btn" class="px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/80 flex items-center">
+                            <i class="ph ph-plus mr-1"></i> Generate Bills
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Bills Filter Options -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="bill-status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select id="bill-status-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All</option>
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</</option>
+                                <option value="overdue">Overdue</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bill-date-filter" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                            <select id="bill-date-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Time</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="next_month">Next Month</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="bill-category-filter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select id="bill-category-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Categories</option>
+                                <option value="dues">Association Dues</option>
+                                <option value="water">Water</option>
+                                <option value="security">Security</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="special">Special Assessment</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Actions</label>
+                            <div class="flex space-x-2">
+                                <button id="apply-filters-btn" class="px-3 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/80 flex items-center">
+                                    <i class="ph ph-funnel mr-1"></i> Apply
+                                </button>
+                                <button id="clear-filters-btn" class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                                    <i class="ph ph-x mr-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bills Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill #</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Issue Date</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sample data - will be replaced with actual data from ViewBag.Bills -->
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4221</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Juan Dela Cruz (House #101)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - May 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">May 15, 2025</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4221">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="edit-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4221">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="send-reminder-btn p-1 text-yellow-600 hover:text-yellow-800" data-id="BILL-2025-4221">
+                                            <i class="ph ph-bell-ringing"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4220</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Maria Santos (House #102)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - May 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">May 15, 2025</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Paid
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4220">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="view-payment-btn p-1 text-green-600 hover:text-green-800" data-id="BILL-2025-4220">
+                                            <i class="ph ph-receipt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr class="bg-red-50">
+                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4152</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Antonio Reyes (House #103)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - April 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Mar 15, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                        Overdue
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4152">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="edit-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4152">
+                                            <i class="ph ph-pencil-simple"></i>
+                                        </button>
+                                        <button class="send-reminder-btn p-1 text-yellow-600 hover:text-yellow-800" data-id="BILL-2025-4152">
+                                            <i class="ph ph-bell-ringing"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-500">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">35</span> results
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
+                            Previous
+                        </button>
+                        <button class="px-3 py-1 bg-primary border border-primary rounded-lg text-sm font-medium text-white hover:bg-primary/80">
+                            1
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            2
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            3
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="tab-payments" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Payment Transactions</h2>
+                    <div class="flex space-x-3">
+                        <div class="relative">
+                            <input type="text" id="payment-search" placeholder="Search payments..." class="pl-8 pr-4 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <i class="ph ph-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                        <button id="record-payment-btn" class="px-4 py-1.5 bg-primary text-white rounded-lg hover:bg-primary/80 flex items-center">
+                            <i class="ph ph-plus mr-1"></i> Record Payment
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Payment Filter Options -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="payment-status-filter" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select id="payment-status-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All</option>
+                                <option value="completed">Completed</option>
+                                <option value="pending">Pending Verification</option>
+                                <option value="failed">Failed</option>
+                                <option value="refunded">Refunded</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="payment-date-filter" class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
+                            <select id="payment-date-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Time</option>
+                                <option value="today">Today</option>
+                                <option value="this_week">This Week</option>
+                                <option value="this_month">This Month</option>
+                                <option value="last_30_days">Last 30 Days</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="payment-method-filter" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                            <select id="payment-method-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="all">All Methods</option>
+                                <option value="credit_card">Credit Card</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="gcash">GCash</option>
+                                <option value="maya">Maya</option>
+                                <option value="cash">Cash</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Actions</label>
+                            <div class="flex space-x-2">
+                                <button id="apply-payment-filters-btn" class="px-3 py-1.5 bg-secondary text-white rounded-lg hover:bg-secondary/80 flex items-center">
+                                    <i class="ph ph-funnel mr-1"></i> Apply
+                                </button>
+                                <button id="clear-payment-filters-btn" class="px-3 py-1.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                                    <i class="ph ph-x mr-1"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payments Table -->
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt #</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Homeowner</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill Reference</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                                <th class="py-3 px-4 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                <th class="py-3 px-4 bg-gray-50 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Sample data - will be replaced with actual data from ViewBag.Payments -->
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6521</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Maria Santos (House #102)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4220</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">May 2, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">GCash</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6521">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="print-receipt-btn p-1 text-gray-600 hover:text-gray-800" data-id="RCPT-2025-6521">
+                                            <i class="ph ph-printer"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6520</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Roberto Tan (House #105)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4215</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">May 1, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Bank Transfer</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6520">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="verify-payment-btn p-1 text-green-600 hover:text-green-800" data-id="RCPT-2025-6520">
+                                            <i class="ph ph-check-circle"></i>
+                                        </button>
+                                        <button class="reject-payment-btn p-1 text-red-600 hover:text-red-800" data-id="RCPT-2025-6520">
+                                            <i class="ph ph-x-circle"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6519</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">Jose Garcia (House #110)</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4210</td>
+                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Apr 30, 2025</td>
+                                <td class="py-3 px-4 text-sm text-gray-500">Credit Card</td>
+                                <td class="py-3 px-4 text-sm">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                        Completed
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-sm text-center">
+                                    <div class="flex justify-center space-x-2">
+                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6519">
+                                            <i class="ph ph-eye"></i>
+                                        </button>
+                                        <button class="print-receipt-btn p-1 text-gray-600 hover:text-gray-800" data-id="RCPT-2025-6519">
+                                            <i class="ph ph-printer"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                <div class="flex items-center justify-between mt-4">
+                    <div class="text-sm text-gray-500">
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">42</span> results
+                    </div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
+                            Previous
+                        </button>
+                        <button class="px-3 py-1 bg-primary border border-primary rounded-lg text-sm font-medium text-white hover:bg-primary/80">
+                            1
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            2
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            3
+                        </button>
+                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                            Next
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab switching
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    tabBtns.forEach(b => {
+                        b.classList.remove('active');
+                        b.classList.remove('border-primary');
+                        b.classList.remove('text-primary');
+                        b.classList.add('border-transparent');
+                        b.classList.add('text-gray-500');
+                    });
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    this.classList.add('border-primary');
+                    this.classList.add('text-primary');
+                    this.classList.remove('border-transparent');
+                    this.classList.remove('text-gray-500');
+                    
+                    // Hide all tab contents
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Show the corresponding tab content
+                    const tabId = this.id.replace('tab-btn-', 'tab-');
+                    document.getElementById(tabId).classList.remove('hidden');
+                });
+            });
+            
+            // Modal handling functions
+            function openModal(modalId) {
+                document.getElementById(modalId).classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+            
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+            
+            function closeAllModals() {
+                const modals = document.querySelectorAll('[id$="-modal"]');
+                modals.forEach(modal => {
+                    modal.classList.add('hidden');
+                });
+                document.body.classList.remove('overflow-hidden');
+            }
+            
+            // Modal close buttons
+            document.querySelectorAll('[id^="close-"]').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const modalId = this.id.replace('close-', '').replace('-btn', '');
+                    closeModal(modalId + '-modal');
+                });
+            });
+            
+            // Billing Item Modal
+            const newBillingItemBtn = document.getElementById('new-billing-item-btn');
+            if (newBillingItemBtn) {
+                newBillingItemBtn.addEventListener('click', function() {
+                    document.getElementById('billing-item-modal-title').textContent = 'Add New Billing Item';
+                    document.getElementById('billing-item-id').value = '';
+                    document.getElementById('billing-item-form').reset();
+                    
+                    // Set current date as default due date
+                    const today = new Date();
+                    const formattedDate = today.toISOString().split('T')[0];
+                    document.getElementById('billing-item-due-date').value = formattedDate;
+                    
+                    openModal('billing-item-modal');
+                });
+            }
+            
+            // Edit Billing Item
+            document.querySelectorAll('.edit-billing-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    document.getElementById('billing-item-modal-title').textContent = 'Edit Billing Item';
+                    document.getElementById('billing-item-id').value = itemId;
+                    
+                    // In a real application, you would fetch the item data from the server
+                    // and populate the form fields
+                    
+                    openModal('billing-item-modal');
+                });
+            });
+            
+            // Delete Billing Item
+            document.querySelectorAll('.delete-billing-item-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    document.getElementById('delete-item-id').value = itemId;
+                    document.getElementById('delete-item-type').value = 'billing-item';
+                    document.getElementById('delete-confirm-title').textContent = 'Delete Billing Item';
+                    document.getElementById('delete-confirm-message').textContent = 
+                        'Are you sure you want to delete this billing item? This action cannot be undone.';
+                    
+                    openModal('delete-confirm-modal');
+                });
+            });
+            
+            // Assign Bill
+            document.querySelectorAll('.assign-bill-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const itemId = this.dataset.id;
+                    document.getElementById('assign-billing-item-id').value = itemId;
+                    
+                    // In a real application, you would fetch the billing item data and homeowners
+                    // list from the server and populate the form
+                    
+                    openModal('assign-bill-modal');
+                });
+            });
+            
+            // Generate Bills
+            const generateBillsBtn = document.getElementById('generate-bills-btn');
+            if (generateBillsBtn) {
+                generateBillsBtn.addEventListener('click', function() {
+                    // Set default dates
+                    const today = new Date();
+                    const nextMonth = new Date(today);
+                    nextMonth.setMonth(nextMonth.getMonth() + 1);
+                    
+                    document.getElementById('generate-bill-issue-date').value = today.toISOString().split('T')[0];
+                    document.getElementById('generate-bill-due-date').value = nextMonth.toISOString().split('T')[0];
+                    
+                    openModal('generate-bills-modal');
+                });
+            }
+            
+            // Record Payment
+            const recordPaymentBtn = document.getElementById('record-payment-btn');
+            if (recordPaymentBtn) {
+                recordPaymentBtn.addEventListener('click', function() {
+                    // Set current date as default payment date
+                    const today = new Date();
+                    document.getElementById('payment-date').value = today.toISOString().split('T')[0];
+                    
+                    openModal('record-payment-modal');
+                });
+            }
+            
+            // View Bill
+            document.querySelectorAll('.view-bill-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const billId = this.dataset.id;
+                    
+                    // In a real application, you would fetch the bill data from the server
+                    // and populate the modal
+                    document.getElementById('bill-number').textContent = `Bill #${billId}`;
+                    
+                    openModal('view-bill-modal');
+                });
+            });
+            
+            // View Payment
+            document.querySelectorAll('.view-payment-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const receiptId = this.dataset.id;
+                    
+                    // In a real application, you would fetch the payment data from the server
+                    // and populate the modal
+                    document.getElementById('payment-receipt-number').textContent = `Receipt #${receiptId}`;
+                    
+                    openModal('view-payment-modal');
+                });
+            });
+            
+            // Payment homeowner selection
+            const paymentHomeownerSelect = document.getElementById('payment-homeowner');
+            if (paymentHomeownerSelect) {
+                paymentHomeownerSelect.addEventListener('change', function() {
+                    const homeownerId = this.value;
+                    if (homeownerId) {
+                        // In a real application, you would fetch the homeowner's bills from the server
+                        // and populate the bills section
+                        document.getElementById('homeowner-bills-section').classList.remove('hidden');
+                    } else {
+                        document.getElementById('homeowner-bills-section').classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Bill checkboxes for payments
+            const billCheckboxes = document.querySelectorAll('.bill-checkbox');
+            billCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateSelectedBillsTotal);
+            });
+            
+            function updateSelectedBillsTotal() {
+                const selectedCheckboxes = document.querySelectorAll('.bill-checkbox:checked');
+                let total = 0;
+                
+                selectedCheckboxes.forEach(checkbox => {
+                    total += parseFloat(checkbox.dataset.amount || 0);
+                });
+                
+                document.getElementById('selected-bills-total').textContent = `₱${total.toFixed(2)}`;
+                document.getElementById('payment-amount').value = total.toFixed(2);
+            }
+            
+            // Select All Homeowners in Assign Bill Modal
+            const selectAllHomeowners = document.getElementById('select-all-homeowners');
+            if (selectAllHomeowners) {
+                selectAllHomeowners.addEventListener('change', function() {
+                    const isChecked = this.checked;
+                    document.querySelectorAll('.homeowner-checkbox').forEach(checkbox => {
+                        checkbox.checked = isChecked;
+                    });
+                });
+            }
+            
+            // Bills Form - Show/Hide Custom Bill Details
+            const billTypeSelect = document.getElementById('bill-type');
+            if (billTypeSelect) {
+                billTypeSelect.addEventListener('change', function() {
+                    const customBillDetails = document.getElementById('custom-bill-details');
+                    if (this.value === 'custom') {
+                        customBillDetails.classList.remove('hidden');
+                    } else {
+                        customBillDetails.classList.add('hidden');
+                    }
+                });
+            }
+            
+            // Recipients Radio Toggle
+            const specificHomeownersRadio = document.getElementById('specific-homeowners');
+            if (specificHomeownersRadio) {
+                specificHomeownersRadio.addEventListener('change', function() {
+                    document.getElementById('specific-homeowners-section').classList.toggle('hidden', !this.checked);
+                });
+                
+                document.getElementById('all-homeowners').addEventListener('change', function() {
+                    document.getElementById('specific-homeowners-section').classList.toggle('hidden', this.checked);
+                });
+            }
+            
+            // Form submissions
+            document.getElementById('billing-item-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would handle the form submission, likely via AJAX
+                alert('Billing item saved successfully!');
+                closeModal('billing-item-modal');
+            });
+            
+            document.getElementById('assign-bill-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would handle the form submission
+                alert('Bills assigned successfully!');
+                closeModal('assign-bill-modal');
+            });
+            
+            document.getElementById('record-payment-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would handle the form submission
+                alert('Payment recorded successfully!');
+                closeModal('record-payment-modal');
+            });
+            
+            document.getElementById('generate-bills-form')?.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // Here you would handle the form submission
+                alert('Bills generated successfully!');
+                closeModal('generate-bills-modal');
+            });
+            
+            // Delete confirmation
+            document.getElementById('confirm-delete-btn')?.addEventListener('click', function() {
+                const itemId = document.getElementById('delete-item-id').value;
+                const itemType = document.getElementById('delete-item-type').value;
+                
+                // Here you would send a request to delete the item
+                alert(`${itemType} with ID ${itemId} deleted successfully!`);
+                closeModal('delete-confirm-modal');
+            });
+            
+            document.getElementById('cancel-delete-btn')?.addEventListener('click', function() {
+                closeModal('delete-confirm-modal');
+            });
+
+            // Filter buttons
+            document.getElementById('apply-filters-btn')?.addEventListener('click', function() {
+                // Here you would apply the filters and reload the bills table
+                alert('Filters applied!');
+            });
+            
+            document.getElementById('clear-filters-btn')?.addEventListener('click', function() {
+                // Here you would reset the filters and reload the bills table
+                document.getElementById('bill-status-filter').value = 'all';
+                document.getElementById('bill-date-filter').value = 'all';
+                document.getElementById('bill-category-filter').value = 'all';
+                alert('Filters cleared!');
+            });
+            
+            document.getElementById('apply-payment-filters-btn')?.addEventListener('click', function() {
+                // Here you would apply the filters and reload the payments table
+                alert('Payment filters applied!');
+            });
+            
+            document.getElementById('clear-payment-filters-btn')?.addEventListener('click', function() {
+                // Here you would reset the filters and reload the payments table
+                document.getElementById('payment-status-filter').value = 'all';
+                document.getElementById('payment-date-filter').value = 'all';
+                document.getElementById('payment-method-filter').value = 'all';
+                alert('Payment filters cleared!');
+            });
+
+            // Cancel buttons for forms
+            document.getElementById('cancel-billing-item-btn')?.addEventListener('click', function() {
+                closeModal('billing-item-modal');
+            });
+            
+            document.getElementById('cancel-assign-bill-btn')?.addEventListener('click', function() {
+                closeModal('assign-bill-modal');
+            });
+            
+            document.getElementById('cancel-record-payment-btn')?.addEventListener('click', function() {
+                closeModal('record-payment-modal');
+            });
+            
+            document.getElementById('cancel-generate-bills-btn')?.addEventListener('click', function() {
+                closeModal('generate-bills-modal');
+            });
+            
+            document.getElementById('close-view-bill-details-btn')?.addEventListener('click', function() {
+                closeModal('view-bill-modal');
+            });
+            
+            document.getElementById('close-view-payment-details-btn')?.addEventListener('click', function() {
+                closeModal('view-payment-modal');
+            });
+            
+            // Print buttons
+            document.getElementById('print-bill-btn')?.addEventListener('click', function() {
+                alert('Print functionality would be implemented here');
+            });
+            
+            document.getElementById('print-view-payment-btn')?.addEventListener('click', function() {
+                alert('Print functionality would be implemented here');
+            });
+            
+            // Add event listener for the file input change
+            document.getElementById('payment-proof')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function() {
+                        // Here you would typically display a preview of the uploaded file
+                        console.log('File uploaded:', file.name);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', function(e) {
+                const modals = document.querySelectorAll('[id$="-modal"]');
+                modals.forEach(modal => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+@section Modals {
+    <!-- New/Edit Billing Item Modal -->
+    <div id="billing-item-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-3 border-b border-gray-200">
+                <h3 id="billing-item-modal-title" class="text-lg font-medium text-gray-900">Add New Billing Item</h3>
+                <button id="close-billing-item-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <form id="billing-item-form">
+                <div class="p-4 space-y-3">
+                    <input type="hidden" id="billing-item-id" value="" />
+                    <div>
+                        <label for="billing-item-name" class="block text-sm font-medium text-gray-700 mb-1">Item Name*</label>
+                        <input type="text" id="billing-item-name" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="billing-item-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)*</label>
+                            <input type="number" id="billing-item-amount" step="0.01" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                        <div>
+                            <label for="billing-item-category" class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
+                            <select id="billing-item-category" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                                <option value="dues">Association Dues</option>
+                                <option value="water">Water</option>
+                                <option value="security">Security</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="special">Special Assessment</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="billing-item-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date*</label>
+                            <input type="date" id="billing-item-due-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                        <div>
+                            <label for="billing-item-recurring" class="block text-sm font-medium text-gray-700 mb-1">Recurring</label>
+                            <select id="billing-item-recurring" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                                <option value="none">One-time</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="quarterly">Quarterly</option>
+                                <option value="annually">Annually</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="billing-item-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="billing-item-description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 flex justify-end space-x-3">
+                    <button type="button" id="cancel-billing-item-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" id="save-billing-item-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Assign Bill Modal -->
+    <div id="assign-bill-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Assign Bill to Homeowners</h3>
+                <button id="close-assign-bill-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <form id="assign-bill-form">
+                <div class="p-6 space-y-4">
+                    <input type="hidden" id="assign-billing-item-id" value="" />
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-medium text-gray-800" id="bill-assignment-item-name">Monthly Association Dues - May 2025</h4>
+                        <div class="flex justify-between mt-1">
+                            <span class="text-sm text-gray-600" id="bill-assignment-item-category">Category: Association Dues</span>
+                            <span class="text-sm font-medium text-gray-900" id="bill-assignment-item-amount">₱2,500.00</span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Homeowners</label>
+                        <div class="mb-2 flex items-center">
+                            <input type="checkbox" id="select-all-homeowners" class="rounded text-primary focus:ring-primary/50 mr-2">
+                            <label for="select-all-homeowners" class="text-sm font-medium">Select All Homeowners</label>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto border border-gray-200 rounded-lg">
+                            <div class="divide-y divide-gray-200" id="homeowner-list">
+                                <!-- Homeowner list items will be populated by JS -->
+                                <div class="flex items-center px-3 py-2 hover:bg-gray-50">
+                                    <input type="checkbox" name="homeowners" value="1" class="homeowner-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                    <label class="text-sm">Juan Dela Cruz (House #101)</label>
+                                </div>
+                                <div class="flex items-center px-3 py-2 hover:bg-gray-50">
+                                    <input type="checkbox" name="homeowners" value="2" class="homeowner-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                    <label class="text-sm">Maria Santos (House #102)</label>
+                                </div>
+                                <!-- Additional homeowners would be listed here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="bill-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date*</label>
+                            <input type="date" id="bill-due-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                        <div>
+                            <label for="bill-issue-date" class="block text-sm font-medium text-gray-700 mb-1">Issue Date*</label>
+                            <input type="date" id="bill-issue-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="bill-notes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        <textarea id="bill-notes" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 flex justify-end space-x-3">
+                    <button type="button" id="cancel-assign-bill-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-assign-bill-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                        Generate Bills
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Record Payment Modal -->
+    <div id="record-payment-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Record Payment</h3>
+                <button id="close-record-payment-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <form id="record-payment-form">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="payment-homeowner" class="block text-sm font-medium text-gray-700 mb-1">Homeowner*</label>
+                        <select id="payment-homeowner" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="">Select a homeowner</option>
+                            <!-- Homeowner options will be populated by JS -->
+                            <option value="1">Juan Dela Cruz (House #101)</option>
+                            <option value="2">Maria Santos (House #102)</option>
+                        </select>
+                    </div>
+                    
+                    <div id="homeowner-bills-section" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Select Bill(s) to Pay</label>
+                        <div class="max-h-48 overflow-y-auto border border-gray-200 rounded-lg">
+                            <div class="divide-y divide-gray-200" id="homeowner-bills-list">
+                                <!-- Bills will be populated by JS -->
+                                <div class="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" name="bills" value="BILL-2025-4221" data-amount="2500" class="bill-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                        <label class="text-sm">Monthly Association Dues - May 2025</label>
+                                    </div>
+                                    <span class="text-sm font-medium">₱2,500.00</span>
+                                </div>
+                                <div class="flex items-center justify-between px-3 py-2 hover:bg-gray-50">
+                                    <div class="flex items-center">
+                                        <input type="checkbox" name="bills" value="BILL-2025-4152" data-amount="2500" class="bill-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                        <label class="text-sm">Monthly Association Dues - April 2025</label>
+                                    </div>
+                                    <span class="text-sm font-medium">₱2,500.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-2 flex justify-between">
+                            <span class="text-sm font-medium">Total Selected:</span>
+                            <span class="text-sm font-medium" id="selected-bills-total">₱0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="payment-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount Paid (₱)*</label>
+                            <input type="number" id="payment-amount" step="0.01" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                        <div>
+                            <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-1">Payment Date*</label>
+                            <input type="date" id="payment-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="payment-method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method*</label>
+                            <select id="payment-method" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                                <option value="">Select payment method</option>
+                                <option value="cash">Cash</option>
+                                <option value="bank_transfer">Bank Transfer</option>
+                                <option value="check">Check</option>
+                                <option value="credit_card">Credit Card</option>
+                                <option value="debit_card">Debit Card</option>
+                                <option value="gcash">GCash</option>
+                                <option value="maya">Maya</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="payment-ref-no" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                            <input type="text" id="payment-ref-no" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-notes" class="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                        <textarea id="payment-notes" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Upload Receipt/Proof of Payment</label>
+                        <div class="flex items-center justify-center w-full">
+                            <label for="payment-proof" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <i class="ph ph-upload-simple text-2xl text-gray-400"></i>
+                                    <p class="mb-2 text-sm text-gray-500">
+                                        <span class="font-medium">Click to upload</span> or drag and drop
+                                    </p>
+                                    <p class="text-xs text-gray-500">PNG, JPG or PDF (MAX. 2MB)</p>
+                                </div>
+                                <input id="payment-proof" type="file" class="hidden" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 flex justify-end space-x-3">
+                    <button type="button" id="cancel-record-payment-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-record-payment-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                        Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- View Payment Modal -->
+    <div id="view-payment-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Payment Details</h3>
+                <button id="close-view-payment-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h4 id="payment-receipt-number" class="text-xl font-medium text-gray-900">Receipt #RCPT-2025-6521</h4>
+                        <p id="payment-status-display" class="mt-1">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                Completed
+                            </span>
+                        </p>
+                    </div>
+                    <img src="~/images/qr-code-sample.jpg" alt="QR Code" class="h-16 w-16 border border-gray-200">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Homeowner</p>
+                        <p id="payment-homeowner-name" class="font-medium">Maria Santos (House #102)</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Amount Paid</p>
+                        <p id="payment-amount-display" class="font-medium">₱2,500.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Payment Date</p>
+                        <p id="payment-date-display" class="font-medium">May 2, 2025</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Payment Method</p>
+                        <p id="payment-method-display" class="font-medium">GCash</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Reference Number</p>
+                        <p id="payment-ref-no-display" class="font-medium">GC123456789</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Processed By</p>
+                        <p id="payment-processor-display" class="font-medium">Admin User</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <p class="text-sm text-gray-500 mb-2">Bills Paid</p>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div id="payment-bills-list" class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Monthly Association Dues - May 2025</span>
+                                <span class="font-medium">₱2,500.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500 mb-2">Notes</p>
+                    <p id="payment-notes-display" class="text-sm bg-gray-50 rounded-lg p-3 min-h-[3rem]">
+                        Payment received via GCash from mobile number 09XX-XXX-XXXX.
+                    </p>
+                </div>
+                
+                <div class="mt-4" id="payment-proof-section">
+                    <p class="text-sm text-gray-500 mb-2">Payment Proof</p>
+                    <div class="bg-gray-50 rounded-lg p-2 flex justify-center">
+                        <img id="payment-proof-image" src="~/images/qr-code-sample.jpg" alt="Payment Proof" class="h-48 object-contain">
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 flex justify-between">
+                <button id="print-view-payment-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 flex items-center">
+                    <i class="ph ph-printer mr-1"></i> Print Receipt
+                </button>
+                <button id="close-view-payment-details-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- View Bill Modal -->
+    <div id="view-bill-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Bill Details</h3>
+                <button id="close-view-bill-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h4 id="bill-number" class="text-xl font-medium text-gray-900">Bill #BILL-2025-4221</h4>
+                        <p id="bill-status-display" class="mt-1">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Pending
+                            </span>
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Homeowner</p>
+                        <p id="bill-homeowner-name" class="font-medium">Juan Dela Cruz (House #101)</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Amount Due</p>
+                        <p id="bill-amount-display" class="font-medium">₱2,500.00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Issue Date</p>
+                        <p id="bill-issue-date-display" class="font-medium">Apr 15, 2025</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Due Date</p>
+                        <p id="bill-due-date-display" class="font-medium">May 15, 2025</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Category</p>
+                        <p id="bill-category-display" class="font-medium">Association Dues</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Generated By</p>
+                        <p id="bill-generator-display" class="font-medium">Admin User</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6">
+                    <p class="text-sm text-gray-500 mb-2">Bill Items</p>
+                    <div class="bg-gray-50 rounded-lg p-3">
+                        <div id="bill-items-list" class="space-y-2">
+                            <div class="flex justify-between text-sm">
+                                <span>Monthly Association Dues - May 2025</span>
+                                <span class="font-medium">₱2,500.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500 mb-2">Notes</p>
+                    <p id="bill-notes-display" class="text-sm bg-gray-50 rounded-lg p-3 min-h-[3rem]">
+                        Please pay on or before the due date to avoid penalties.
+                    </p>
+                </div>
+                
+                <div class="mt-4" id="payment-history-section">
+                    <p class="text-sm text-gray-500 mb-2">Payment History</p>
+                    <div id="bill-payment-history" class="bg-gray-50 rounded-lg p-3 text-sm">
+                        <div class="text-center text-gray-500">No payments recorded yet</div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 p-4 flex justify-end space-x-3">
+                <button id="print-bill-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    <i class="ph ph-printer mr-1"></i> Print Bill
+                </button>
+                <button id="close-view-bill-details-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Generate Bills Modal -->
+    <div id="generate-bills-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-xl mx-4 overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <h3 class="text-lg font-medium text-gray-900">Generate Bills</h3>
+                <button id="close-generate-bills-modal" class="text-gray-400 hover:text-gray-500">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+            <form id="generate-bills-form">
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="bill-type" class="block text-sm font-medium text-gray-700 mb-1">Bill Type*</label>
+                        <select id="bill-type" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="">Select bill type</option>
+                            <option value="dues">Association Dues</option>
+                            <option value="water">Water Bills</option>
+                            <option value="security">Security Fee</option>
+                            <option value="maintenance">Maintenance Fee</option>
+                            <option value="special">Special Assessment</option>
+                            <option value="custom">Custom Bill</option>
+                        </select>
+                    </div>
+                    
+                    <div id="custom-bill-details" class="hidden space-y-4">
+                        <div>
+                            <label for="custom-bill-name" class="block text-sm font-medium text-gray-700 mb-1">Bill Name*</label>
+                            <input type="text" id="custom-bill-name" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        </div>
+                        <div>
+                            <label for="custom-bill-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea id="custom-bill-description" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                        </div>
+                        <div>
+                            <label for="custom-bill-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)*</label>
+                            <input type="number" id="custom-bill-amount" step="0.01" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="generate-bill-month" class="block text-sm font-medium text-gray-700 mb-1">Month*</label>
+                            <select id="generate-bill-month" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                                <option value="1">January</option>
+                                <option value="2">February</option>
+                                <option value="3">March</option>
+                                <option value="4">April</option>
+                                <option value="5" selected>May</option>
+                                <option value="6">June</option>
+                                <option value="7">July</option>
+                                <option value="8">August</option>
+                                <option value="9">September</option>
+                                <option value="10">October</option>
+                                <option value="11">November</option>
+                                <option value="12">December</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="generate-bill-year" class="block text-sm font-medium text-gray-700 mb-1">Year*</label>
+                            <select id="generate-bill-year" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                                <option value="2024">2024</option>
+                                <option value="2025" selected>2025</option>
+                                <option value="2026">2026</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="generate-bill-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date*</label>
+                            <input type="date" id="generate-bill-due-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                        <div>
+                            <label for="generate-bill-issue-date" class="block text-sm font-medium text-gray-700 mb-1">Issue Date*</label>
+                            <input type="date" id="generate-bill-issue-date" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Recipients</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="radio" id="all-homeowners" name="recipients" value="all" class="text-primary focus:ring-primary/50 mr-2" checked>
+                                <label for="all-homeowners" class="text-sm">All Homeowners</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" id="specific-homeowners" name="recipients" value="specific" class="text-primary focus:ring-primary/50 mr-2">
+                                <label for="specific-homeowners" class="text-sm">Specific Homeowners</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="specific-homeowners-section" class="hidden">
+                        <div class="border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                            <div class="p-2 space-y-1">
+                                <div class="flex items-center mb-2">
+                                    <input type="checkbox" id="select-all-recipients" class="rounded text-primary focus:ring-primary/50 mr-2">
+                                    <label for="select-all-recipients" class="text-sm font-medium">Select All</label>
+                                </div>
+                                <div class="divide-y divide-gray-200" id="specific-homeowners-list">
+                                    <!-- Homeowners will be populated by JS -->
+                                    <div class="flex items-center py-1">
+                                        <input type="checkbox" name="specific-homeowner" value="1" class="specific-homeowner-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                        <label class="text-sm">Juan Dela Cruz (House #101)</label>
+                                    </div>
+                                    <div class="flex items-center py-1">
+                                        <input type="checkbox" name="specific-homeowner" value="2" class="specific-homeowner-checkbox rounded text-primary focus:ring-primary/50 mr-2">
+                                        <label class="text-sm">Maria Santos (House #102)</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="generate-bill-notes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label>
+                        <textarea id="generate-bill-notes" rows="2" class="w-full px-3 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                    </div>
+                </div>
+                <div class="bg-gray-50 p-4 flex justify-end space-x-3">
+                    <button type="button" id="cancel-generate-bills-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button type="submit" id="submit-generate-bills-btn" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80">
+                        Generate Bills
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4 overflow-hidden">
+            <div class="p-6 space-y-4">
+                <div class="flex items-center justify-center">
+                    <div class="bg-red-100 rounded-full p-3">
+                        <i class="ph ph-warning text-3xl text-red-600"></i>
+                    </div>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 text-center" id="delete-confirm-title">Delete Billing Item</h3>
+                <p class="text-sm text-gray-500 text-center" id="delete-confirm-message">
+                    Are you sure you want to delete this billing item? This action cannot be undone.
+                </p>
+                <input type="hidden" id="delete-item-id" value="">
+                <input type="hidden" id="delete-item-type" value="">
+            </div>
+            <div class="bg-gray-50 p-4 flex justify-center space-x-3">
+                <button type="button" id="cancel-delete-btn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button type="button" id="confirm-delete-btn" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+}
