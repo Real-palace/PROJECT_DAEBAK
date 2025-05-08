@@ -23,7 +23,8 @@ namespace daebak_subdivision_website.Controllers
         {
             var username = User.Identity?.Name;
             var user = _dbContext.Users
-                .Include(u => u.Homeowner) // Include the Homeowner navigation property
+                .Include(u => u.Homeowner)
+                .AsNoTracking()
                 .FirstOrDefault(u => u.Username == username);
 
             if (user == null)
@@ -38,12 +39,39 @@ namespace daebak_subdivision_website.Controllers
             ViewBag.EventCount = 3; // You can replace with actual data from your database
             ViewBag.RequestCount = 1; // You can replace with actual data from your database
 
-            // Load recent feedback submissions
-            ViewBag.RecentFeedback = _dbContext.Feedbacks
+            // Load recent feedback submissions with explicit query and proper includes
+            var recentFeedback = _dbContext.Feedbacks
+                .Include(f => f.User)
+                .ThenInclude(u => u.Homeowner)
                 .Where(f => f.UserId == user.UserId)
                 .OrderByDescending(f => f.CreatedAt)
+                .Select(f => new
+                {
+                    FeedbackId = f.FeedbackId,
+                    UserId = f.UserId,
+                    UserName = f.User.FirstName + " " + f.User.LastName,
+                    HouseNumber = (f.User.Homeowner != null) ? f.User.Homeowner.HouseNumber : null,
+                    FeedbackType = f.FeedbackType,
+                    Description = f.Description,
+                    Status = f.Status,
+                    CreatedAt = f.CreatedAt
+                })
                 .Take(3)
+                .AsEnumerable()
+                .Select(f => new FeedbackViewModel
+                {
+                    FeedbackId = f.FeedbackId,
+                    UserId = f.UserId,
+                    UserName = f.UserName,
+                    HouseNumber = string.IsNullOrEmpty(f.HouseNumber) ? "N/A" : f.HouseNumber,
+                    FeedbackType = f.FeedbackType,
+                    Description = f.Description,
+                    Status = f.Status,
+                    CreatedAt = f.CreatedAt.ToString("MMM dd, yyyy")
+                })
                 .ToList();
+
+            ViewBag.RecentFeedback = recentFeedback;
 
             // Optional: Add sample events data for the calendar
             ViewBag.Events = new[]
@@ -330,7 +358,8 @@ namespace daebak_subdivision_website.Controllers
                 user.Homeowner = new Homeowner
                 {
                     UserId = user.UserId,
-                    HouseNumber = model.HouseNumber ?? string.Empty
+                    HouseNumber = model.HouseNumber ?? string.Empty,
+                    User = user
                 };
             }
 

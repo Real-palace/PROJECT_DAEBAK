@@ -9,13 +9,12 @@ namespace daebak_subdivision_website.Models
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-        // ✅ Define DbSets
+        // DbSet definitions
         public DbSet<User> Users { get; set; }
         public DbSet<Homeowner> Homeowners { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Staff> Staff { get; set; }
         public DbSet<Announcement> Announcements { get; set; }
-        public DbSet<Announcement> ANNOUNCEMENTS { get; set; }
         public DbSet<Event> Events { get; set; }
         public DbSet<BillingItem> BillingItems { get; set; }
         public DbSet<UserBill> UserBills { get; set; }
@@ -34,9 +33,51 @@ namespace daebak_subdivision_website.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // ✅ Explicit Table Mapping
-            modelBuilder.Entity<User>().ToTable("USERS");
-            modelBuilder.Entity<Homeowner>().ToTable("HOMEOWNERS");
+            // Configure Homeowner entity
+            modelBuilder.Entity<Homeowner>(entity =>
+            {
+                entity.ToTable("HOMEOWNERS");
+                entity.HasKey(e => e.HomeownerId);
+                entity.Property(e => e.HomeownerId).HasColumnName("HOMEOWNER_ID");
+                entity.Property(e => e.UserId).HasColumnName("USER_ID");
+                entity.Property(e => e.HouseNumber).HasColumnName("HOUSE_NUMBER").HasMaxLength(10).IsRequired(false);
+
+                entity.HasOne(d => d.User)
+                    .WithOne(p => p.Homeowner)
+                    .HasForeignKey<Homeowner>(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure Feedback entity
+            modelBuilder.Entity<Feedback>(entity =>
+            {
+                entity.ToTable("FEEDBACK");
+                entity.HasKey(e => e.FeedbackId);
+                entity.Property(e => e.FeedbackId).HasColumnName("FEEDBACK_ID");
+                entity.Property(e => e.UserId).HasColumnName("USER_ID");
+                entity.Property(e => e.HouseNumber).HasColumnName("HOUSE_NUMBER").HasMaxLength(50).IsRequired(false);
+                entity.Property(e => e.FeedbackType).HasColumnName("FEEDBACK_TYPE").HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Description).HasColumnName("DESCRIPTION").IsRequired();
+                entity.Property(e => e.Status).HasColumnName("STATUS").HasMaxLength(20).IsRequired();
+                entity.Property(e => e.CreatedAt).HasColumnName("CREATED_AT");
+                entity.Property(e => e.UpdatedAt).HasColumnName("UPDATED_AT");
+
+                entity.HasOne(d => d.User)
+                    .WithMany()
+                    .HasForeignKey(d => d.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure User entity
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("USERS");
+                entity.HasKey(e => e.UserId);
+                entity.HasIndex(e => e.Username).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
+            });
+
+            // Table Mappings
             modelBuilder.Entity<Admin>().ToTable("ADMINS");
             modelBuilder.Entity<Staff>().ToTable("STAFF");
             modelBuilder.Entity<Announcement>().ToTable("ANNOUNCEMENTS");
@@ -55,98 +96,6 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<SecurityAlert>().ToTable("SECURITY_ALERTS");
             modelBuilder.Entity<EmergencyContact>().ToTable("EMERGENCY_CONTACTS");
             modelBuilder.Entity<UserEmergencyContact>().ToTable("USER_EMERGENCY_CONTACTS");
-
-            // ✅ Explicit Column Mapping for Homeowner
-            modelBuilder.Entity<Homeowner>()
-                .Property(h => h.HomeownerId)
-                .HasColumnName("HOMEOWNER_ID");
-
-            modelBuilder.Entity<Homeowner>()
-                .Property(h => h.UserId)
-                .HasColumnName("USER_ID");
-
-            modelBuilder.Entity<Homeowner>()
-                .Property(h => h.HouseNumber)
-                .HasColumnName("HOUSE_NUMBER");
-
-            // ✅ Define Relationships
-            modelBuilder.Entity<Homeowner>()
-                .HasOne(h => h.User)
-                .WithOne(u => u.Homeowner)
-                .HasForeignKey<Homeowner>(h => h.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Admin>()
-                .HasOne<User>()
-                .WithOne()
-                .HasForeignKey<Admin>(a => a.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // Fix Staff-User relationship by specifying both navigation properties
-            modelBuilder.Entity<Staff>()
-                .HasOne(s => s.User)
-                .WithOne(u => u.Staff)
-                .HasForeignKey<Staff>(s => s.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<ServiceRequest>()
-                .HasOne<User>()
-                .WithMany()
-                .HasForeignKey(sr => sr.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<ServiceRequest>()
-                .HasOne<User>()
-                .WithMany()
-                .HasForeignKey(sr => sr.AssignedTo)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            modelBuilder.Entity<Feedback>()
-                .HasOne<User>()
-                .WithMany()
-                .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-            
-            // Add relationship for FeedbackResponse
-            modelBuilder.Entity<FeedbackResponse>()
-                .HasOne(fr => fr.Feedback)
-                .WithMany()
-                .HasForeignKey(fr => fr.FeedbackId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            // Security related relationships
-            modelBuilder.Entity<VisitorPass>()
-                .HasOne(v => v.RequestedBy)
-                .WithMany()
-                .HasForeignKey(v => v.RequestedById)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<VehicleRegistration>()
-                .HasOne(v => v.Owner)
-                .WithMany()
-                .HasForeignKey(v => v.OwnerId)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<SecurityAlert>()
-                .HasOne(a => a.CreatedBy)
-                .WithMany()
-                .HasForeignKey(a => a.CreatedById)
-                .OnDelete(DeleteBehavior.Cascade);
-                
-            modelBuilder.Entity<UserEmergencyContact>()
-                .HasOne(c => c.User)
-                .WithMany()
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            // ✅ Unique Constraints
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Username)
-                .IsUnique();
-
-            modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
         }
 
         public override int SaveChanges()
