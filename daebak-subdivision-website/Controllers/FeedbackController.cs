@@ -64,6 +64,20 @@ namespace daebak_subdivision_website.Controllers
 
             try
             {
+                // Get the current user
+                var username = User.Identity?.Name;
+                var user = await _context.Users
+                    .Include(u => u.Homeowner)
+                    .FirstOrDefaultAsync(u => u.Username == username);
+
+                if (user == null)
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                // Set the user ID and house number
+                model.UserId = user.UserId;
+                model.HouseNumber = user.Homeowner?.HouseNumber ?? "N/A";
                 model.CreatedAt = DateTime.Now;
                 model.UpdatedAt = DateTime.Now;
                 model.Status = "Open";

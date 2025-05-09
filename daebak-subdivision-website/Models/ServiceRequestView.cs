@@ -6,9 +6,8 @@ namespace daebak_subdivision_website.Models
     {
         public int Id { get; set; }
         public int UserId { get; set; }
-        public string HouseNumber { get; set; }
-        public string Location { get; set; }
         public string RequestType { get; set; }
+        public string Location { get; set; }
         public string Description { get; set; }
         public string Status { get; set; }
         public DateTime CreatedAt { get; set; }
@@ -18,5 +17,7 @@ namespace daebak_subdivision_website.Models
         public string AssignedToName { get; set; }
         public DateTime? ScheduledDate { get; set; }
         public string StaffNotes { get; set; }
+        public string AdminResponse { get; set; }
+        public string HouseNumber { get; set; }
     }
 }

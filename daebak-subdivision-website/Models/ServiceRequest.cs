@@ -14,20 +14,21 @@ namespace daebak_subdivision_website.Models
         [Column("USER_ID")]
         public int UserId { get; set; }
 
-        [Column("HOUSE_NUMBER")]
-        public string? HouseNumber { get; set; }  // This property seems to be in your model but not in the DB schema
-
-        [Column("LOCATION")]
-        public string Location { get; set; }
-
         [Column("REQUEST_TYPE")]
+        [Required]
         public string RequestType { get; set; }
 
+        [Column("LOCATION")]
+        [Required]
+        public string Location { get; set; }
+
         [Column("DESCRIPTION")]
+        [Required]
         public string Description { get; set; }
 
         [Column("STATUS")]
-        public string Status { get; set; } // Open, In Progress, Scheduled, Completed, Cancelled
+        [Required]
+        public string Status { get; set; } = "Pending"; // Default status
 
         [Column("CREATED_AT")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -42,13 +43,35 @@ namespace daebak_subdivision_website.Models
         public DateTime? ScheduledDate { get; set; }
 
         [Column("STAFF_NOTES")]
-        public string StaffNotes { get; set; }
+        public string? StaffNotes { get; set; }
 
-        // Map AdminResponse to STAFF_NOTES since there's no explicit AdminResponse column
-        public string AdminResponse
+        // Navigation properties
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
+
+        [ForeignKey("UserId")]
+        public virtual Homeowner Homeowner { get; set; }
+
+        // Map AdminResponse to STAFF_NOTES
+        [NotMapped]
+        public string? AdminResponse
         {
-            get { return StaffNotes; }
-            set { StaffNotes = value; }
+            get => StaffNotes;
+            set => StaffNotes = value;
+        }
+
+        // Map HouseNumber from Homeowner
+        [NotMapped]
+        public string? HouseNumber
+        {
+            get => Homeowner?.HouseNumber;
+            set
+            {
+                if (Homeowner != null)
+                {
+                    Homeowner.HouseNumber = value;
+                }
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+@model List<daebak_subdivision_website.Models.ServiceRequestView>
 @{
     ViewData["Title"] = "Services";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -26,13 +27,14 @@
             <h3 class="font-semibold text-lg text-tertiary">New Service Request</h3>
         </div>
         
-        <form id="service-request-form" asp-controller="Services" asp-action="SubmitRequest" method="post">
+        <form id="service-request-form" asp-controller="ServiceRequests" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
             <!-- Request Type Selection -->
             <div class="mb-5">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Request Type</label>
+                <label class="block text-gray-700 text-sm font-medium mb-2">Request Type <span class="text-red-500">*</span></label>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="relative">
-                        <input type="radio" id="maintenance" name="RequestType" value="Maintenance" class="hidden peer" checked>
+                        <input type="radio" id="maintenance" name="RequestType" value="Maintenance" class="hidden peer" required checked>
                         <label for="maintenance" class="flex items-center p-4 border rounded-lg cursor-pointer peer-checked:border-secondary peer-checked:bg-secondary/5 hover:bg-gray-50">
                             <i class="ph ph-hammer text-2xl mr-3 text-gray-500 peer-checked:text-secondary"></i>
                             <div>
@@ -43,7 +45,7 @@
                     </div>
                     
                     <div class="relative">
-                        <input type="radio" id="security" name="RequestType" value="Security" class="hidden peer">
+                        <input type="radio" id="security" name="RequestType" value="Security" class="hidden peer" required>
                         <label for="security" class="flex items-center p-4 border rounded-lg cursor-pointer peer-checked:border-secondary peer-checked:bg-secondary/5 hover:bg-gray-50">
                             <i class="ph ph-shield-warning text-2xl mr-3 text-gray-500"></i>
                             <div>
@@ -59,14 +61,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 text-sm font-medium mb-2" for="location">
-                        Location
+                        Location <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" id="location" name="Location" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please specify the exact location (e.g., Main gate, Palm Avenue corner, Swimming pool area)" required>
+                    <input type="text" id="location" name="Location" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please specify the exact location" required>
                 </div>
                 
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 text-sm font-medium mb-2" for="description">
-                        Detailed Description
+                        Detailed Description <span class="text-red-500">*</span>
                     </label>
                     <textarea id="description" name="Description" rows="4" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please provide details about the issue..." required></textarea>
                 </div>
@@ -214,10 +216,10 @@
             <div class="relative">
                 <select id="request-filter" class="bg-white border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                     <option value="all">All Requests</option>
-                    <option value="open">Open Requests</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
                 </select>
             </div>
         </div>
@@ -231,80 +233,53 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Submitted</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin Response</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="requests-table-body">
-                    <!-- Sample Data - Will be replaced with actual data -->
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1234</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-hammer text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Maintenance</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Main entrance gate</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">In Progress</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">May 2, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1234">View Details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1235</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-shield-warning text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Security</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Palm Avenue corner</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">Apr 28, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1235">View Details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1236</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-hammer text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Maintenance</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Swimming pool area</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Scheduled</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">Apr 25, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1236">View Details</button>
-                        </td>
-                    </tr>
+                    @if (Model != null && Model.Any())
+                    {
+                        @foreach (var request in Model)
+                        {
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">#@request.Id</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <i class="ph @(request.RequestType == "Maintenance" ? "ph-hammer" : "ph-shield-warning") text-secondary mr-2"></i>
+                                        <div class="text-sm font-medium text-gray-900">@request.RequestType</div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">@request.Location</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        @(request.Status == "Pending" ? "bg-yellow-100 text-yellow-800" :
+                                          request.Status == "In Progress" ? "bg-blue-100 text-blue-800" :
+                                          request.Status == "Completed" ? "bg-green-100 text-green-800" :
+                                          "bg-red-100 text-red-800")">
+                                        @request.Status
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">@request.CreatedAt.ToString("MMM dd, yyyy")</div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">@(string.IsNullOrEmpty(request.AdminResponse) ? "No response yet" : request.AdminResponse)</div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                No service requests found
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
@@ -547,8 +522,89 @@
             // Request filter change
             const requestFilter = document.getElementById('request-filter');
             requestFilter.addEventListener('change', function() {
-                // In a real app, this would filter the table data
-                console.log('Filter changed to: ' + this.value);
+                const status = this.value;
+                const rows = document.querySelectorAll('#requests-table-body tr');
+                
+                rows.forEach(row => {
+                    if (status === 'all' || row.querySelector('td:nth-child(4) span').textContent === status) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+
+            // Form submission handling
+            const form = document.getElementById('service-request-form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                
+                // Remove the file input if no files are selected
+                if (!formData.get('Images')?.size) {
+                    formData.delete('Images');
+                }
+                
+                // Log form data for debugging
+                console.log('Submitting form data:');
+                for (let pair of formData.entries()) {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+                
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(async response => {
+                    console.log('Response status:', response.status);
+                    const contentType = response.headers.get('content-type');
+                    console.log('Response content type:', contentType);
+                    
+                    if (response.status === 401) {
+                        window.location.href = '/Account/Login?returnUrl=' + encodeURIComponent(window.location.pathname);
+                        return;
+                    }
+                    
+                    let data;
+                    try {
+                        const text = await response.text();
+                        console.log('Response text:', text);
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                        throw new Error('Invalid response from server');
+                    }
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || 'Error submitting request');
+                    }
+                    
+                    return data;
+                })
+                .then(data => {
+                    if (!data) return; // Skip if we redirected to login
+                    
+                    if (data.success) {
+                        alert('Service request submitted successfully!');
+                        form.reset();
+                        document.getElementById('image-preview').innerHTML = '';
+                        // Optionally refresh the track requests section
+                        location.reload();
+                    } else {
+                        console.error('Error details:', data.debugInfo);
+                        alert(data.message || 'Error submitting request');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    console.error('Full error details:', error);
+                    alert(error.message || 'Error submitting request. Please try again.');
+                });
             });
         });
     </script>
