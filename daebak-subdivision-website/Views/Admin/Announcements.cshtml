@@ -521,19 +521,23 @@
 
                 // Gather form data
                 const formData = new FormData(announcementForm);
-                const announcementId = parseInt(formData.get('ANNOUNCEMENT_ID'));
+                const data = {};
 
-                // Update category color based on selected category
+                // Manual mapping to ensure correct property names
+                data["TITLE"] = formData.get("TITLE");
+                data["CONTENT"] = formData.get("CONTENT");
+
+                // Get the correct category and color from the select element
                 const categorySelect = document.getElementById('announcement-category');
                 const selectedOption = categorySelect.options[categorySelect.selectedIndex];
-                const categoryColor = selectedOption.dataset.color;
-                formData.set('CategoryColor', categoryColor);
+                data["Category"] = selectedOption.value;
+                data["CategoryColor"] = selectedOption.dataset.color;
 
-                // Convert form data to object
-                const data = {};
-                formData.forEach((value, key) => {
-                    data[key] = value;
-                });
+                // Update ANNOUNCEMENT_ID if present
+                data["ANNOUNCEMENT_ID"] = parseInt(formData.get("ANNOUNCEMENT_ID") || "0");
+
+                // Add debugging to see what's being sent
+                console.log("Sending data:", data);
 
                 // Set loading state
                 const submitBtn = document.getElementById('submit-btn');
@@ -561,11 +565,16 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        console.error('Response not ok:', response.status, response.statusText);
+                        return response.text().then(text => {
+                            console.error('Error response:', text);
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        });
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log('Success response:', data);
                     // Reset button state
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
@@ -587,8 +596,7 @@
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-
+                    console.error('Error details:', error);
                     // Reset button state
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
@@ -837,7 +845,12 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        console.error('Response status:', response.status);
+                        console.error('Response status text:', response.statusText);
+                        return response.text().then(text => {
+                            console.error('Error response:', text);
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        });
                     }
                     return response.json();
                 })
@@ -956,3 +969,4 @@
         });
     </script>
 }
+``` 

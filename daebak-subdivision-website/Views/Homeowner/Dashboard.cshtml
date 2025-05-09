@@ -102,7 +102,7 @@
             </button>
         </div>
         <ul class="space-y-4">
-            @if (ViewBag.Announcements != null)
+            @if (ViewBag.Announcements != null && ViewBag.Announcements.Count > 0)
             {
                 foreach (var announcement in ViewBag.Announcements)
                 {
@@ -115,26 +115,9 @@
             }
             else
             {
-                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                    <span class="bg-blue-100 text-blue-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-drop"></i> NOTICE
-                    </span>
-                    <p class="font-medium">Water Supply Update</p>
-                    <p class="text-gray-500 text-sm">Scheduled maintenance on March 10.</p>
-                </li>
-                <li class="border-b border-gray-100 pb-3 hover:bg-gray-50 p-2 rounded-md transition-colors">
-                    <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-shield-warning"></i> SECURITY
-                    </span>
-                    <p class="font-medium">Security Notice</p>
-                    <p class="text-gray-500 text-sm">New visitor guidelines effective March 15.</p>
-                </li>
-                <li class="hover:bg-gray-50 p-2 rounded-md transition-colors">
-                    <span class="bg-green-100 text-green-600 px-2 py-1 rounded-md text-xs font-medium mb-2 inline-block flex items-center gap-1">
-                        <i class="ph ph-confetti"></i> EVENT
-                    </span>
-                    <p class="font-medium">Community Gathering</p>
-                    <p class="text-gray-500 text-sm">Join us for a BBQ night on March 20!</p>
+                <li class="text-center py-4 text-gray-500">
+                    <i class="ph ph-megaphone-slash text-2xl mb-2"></i>
+                    <p>No announcements available.</p>
                 </li>
             }
         </ul>
@@ -188,7 +171,7 @@
                         <li class="flex items-center justify-between border-b border-gray-100 pb-2">
                             <div>
                                 <p class="font-medium text-sm">@item.FeedbackType</p>
-                                <span class="text-xs text-gray-500">@item.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                <span class="text-xs text-gray-500">@item.CreatedAt</span>
                             </div>
                             <span class="px-2 py-1 rounded-full text-xs 
                                 @(item.Status == "Submitted" ? "bg-blue-100 text-blue-600" : 

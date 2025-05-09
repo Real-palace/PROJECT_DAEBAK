@@ -7,9 +7,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace daebak_subdivision_website.Controllers
 {
+    [Authorize]
     public class FeedbackController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,63 +23,105 @@ namespace daebak_subdivision_website.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpPost]
+        [Authorize(Roles = "HOMEOWNER")]
+        public async Task<IActionResult> Create(string FeedbackType, string Description)
         {
             try
             {
-                var feedbackList = await _context.Feedbacks
-                    .Include(f => f.User)
-                    .Select(f => new FeedbackViewModel
-                    {
-                        FeedbackId = f.FeedbackId,
-                        UserId = f.UserId,
-                        UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
-                        FeedbackType = f.FeedbackType,
-                        Description = f.Description,
-                        Status = f.Status,
-                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd")
-                    })
-                    .ToListAsync();
+                // Get current user ID
+                var userId = User.FindFirst("UserId")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Dashboard", "Homeowner");
+                }
+                
+                // Basic validation
+                if (string.IsNullOrEmpty(FeedbackType) || string.IsNullOrEmpty(Description))
+                {
+                    TempData["ErrorMessage"] = "Feedback type and description are required.";
+                    return RedirectToAction("Dashboard", "Homeowner");
+                }
+                
+                // Create new feedback
+                var feedback = new Feedback
+                {
+                    UserId = int.Parse(userId),
+                    FeedbackType = FeedbackType,
+                    Description = Description,
+                    Status = "Submitted",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                    // Do not set HouseNumber if it's not in your database schema
+                };
 
-                return View("~/Views/Management/Feedback.cshtml", feedbackList);
+                // Add to database
+                _context.Feedbacks.Add(feedback);
+                await _context.SaveChangesAsync();
+                
+                // Success message
+                TempData["SuccessMessage"] = "Your feedback has been submitted successfully.";
+                return RedirectToAction("Dashboard", "Homeowner");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading feedback");
-                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { RequestId = ex.Message });
+                _logger.LogError(ex, "Error submitting feedback");
+                TempData["ErrorMessage"] = "There was an error submitting your feedback. Please try again.";
+                return RedirectToAction("Dashboard", "Homeowner");
             }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Index()
+        {
+            var feedbackList = await _context.Feedbacks
+                .Include(f => f.User)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+                
+            return View(feedbackList);
+        }
+        
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var feedback = await _context.Feedbacks
+                .Include(f => f.User)
+                .FirstOrDefaultAsync(f => f.FeedbackId == id);
+                
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+            
+            return View(feedback);
+        }
+        
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> UpdateStatus(int id, string status)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+            
+            feedback.Status = status;
+            feedback.UpdatedAt = DateTime.Now; // Use DateTime.Now directly
+            
+            await _context.SaveChangesAsync();
+            
+            TempData["SuccessMessage"] = "Feedback status updated successfully.";
+            return RedirectToAction("Index");
         }
 
         public IActionResult Create()
         {
             return View("~/Views/Management/Feedback.cshtml");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create(Feedback model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("~/Views/Management/Feedback.cshtml", model);
-            }
-
-            try
-            {
-                model.CreatedAt = DateTime.Now;
-                model.UpdatedAt = DateTime.Now;
-                model.Status = "Open";
-
-                _context.Feedbacks.Add(model);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving feedback");
-                ModelState.AddModelError("", "Error saving feedback: " + ex.Message);
-                return View("~/Views/Management/Feedback.cshtml", model);
-            }
         }
 
         [HttpPost]
@@ -106,11 +150,41 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
         [Route("Admin/Feedback")]
-        public IActionResult AdminFeedback()
+        public async Task<IActionResult> AdminFeedback()
         {
             try
             {
                 var model = new AdminPageModel();
+                
+                // Get feedback statistics
+                model.FeedbackStats = new
+                {
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
+                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
+                    TotalCount = await _context.Feedbacks.CountAsync()
+                };
+                
+                // Get all feedback items
+                var feedbacks = await _context.Feedbacks
+                    .Include(f => f.User)
+                    .ThenInclude(u => u.Homeowner)
+                    .OrderByDescending(f => f.CreatedAt)
+                    .Select(f => new FeedbackViewModel
+                    {
+                        FeedbackId = f.FeedbackId,
+                        UserId = f.UserId,
+                        UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,
+                        FeedbackType = f.FeedbackType,
+                        Description = f.Description,
+                        Status = f.Status,
+                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd")
+                    })
+                    .ToListAsync();
+                
+                model.Feedbacks = feedbacks;
+                
                 return View("~/Views/Admin/Feedback.cshtml", model);
             }
             catch (Exception ex)
@@ -134,7 +208,7 @@ namespace daebak_subdivision_website.Controllers
                         FeedbackId = f.FeedbackId,
                         UserId = f.UserId,
                         UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,  // Get HouseNumber from User.Homeowner instead
                         FeedbackType = f.FeedbackType,
                         Description = f.Description,
                         Status = f.Status,
@@ -189,7 +263,7 @@ namespace daebak_subdivision_website.Controllers
                         FeedbackId = feedback.FeedbackId,
                         UserId = feedback.UserId,
                         UserName = feedback.User != null ? feedback.User.FirstName + " " + feedback.User.LastName : "Unknown",
-                        HouseNumber = feedback.HouseNumber,
+                        HouseNumber = feedback.User != null && feedback.User.Homeowner != null ? feedback.User.Homeowner.HouseNumber : string.Empty, // Get from User.Homeowner
                         FeedbackType = feedback.FeedbackType,
                         Description = feedback.Description,
                         Status = feedback.Status,
@@ -345,11 +419,12 @@ namespace daebak_subdivision_website.Controllers
             {
                 var feedbackList = await _context.Feedbacks
                     .Include(f => f.User)
+                    .ThenInclude(u => u.Homeowner)
                     .Select(f => new
                     {
                         FeedbackId = f.FeedbackId,
                         UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty, // Get from User.Homeowner
                         FeedbackType = f.FeedbackType,
                         Description = f.Description,
                         Status = f.Status,
@@ -386,9 +461,9 @@ namespace daebak_subdivision_website.Controllers
             {
                 var stats = new
                 {
-                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Open"),
-                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress"),
-                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved"),
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
+                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
                     TotalCount = await _context.Feedbacks.CountAsync()
                 };
 

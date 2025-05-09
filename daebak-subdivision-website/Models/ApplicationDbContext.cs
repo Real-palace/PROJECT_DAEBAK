@@ -40,7 +40,7 @@ namespace daebak_subdivision_website.Models
                 entity.HasKey(e => e.HomeownerId);
                 entity.Property(e => e.HomeownerId).HasColumnName("HOMEOWNER_ID");
                 entity.Property(e => e.UserId).HasColumnName("USER_ID");
-                entity.Property(e => e.HouseNumber).HasColumnName("HOUSE_NUMBER").HasMaxLength(10).IsRequired(false);
+                entity.Property(e => e.HouseNumber).HasColumnName("HOUSE_NUMBER").HasMaxLength(50).IsRequired(false);
 
                 entity.HasOne(d => d.User)
                     .WithOne(p => p.Homeowner)
@@ -55,7 +55,6 @@ namespace daebak_subdivision_website.Models
                 entity.HasKey(e => e.FeedbackId);
                 entity.Property(e => e.FeedbackId).HasColumnName("FEEDBACK_ID");
                 entity.Property(e => e.UserId).HasColumnName("USER_ID");
-                entity.Property(e => e.HouseNumber).HasColumnName("HOUSE_NUMBER").HasMaxLength(50).IsRequired(false);
                 entity.Property(e => e.FeedbackType).HasColumnName("FEEDBACK_TYPE").HasMaxLength(20).IsRequired();
                 entity.Property(e => e.Description).HasColumnName("DESCRIPTION").IsRequired();
                 entity.Property(e => e.Status).HasColumnName("STATUS").HasMaxLength(20).IsRequired();

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Diagnostics;
 
 namespace daebak_subdivision_website.Controllers
 {
@@ -93,57 +95,65 @@ namespace daebak_subdivision_website.Controllers
         // AJAX endpoint for creating announcements
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> CreateAjax([FromBody] Announcement announcement)
+        public async Task<IActionResult> CreateAjax([FromBody] JsonElement announcementData)
         {
-            if (ModelState.IsValid)
+            try
             {
-                try
+                // Log the incoming data
+                string jsonData = JsonSerializer.Serialize(announcementData);
+                Debug.WriteLine($"Received data: {jsonData}");
+
+                // Create a new announcement object
+                Announcement announcement = new Announcement();
+
+                // Manually extract and set properties from the JSON data
+                announcement.TITLE = announcementData.GetProperty("TITLE").GetString();
+                announcement.CONTENT = announcementData.GetProperty("CONTENT").GetString();
+                
+                // Explicitly set the category and color
+                announcement.Category = announcementData.GetProperty("Category").GetString();
+                announcement.CategoryColor = announcementData.GetProperty("CategoryColor").GetString();
+
+                // Set creation/update timestamps
+                announcement.CREATED_AT = DateTime.Now;
+                announcement.UPDATED_AT = DateTime.Now;
+
+                // Set creator ID from current user
+                var userId = User.FindFirst("UserId")?.Value;
+                if (!string.IsNullOrEmpty(userId))
                 {
-                    // Set creation/update timestamps
-                    announcement.CREATED_AT = DateTime.Now;
-                    announcement.UPDATED_AT = DateTime.Now;
-
-                    // Set creator ID from current user
-                    var userId = User.FindFirst("UserId")?.Value;
-                    if (!string.IsNullOrEmpty(userId))
-                    {
-                        announcement.CREATED_BY = int.Parse(userId);
-                    }
-
-                    _context.Add(announcement);
-                    await _context.SaveChangesAsync();
-
-                    var createdBy = "Administrator";
-                    if (announcement.CreatedByUser != null)
-                    {
-                        createdBy = $"{announcement.CreatedByUser.FirstName} {announcement.CreatedByUser.LastName}";
-                    }
-
-                    return Json(new
-                    {
-                        success = true,
-                        id = announcement.ANNOUNCEMENT_ID,
-                        title = announcement.TITLE,
-                        content = announcement.CONTENT,
-                        category = announcement.Category,
-                        categoryColor = announcement.CategoryColor,
-                        createdAt = announcement.CREATED_AT.ToString("MMM dd, yyyy"),
-                        createdBy = createdBy
-                    });
+                    announcement.CREATED_BY = int.Parse(userId);
                 }
-                catch (Exception ex)
+
+                _context.Announcements.Add(announcement);
+                await _context.SaveChangesAsync();
+
+                var createdBy = "Administrator";
+                if (announcement.CreatedByUser != null)
                 {
-                    return Json(new { success = false, message = ex.Message });
+                    createdBy = $"{announcement.CreatedByUser.FirstName} {announcement.CreatedByUser.LastName}";
                 }
+
+                return Json(new
+                {
+                    success = true,
+                    id = announcement.ANNOUNCEMENT_ID,
+                    title = announcement.TITLE,
+                    content = announcement.CONTENT,
+                    category = announcement.Category,
+                    categoryColor = announcement.CategoryColor,
+                    createdAt = announcement.CREATED_AT.ToString("MMM dd, yyyy"),
+                    createdBy = createdBy
+                });
             }
-
-            // If ModelState is invalid, return the errors
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-
-            return Json(new { success = false, message = "Validation failed", errors });
+            catch (Exception ex)
+            {
+                // Log the detailed exception
+                Debug.WriteLine($"Error creating announcement: {ex.Message}");
+                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         // GET: Edit announcement
@@ -213,57 +223,52 @@ namespace daebak_subdivision_website.Controllers
         // AJAX endpoint for editing announcements
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> EditAjax([FromBody] Announcement announcement)
+        public async Task<IActionResult> EditAjax([FromBody] JsonElement announcementData)
         {
-            if (!AnnouncementExists(announcement.ANNOUNCEMENT_ID))
+            try
             {
-                return Json(new { success = false, message = "Announcement not found" });
-            }
+                // Extract values from the JSON data
+                int id = announcementData.GetProperty("ANNOUNCEMENT_ID").GetInt32();
+                
+                if (!AnnouncementExists(id))
+                {
+                    return Json(new { success = false, message = "Announcement not found" });
+                }
 
-            if (ModelState.IsValid)
+                // Get existing announcement
+                var announcement = await _context.Announcements.FindAsync(id);
+                if (announcement == null)
+                {
+                    return Json(new { success = false, message = "Announcement not found" });
+                }
+                
+                // Update the announcement properties
+                announcement.TITLE = announcementData.GetProperty("TITLE").GetString();
+                announcement.CONTENT = announcementData.GetProperty("CONTENT").GetString();
+                announcement.Category = announcementData.GetProperty("Category").GetString();
+                announcement.CategoryColor = announcementData.GetProperty("CategoryColor").GetString();
+                
+                // Update the timestamp
+                announcement.UPDATED_AT = DateTime.Now;
+
+                _context.Update(announcement);
+                await _context.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    id = announcement.ANNOUNCEMENT_ID,
+                    title = announcement.TITLE,
+                    content = announcement.CONTENT,
+                    category = announcement.Category,
+                    categoryColor = announcement.CategoryColor,
+                    updatedAt = announcement.UPDATED_AT.ToString("MMM dd, yyyy HH:mm:ss")
+                });
+            }
+            catch (Exception ex)
             {
-                try
-                {
-                    // Update the timestamp
-                    announcement.UPDATED_AT = DateTime.Now;
-
-                    // Preserve the original creation date and creator
-                    var originalAnnouncement = await _context.Announcements.AsNoTracking()
-                        .FirstOrDefaultAsync(a => a.ANNOUNCEMENT_ID == announcement.ANNOUNCEMENT_ID);
-
-                    if (originalAnnouncement != null)
-                    {
-                        announcement.CREATED_AT = originalAnnouncement.CREATED_AT;
-                        announcement.CREATED_BY = originalAnnouncement.CREATED_BY;
-                    }
-
-                    _context.Update(announcement);
-                    await _context.SaveChangesAsync();
-
-                    return Json(new
-                    {
-                        success = true,
-                        id = announcement.ANNOUNCEMENT_ID,
-                        title = announcement.TITLE,
-                        content = announcement.CONTENT,
-                        category = announcement.Category,
-                        categoryColor = announcement.CategoryColor,
-                        updatedAt = DateTime.Now.ToString("MMM dd, yyyy HH:mm:ss")
-                    });
-                }
-                catch (Exception ex)
-                {
-                    return Json(new { success = false, message = ex.Message });
-                }
+                return Json(new { success = false, message = ex.Message });
             }
-
-            // If ModelState is invalid, return the errors
-            var errors = ModelState.Values
-                .SelectMany(v => v.Errors)
-                .Select(e => e.ErrorMessage)
-                .ToList();
-
-            return Json(new { success = false, message = "Validation failed", errors });
         }
 
         // GET: Delete announcement
@@ -306,10 +311,13 @@ namespace daebak_subdivision_website.Controllers
         // AJAX endpoint for deleting announcements
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> DeleteAjax([FromBody] int id)
+        public async Task<IActionResult> DeleteAjax([FromBody] JsonElement data)
         {
             try
             {
+                // Extract ID from the JSON data
+                int id = data.GetProperty("id").GetInt32();
+                
                 var announcement = await _context.Announcements.FindAsync(id);
                 if (announcement == null)
                 {
