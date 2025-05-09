@@ -14,9 +14,6 @@ namespace daebak_subdivision_website.Models
         [Column("USER_ID")]
         public int UserId { get; set; }
 
-        [Column("HOUSE_NUMBER")]
-        public string HouseNumber { get; set; }
-
         [Column("FEEDBACK_TYPE")]
         [Required]
         public string FeedbackType { get; set; }

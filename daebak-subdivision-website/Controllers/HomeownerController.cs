@@ -86,11 +86,11 @@ namespace daebak_subdivision_website.Controllers
                         FeedbackId = f.FeedbackId,
                         UserId = f.UserId,
                         UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,  // Fixed null propagating operator
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,
                         FeedbackType = f.FeedbackType,
                         Description = f.Description,
                         Status = f.Status,
-                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd")
+                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd") // Already formatted as a string
                     })
                     .Take(3)
                     .ToListAsync();
@@ -406,6 +406,54 @@ namespace daebak_subdivision_website.Controllers
                 ViewBag.MemberSince = user.CreatedAt.ToString("MMMM d, yyyy");
 
                 return View("Profile", model);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitFeedback(string feedbackType, string description)
+        {
+            try
+            {
+                // Get current user ID
+                var userId = User.FindFirst("UserId")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Dashboard");
+                }
+
+                // Basic validation
+                if (string.IsNullOrEmpty(feedbackType) || string.IsNullOrEmpty(description))
+                {
+                    TempData["ErrorMessage"] = "Feedback type and description are required.";
+                    return RedirectToAction("Dashboard");
+                }
+
+                // Create new feedback entry
+                var feedback = new Feedback
+                {
+                    UserId = int.Parse(userId),
+                    FeedbackType = feedbackType,
+                    Description = description,
+                    Status = "Submitted",
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                };
+
+                // Add to database
+                _context.Feedbacks.Add(feedback);
+                await _context.SaveChangesAsync();
+
+                // Success message
+                TempData["SuccessMessage"] = "Your feedback has been submitted successfully.";
+                return RedirectToAction("Dashboard");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error submitting feedback");
+                TempData["ErrorMessage"] = "There was an error submitting your feedback. Please try again.";
+                return RedirectToAction("Dashboard");
             }
         }
     }

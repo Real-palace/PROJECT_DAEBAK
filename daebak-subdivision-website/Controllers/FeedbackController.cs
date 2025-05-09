@@ -37,11 +37,10 @@ namespace daebak_subdivision_website.Controllers
                     return RedirectToAction("Dashboard", "Homeowner");
                 }
                 
-                // Get the user for additional details
-                var user = await _context.Users.FindAsync(int.Parse(userId));
-                if (user == null)
+                // Basic validation
+                if (string.IsNullOrEmpty(FeedbackType) || string.IsNullOrEmpty(Description))
                 {
-                    TempData["ErrorMessage"] = "User details not found.";
+                    TempData["ErrorMessage"] = "Feedback type and description are required.";
                     return RedirectToAction("Dashboard", "Homeowner");
                 }
                 
@@ -52,10 +51,9 @@ namespace daebak_subdivision_website.Controllers
                     FeedbackType = FeedbackType,
                     Description = Description,
                     Status = "Submitted",
-                    // Use DateTime.Now directly instead of string values
                     CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    HouseNumber = user.HouseNumber ?? "Unknown"
+                    UpdatedAt = DateTime.Now
+                    // Do not set HouseNumber if it's not in your database schema
                 };
 
                 // Add to database
@@ -180,7 +178,7 @@ namespace daebak_subdivision_website.Controllers
                         FeedbackId = f.FeedbackId,
                         UserId = f.UserId,
                         UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,  // Get HouseNumber from User.Homeowner instead
                         FeedbackType = f.FeedbackType,
                         Description = f.Description,
                         Status = f.Status,
@@ -235,7 +233,7 @@ namespace daebak_subdivision_website.Controllers
                         FeedbackId = feedback.FeedbackId,
                         UserId = feedback.UserId,
                         UserName = feedback.User != null ? feedback.User.FirstName + " " + feedback.User.LastName : "Unknown",
-                        HouseNumber = feedback.HouseNumber,
+                        HouseNumber = feedback.User != null && feedback.User.Homeowner != null ? feedback.User.Homeowner.HouseNumber : string.Empty, // Get from User.Homeowner
                         FeedbackType = feedback.FeedbackType,
                         Description = feedback.Description,
                         Status = feedback.Status,
@@ -391,11 +389,12 @@ namespace daebak_subdivision_website.Controllers
             {
                 var feedbackList = await _context.Feedbacks
                     .Include(f => f.User)
+                    .ThenInclude(u => u.Homeowner)
                     .Select(f => new
                     {
                         FeedbackId = f.FeedbackId,
                         UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty, // Get from User.Homeowner
                         FeedbackType = f.FeedbackType,
                         Description = f.Description,
                         Status = f.Status,
