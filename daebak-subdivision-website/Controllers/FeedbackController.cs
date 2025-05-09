@@ -7,9 +7,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace daebak_subdivision_website.Controllers
 {
+    [Authorize]
     public class FeedbackController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,63 +23,107 @@ namespace daebak_subdivision_website.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Index()
+        [HttpPost]
+        [Authorize(Roles = "HOMEOWNER")]
+        public async Task<IActionResult> Create(string FeedbackType, string Description)
         {
             try
             {
-                var feedbackList = await _context.Feedbacks
-                    .Include(f => f.User)
-                    .Select(f => new FeedbackViewModel
-                    {
-                        FeedbackId = f.FeedbackId,
-                        UserId = f.UserId,
-                        UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
-                        HouseNumber = f.HouseNumber,
-                        FeedbackType = f.FeedbackType,
-                        Description = f.Description,
-                        Status = f.Status,
-                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd")
-                    })
-                    .ToListAsync();
+                // Get current user ID
+                var userId = User.FindFirst("UserId")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    TempData["ErrorMessage"] = "User not found. Please log in again.";
+                    return RedirectToAction("Dashboard", "Homeowner");
+                }
+                
+                // Get the user for additional details
+                var user = await _context.Users.FindAsync(int.Parse(userId));
+                if (user == null)
+                {
+                    TempData["ErrorMessage"] = "User details not found.";
+                    return RedirectToAction("Dashboard", "Homeowner");
+                }
+                
+                // Create new feedback
+                var feedback = new Feedback
+                {
+                    UserId = int.Parse(userId),
+                    FeedbackType = FeedbackType,
+                    Description = Description,
+                    Status = "Submitted",
+                    // Use DateTime.Now directly instead of string values
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now,
+                    HouseNumber = user.HouseNumber ?? "Unknown"
+                };
 
-                return View("~/Views/Management/Feedback.cshtml", feedbackList);
+                // Add to database
+                _context.Feedbacks.Add(feedback);
+                await _context.SaveChangesAsync();
+                
+                // Success message
+                TempData["SuccessMessage"] = "Your feedback has been submitted successfully.";
+                return RedirectToAction("Dashboard", "Homeowner");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading feedback");
-                return View("~/Views/Shared/Error.cshtml", new ErrorViewModel { RequestId = ex.Message });
+                _logger.LogError(ex, "Error submitting feedback");
+                TempData["ErrorMessage"] = "There was an error submitting your feedback. Please try again.";
+                return RedirectToAction("Dashboard", "Homeowner");
             }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Index()
+        {
+            var feedbackList = await _context.Feedbacks
+                .Include(f => f.User)
+                .OrderByDescending(f => f.CreatedAt)
+                .ToListAsync();
+                
+            return View(feedbackList);
+        }
+        
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var feedback = await _context.Feedbacks
+                .Include(f => f.User)
+                .FirstOrDefaultAsync(f => f.FeedbackId == id);
+                
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+            
+            return View(feedback);
+        }
+        
+        [HttpPost]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> UpdateStatus(int id, string status)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            if (feedback == null)
+            {
+                return NotFound();
+            }
+            
+            feedback.Status = status;
+            feedback.UpdatedAt = DateTime.Now; // Use DateTime.Now directly
+            
+            await _context.SaveChangesAsync();
+            
+            TempData["SuccessMessage"] = "Feedback status updated successfully.";
+            return RedirectToAction("Index");
         }
 
         public IActionResult Create()
         {
             return View("~/Views/Management/Feedback.cshtml");
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> Create(Feedback model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View("~/Views/Management/Feedback.cshtml", model);
-            }
-
-            try
-            {
-                model.CreatedAt = DateTime.Now;
-                model.UpdatedAt = DateTime.Now;
-                model.Status = "Open";
-
-                _context.Feedbacks.Add(model);
-                await _context.SaveChangesAsync();
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving feedback");
-                ModelState.AddModelError("", "Error saving feedback: " + ex.Message);
-                return View("~/Views/Management/Feedback.cshtml", model);
-            }
         }
 
         [HttpPost]
