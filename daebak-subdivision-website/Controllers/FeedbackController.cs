@@ -150,11 +150,41 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
         [Route("Admin/Feedback")]
-        public IActionResult AdminFeedback()
+        public async Task<IActionResult> AdminFeedback()
         {
             try
             {
                 var model = new AdminPageModel();
+                
+                // Get feedback statistics
+                model.FeedbackStats = new
+                {
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
+                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
+                    TotalCount = await _context.Feedbacks.CountAsync()
+                };
+                
+                // Get all feedback items
+                var feedbacks = await _context.Feedbacks
+                    .Include(f => f.User)
+                    .ThenInclude(u => u.Homeowner)
+                    .OrderByDescending(f => f.CreatedAt)
+                    .Select(f => new FeedbackViewModel
+                    {
+                        FeedbackId = f.FeedbackId,
+                        UserId = f.UserId,
+                        UserName = f.User != null ? f.User.FirstName + " " + f.User.LastName : "Unknown",
+                        HouseNumber = f.User != null && f.User.Homeowner != null ? f.User.Homeowner.HouseNumber : string.Empty,
+                        FeedbackType = f.FeedbackType,
+                        Description = f.Description,
+                        Status = f.Status,
+                        CreatedAt = f.CreatedAt.ToString("yyyy-MM-dd")
+                    })
+                    .ToListAsync();
+                
+                model.Feedbacks = feedbacks;
+                
                 return View("~/Views/Admin/Feedback.cshtml", model);
             }
             catch (Exception ex)
@@ -431,9 +461,9 @@ namespace daebak_subdivision_website.Controllers
             {
                 var stats = new
                 {
-                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Open"),
-                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress"),
-                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved"),
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                    InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
+                    ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
                     TotalCount = await _context.Feedbacks.CountAsync()
                 };
 
