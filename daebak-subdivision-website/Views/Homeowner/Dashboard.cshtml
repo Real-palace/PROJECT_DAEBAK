@@ -375,8 +375,7 @@
             const defaultEvents = [
                 { title: "Homeowners Meeting", start: "2025-04-15", color: "#FF9AA2" },
                 { title: "Facility Maintenance", start: "2025-04-20", color: "#B5EAD7" },
-                { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" },
-                { title: "Easter Celebration", start: "2025-04-09", color: "#FFB347" }
+                { title: "Community Clean-Up", start: "2025-04-25", color: "#C7CEEA" }
             ];
             
             try {
@@ -387,12 +386,21 @@
                 {
                     <text>
                     try {
-                        const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events ?? new object[0]));
+                        const serverEvents = @Html.Raw(Json.Serialize(ViewBag.Events));
                         if (Array.isArray(serverEvents) && serverEvents.length > 0) {
-                            events = serverEvents;
+                            // Process events to ensure they have all necessary properties
+                            events = serverEvents.map(event => ({
+                                id: event.id,
+                                title: event.title,
+                                description: event.description || '',
+                                start: event.start,
+                                end: event.end || event.start, // Fallback if no end date
+                                location: event.location || '',
+                                color: event.color
+                            }));
                         }
                     } catch (e) {
-                        console.error("Error with server events:", e);
+                        console.error("Error processing server events:", e);
                     }
                     </text>
                 }
@@ -408,7 +416,11 @@
                     },
                     height: 'auto',
                     events: events,
-                    dayMaxEvents: 3
+                    dayMaxEvents: 3,
+                    eventClick: function(info) {
+                        // Show event details when clicked (optional)
+                        alert(`Event: ${info.event.title}\n${info.event.extendedProps.description || 'No description'}\nLocation: ${info.event.extendedProps.location || 'No location specified'}`);
+                    }
                 });
                 
                 calendar.render();
@@ -419,10 +431,8 @@
                 }
             } catch (error) {
                 console.error("Calendar error:", error);
-                // Fallback simple display
                 calendarEl.innerHTML = '<div class="p-4 text-red-500">Calendar could not be loaded</div>';
                 
-                // Still update event list
                 if (eventListEl) {
                     updateEventList(eventListEl, defaultEvents);
                 }
@@ -452,7 +462,7 @@
             events.sort((a, b) => new Date(a.start) - new Date(b.start));
             const today = new Date();
             const upcomingEvents = events.filter(event => new Date(event.start) >= today);
-            const displayEvents = upcomingEvents.length > 0 ? upcomingEvents : events;
+            const displayEvents = upcomingEvents.length > 0 ? upcomingEvents.slice(0, 5) : events.slice(0, 5); // Show max 5 events
             
             // Display events
             displayEvents.forEach(event => {
@@ -460,6 +470,11 @@
                 const formattedDate = eventDate.toLocaleDateString('en-US', {
                     month: 'short',
                     day: 'numeric'
+                });
+                
+                const formattedTime = eventDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
                 
                 let icon = 'ph-calendar-check';
@@ -481,6 +496,15 @@
                                 <i class="ph ${icon} mr-2" style="color: ${event.color || '#94B0DF'}"></i>
                                 ${event.title}
                             </p>
+                            <div class="flex items-center text-xs text-gray-500 mt-1">
+                                <i class="ph ph-clock text-gray-400 mr-1"></i>
+                                <span>${formattedTime}</span>
+                            </div>
+                            ${event.location ? `
+                            <div class="flex items-center text-xs text-gray-500 mt-1">
+                                <i class="ph ph-map-pin text-gray-400 mr-1"></i>
+                                <span>${event.location}</span>
+                            </div>` : ''}
                         </div>
                     </div>
                 `;
