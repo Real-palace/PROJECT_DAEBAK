@@ -98,15 +98,39 @@ namespace daebak_subdivision_website.Controllers
                 ViewBag.RecentFeedback = recentFeedback;
             }
 
-            // Optional: Add sample events data for the calendar
-            ViewBag.Events = new[]
-            {
-                new { title = "Homeowners Meeting", start = "2025-04-15", color = "#FF9AA2" },
-                new { title = "Facility Maintenance", start = "2025-04-20", color = "#B5EAD7" },
-                new { title = "Community Clean-Up", start = "2025-04-25", color = "#C7CEEA" }
-            };
+            // Fetch upcoming events from the database
+            var events = await _context.Events
+                .OrderBy(e => e.StartDate)
+                .Select(e => new
+                {
+                    id = e.Id,
+                    title = e.Title,
+                    description = e.Description,
+                    start = e.StartDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    end = e.EndDate.ToString("yyyy-MM-ddTHH:mm:ss"),
+                    location = e.Location,
+                    color = GetEventColor(e.Title),
+                    StartDate = e.StartDate // Keep the original date for filtering
+                })
+                .ToListAsync();
+
+            ViewBag.Events = events;
+            ViewBag.EventCount = events.Count(e => e.StartDate >= DateTime.Now);
 
             return View();
+        }
+
+        // Helper method to get event color based on title
+        private static string GetEventColor(string title)
+        {
+            title = title.ToLower();
+            if (title.Contains("meeting")) return "#FF9AA2";
+            if (title.Contains("maintenance")) return "#B5EAD7";
+            if (title.Contains("clean")) return "#C7CEEA";
+            if (title.Contains("easter")) return "#FFB347";
+            if (title.Contains("celebration")) return "#FFDAC1";
+            // Default color
+            return "#94B0DF";
         }
 
         public IActionResult Billing()
