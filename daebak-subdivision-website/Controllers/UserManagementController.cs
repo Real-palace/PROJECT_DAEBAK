@@ -132,7 +132,8 @@ namespace daebak_subdivision_website.Controllers
                     var homeowner = new Homeowner
                     {
                         UserId = user.UserId,
-                        HouseNumber = model.HouseNumber
+                        HouseNumber = model.HouseNumber,
+                        User = user
                     };
 
                     _dbContext.Homeowners.Add(homeowner);
@@ -307,7 +308,8 @@ namespace daebak_subdivision_website.Controllers
                             _dbContext.Homeowners.Add(new Homeowner
                             {
                                 UserId = user.UserId,
-                                HouseNumber = model.HouseNumber
+                                HouseNumber = model.HouseNumber,
+                                User = user
                             });
                         }
 

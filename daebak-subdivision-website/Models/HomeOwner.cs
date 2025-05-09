@@ -12,9 +12,9 @@ namespace daebak_subdivision_website.Models
         public int UserId { get; set; }
 
         [Column("HOUSE_NUMBER")]
-        public string HouseNumber { get; set; }
+        public string? HouseNumber { get; set; } = null;
 
         [ForeignKey("UserId")]
-        public User User { get; set; }
+        public virtual required User User { get; set; }
     }
 }

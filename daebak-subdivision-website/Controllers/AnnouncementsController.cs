@@ -21,7 +21,7 @@ namespace daebak_subdivision_website.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var announcements = await _context.ANNOUNCEMENTS
+            var announcements = await _context.Announcements
                 .Include(a => a.CreatedByUser)
                 .OrderByDescending(a => a.CREATED_AT)
                 .ToListAsync();
@@ -32,7 +32,7 @@ namespace daebak_subdivision_website.Controllers
         [Route("Admin/Announcements")]
         public async Task<IActionResult> AdminIndex()
         {
-            var announcements = await _context.ANNOUNCEMENTS
+            var announcements = await _context.Announcements
                 .Include(a => a.CreatedByUser)
                 .OrderByDescending(a => a.CREATED_AT)
                 .ToListAsync();
@@ -47,7 +47,7 @@ namespace daebak_subdivision_website.Controllers
                 return NotFound();
             }
 
-            var announcement = await _context.ANNOUNCEMENTS
+            var announcement = await _context.Announcements
                 .Include(a => a.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.ANNOUNCEMENT_ID == id);
 
@@ -155,7 +155,7 @@ namespace daebak_subdivision_website.Controllers
                 return NotFound();
             }
 
-            var announcement = await _context.ANNOUNCEMENTS.FindAsync(id);
+            var announcement = await _context.Announcements.FindAsync(id);
             if (announcement == null)
             {
                 return NotFound();
@@ -182,7 +182,7 @@ namespace daebak_subdivision_website.Controllers
                     announcement.UPDATED_AT = DateTime.Now;
 
                     // Preserve the original creation date and creator
-                    var originalAnnouncement = await _context.ANNOUNCEMENTS.AsNoTracking()
+                    var originalAnnouncement = await _context.Announcements.AsNoTracking()
                         .FirstOrDefaultAsync(a => a.ANNOUNCEMENT_ID == id);
 
                     if (originalAnnouncement != null)
@@ -228,7 +228,7 @@ namespace daebak_subdivision_website.Controllers
                     announcement.UPDATED_AT = DateTime.Now;
 
                     // Preserve the original creation date and creator
-                    var originalAnnouncement = await _context.ANNOUNCEMENTS.AsNoTracking()
+                    var originalAnnouncement = await _context.Announcements.AsNoTracking()
                         .FirstOrDefaultAsync(a => a.ANNOUNCEMENT_ID == announcement.ANNOUNCEMENT_ID);
 
                     if (originalAnnouncement != null)
@@ -275,7 +275,7 @@ namespace daebak_subdivision_website.Controllers
                 return NotFound();
             }
 
-            var announcement = await _context.ANNOUNCEMENTS
+            var announcement = await _context.Announcements
                 .Include(a => a.CreatedByUser)
                 .FirstOrDefaultAsync(m => m.ANNOUNCEMENT_ID == id);
 
@@ -293,10 +293,10 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var announcement = await _context.ANNOUNCEMENTS.FindAsync(id);
+            var announcement = await _context.Announcements.FindAsync(id);
             if (announcement != null)
             {
-                _context.ANNOUNCEMENTS.Remove(announcement);
+                _context.Announcements.Remove(announcement);
                 await _context.SaveChangesAsync();
             }
 
@@ -310,13 +310,13 @@ namespace daebak_subdivision_website.Controllers
         {
             try
             {
-                var announcement = await _context.ANNOUNCEMENTS.FindAsync(id);
+                var announcement = await _context.Announcements.FindAsync(id);
                 if (announcement == null)
                 {
                     return Json(new { success = false, message = "Announcement not found" });
                 }
 
-                _context.ANNOUNCEMENTS.Remove(announcement);
+                _context.Announcements.Remove(announcement);
                 await _context.SaveChangesAsync();
 
                 return Json(new { success = true });
@@ -330,7 +330,7 @@ namespace daebak_subdivision_website.Controllers
         // Helper method to check if an announcement exists
         private bool AnnouncementExists(int id)
         {
-            return _context.ANNOUNCEMENTS.Any(e => e.ANNOUNCEMENT_ID == id);
+            return _context.Announcements.Any(e => e.ANNOUNCEMENT_ID == id);
         }
     }
 }

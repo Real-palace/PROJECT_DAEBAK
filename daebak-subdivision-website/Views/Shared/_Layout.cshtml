@@ -91,46 +91,6 @@
                 <div class="text-lg font-medium text-tertiary">@ViewData["Title"]</div>
 
                 <div class="flex items-center gap-5">
-                    <!-- Notifications -->
-                    <div class="relative">
-                        <button id="notification-toggle-btn" class="notification-btn relative p-1 text-gray-700 hover:text-primary transition-colors" title="Notifications">
-                            <i class="ph ph-bell text-2xl"></i>
-                            <span class="notification-count absolute top-0 right-0 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">3</span>
-                        </button>
-
-                        <!-- Notification Dropdown -->
-                        <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50 transition-all duration-300 transform origin-top-right">
-                            <div class="p-4 border-b border-gray-200">
-                                <div class="flex justify-between items-center">
-                                    <h3 class="font-medium text-gray-700">Notifications</h3>
-                                    <button id="mark-all-read" class="text-primary text-xs hover:underline flex items-center gap-1">
-                                        <i class="ph ph-check-circle"></i> Mark all as read
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="max-h-96 overflow-y-auto custom-scrollbar" id="notification-content">
-                                <!-- Unread Notification -->
-                                <div class="notification-item notification-unread border-l-4 border-blue-500 p-4 bg-blue-50/50 hover:bg-blue-50">
-                                    <div class="flex items-start">
-                                        <div class="bg-blue-100 p-2 rounded-full mr-3">
-                                            <i class="ph ph-bell text-blue-500"></i>
-                                        </div>
-                                        <div class="flex-1">
-                                            <div class="flex justify-between">
-                                                <p class="text-sm font-medium text-gray-800">Community Announcement</p>
-                                                <button class="mark-read-btn text-gray-400 hover:text-gray-600" title="Mark as read">
-                                                    <i class="ph ph-check-circle"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-gray-500 mt-1">Water interruption scheduled for tomorrow from 10 AM to 2 PM due to maintenance.</p>
-                                            <p class="text-xs text-gray-400 mt-2">2 hours ago</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- User Menu -->
                     <div class="relative">
                         <a href="@Url.Action("Profile", "Homeowner")" class="flex items-center gap-2 text-gray-700 hover:text-primary transition-colors">
@@ -177,23 +137,6 @@
     </div>
 
     <script>
-        // Notification dropdown toggle
-        const notificationBtn = document.getElementById('notification-toggle-btn');
-        const notificationDropdown = document.getElementById('notification-dropdown');
-        
-        if (notificationBtn && notificationDropdown) {
-            notificationBtn.addEventListener('click', function() {
-                notificationDropdown.classList.toggle('hidden');
-            });
-            
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!notificationBtn.contains(event.target) && !notificationDropdown.contains(event.target)) {
-                    notificationDropdown.classList.add('hidden');
-                }
-            });
-        }
-        
         // Logout modal
         function confirmLogout() {
             document.getElementById('logout-modal').classList.remove('hidden');
