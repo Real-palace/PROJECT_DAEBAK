@@ -22,6 +22,7 @@ namespace daebak_subdivision_website.Models
         public DbSet<Facility> Facilities { get; set; }
         public DbSet<FacilityReservation> FacilityReservations { get; set; }
         public DbSet<ServiceRequest> ServiceRequests { get; set; }
+        public DbSet<RequestImage> RequestImages { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<VisitorPass> VisitorPasses { get; set; }
         public DbSet<VehicleRegistration> VehicleRegistrations { get; set; }
@@ -77,6 +78,49 @@ namespace daebak_subdivision_website.Models
                 entity.HasIndex(e => e.Email).IsUnique();
             });
 
+            // Configure ServiceRequest entity
+            modelBuilder.Entity<ServiceRequest>(entity =>
+            {
+                entity.ToTable("SERVICE_REQUESTS");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.RequestType).IsRequired();
+                entity.Property(e => e.Location).IsRequired();
+                entity.Property(e => e.Description).IsRequired();
+                entity.Property(e => e.Status).IsRequired();
+                
+                // Configure relationship with User
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Configure relationship with assigned staff
+                entity.HasOne<User>()
+                    .WithMany()
+                    .HasForeignKey(e => e.AssignedTo)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                // Configure navigation property for HouseNumber
+                entity.HasOne<Homeowner>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .HasPrincipalKey(h => h.UserId);
+            });
+
+            // Configure RequestImage entity
+            modelBuilder.Entity<RequestImage>(entity =>
+            {
+                entity.ToTable("REQUEST_IMAGES");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ImagePath).IsRequired();
+                
+                // Configure relationship with ServiceRequest
+                entity.HasOne<ServiceRequest>()
+                    .WithMany()
+                    .HasForeignKey(e => e.RequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             // Table Mappings
             modelBuilder.Entity<Admin>().ToTable("ADMINS");
             modelBuilder.Entity<Staff>().ToTable("STAFF");
@@ -87,7 +131,6 @@ namespace daebak_subdivision_website.Models
             modelBuilder.Entity<Payment>().ToTable("PAYMENTS");
             modelBuilder.Entity<Facility>().ToTable("FACILITIES");
             modelBuilder.Entity<FacilityReservation>().ToTable("FACILITY_RESERVATIONS");
-            modelBuilder.Entity<ServiceRequest>().ToTable("SERVICE_REQUESTS");
             modelBuilder.Entity<Document>().ToTable("DOCUMENTS");
             modelBuilder.Entity<VisitorPass>().ToTable("VISITOR_PASSES");
             modelBuilder.Entity<VehicleRegistration>().ToTable("VEHICLE_REGISTRATION");
