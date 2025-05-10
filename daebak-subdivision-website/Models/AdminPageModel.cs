@@ -18,6 +18,10 @@ namespace daebak_subdivision_website.Models
         public IEnumerable<BillViewModel> Bills { get; set; } = new List<BillViewModel>();
         public IEnumerable<BillViewModel> PendingBills { get; set; } = new List<BillViewModel>();
         public IEnumerable<PaymentViewModel> PaymentRecords { get; set; } = new List<PaymentViewModel>();
+
+        // Feedback properties
+        public object FeedbackStats { get; set; }
+        public List<FeedbackViewModel> Feedbacks { get; set; } = new List<FeedbackViewModel>();
     }
     
     // View models for billing data
