@@ -14,20 +14,19 @@ namespace daebak_subdivision_website.Models
         [Column("USER_ID")]
         public int UserId { get; set; }
 
-        [Column("HOUSE_NUMBER")]
-        public string? HouseNumber { get; set; }  // This property seems to be in your model but not in the DB schema
-
         [Column("LOCATION")]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
+        [Required]
         [Column("REQUEST_TYPE")]
-        public string RequestType { get; set; }
+        public string RequestType { get; set; } = string.Empty;
 
+        [Required]
         [Column("DESCRIPTION")]
-        public string Description { get; set; }
+        public string Description { get; set; } = string.Empty;
 
         [Column("STATUS")]
-        public string Status { get; set; } // Open, In Progress, Scheduled, Completed, Cancelled
+        public string? Status { get; set; } // Open, In Progress, Scheduled, Completed, Cancelled
 
         [Column("CREATED_AT")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -36,19 +35,22 @@ namespace daebak_subdivision_website.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [Column("ASSIGNED_TO")]
-        public int? AssignedTo { get; set; } // Nullable as per DB schema
+        public int? AssignedTo { get; set; }
 
         [Column("SCHEDULED_DATE")]
         public DateTime? ScheduledDate { get; set; }
 
         [Column("STAFF_NOTES")]
-        public string StaffNotes { get; set; }
+        public string? StaffNotes { get; set; }
 
-        // Map AdminResponse to STAFF_NOTES since there's no explicit AdminResponse column
-        public string AdminResponse
+        [NotMapped]
+        public string? AdminResponse
         {
             get { return StaffNotes; }
             set { StaffNotes = value; }
         }
+
+        // Navigation property for images
+        public ICollection<RequestImage> Images { get; set; } = new List<RequestImage>();
     }
 }

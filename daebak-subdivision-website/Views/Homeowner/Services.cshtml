@@ -1,3 +1,4 @@
+@model List<daebak_subdivision_website.Models.ServiceRequestView>
 @{
     ViewData["Title"] = "Services";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -26,13 +27,14 @@
             <h3 class="font-semibold text-lg text-tertiary">New Service Request</h3>
         </div>
         
-        <form id="service-request-form" asp-controller="Services" asp-action="SubmitRequest" method="post">
+        <form id="service-request-form" asp-controller="ServiceRequests" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
             <!-- Request Type Selection -->
             <div class="mb-5">
-                <label class="block text-gray-700 text-sm font-medium mb-2">Request Type</label>
+                <label class="block text-gray-700 text-sm font-medium mb-2">Request Type <span class="text-red-500">*</span></label>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="relative">
-                        <input type="radio" id="maintenance" name="RequestType" value="Maintenance" class="hidden peer" checked>
+                        <input type="radio" id="maintenance" name="RequestType" value="Maintenance" class="hidden peer" required checked>
                         <label for="maintenance" class="flex items-center p-4 border rounded-lg cursor-pointer peer-checked:border-secondary peer-checked:bg-secondary/5 hover:bg-gray-50">
                             <i class="ph ph-hammer text-2xl mr-3 text-gray-500 peer-checked:text-secondary"></i>
                             <div>
@@ -43,7 +45,7 @@
                     </div>
                     
                     <div class="relative">
-                        <input type="radio" id="security" name="RequestType" value="Security" class="hidden peer">
+                        <input type="radio" id="security" name="RequestType" value="Security" class="hidden peer" required>
                         <label for="security" class="flex items-center p-4 border rounded-lg cursor-pointer peer-checked:border-secondary peer-checked:bg-secondary/5 hover:bg-gray-50">
                             <i class="ph ph-shield-warning text-2xl mr-3 text-gray-500"></i>
                             <div>
@@ -59,14 +61,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 text-sm font-medium mb-2" for="location">
-                        Location
+                        Location <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" id="location" name="Location" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please specify the exact location (e.g., Main gate, Palm Avenue corner, Swimming pool area)" required>
+                    <input type="text" id="location" name="Location" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please specify the exact location" required>
                 </div>
                 
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 text-sm font-medium mb-2" for="description">
-                        Detailed Description
+                        Detailed Description <span class="text-red-500">*</span>
                     </label>
                     <textarea id="description" name="Description" rows="4" class="bg-white border border-gray-300 p-2 rounded w-full focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Please provide details about the issue..." required></textarea>
                 </div>
@@ -214,10 +216,10 @@
             <div class="relative">
                 <select id="request-filter" class="bg-white border border-gray-300 p-2 rounded focus:outline-none focus:ring-2 focus:ring-primary text-sm">
                     <option value="all">All Requests</option>
-                    <option value="open">Open Requests</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="Open">Open Requests</option>
+                    <option value="Processing">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
                 </select>
             </div>
         </div>
@@ -235,90 +237,9 @@
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200" id="requests-table-body">
-                    <!-- Sample Data - Will be replaced with actual data -->
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1234</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-hammer text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Maintenance</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Main entrance gate</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">In Progress</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">May 2, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1234">View Details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1235</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-shield-warning text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Security</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Palm Avenue corner</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">Apr 28, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1235">View Details</button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">#SR-1236</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <i class="ph ph-hammer text-secondary mr-2"></i>
-                                <div class="text-sm font-medium text-gray-900">Maintenance</div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-900">Swimming pool area</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Scheduled</span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm text-gray-500">Apr 25, 2025</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button class="text-primary hover:text-secondary mr-3" data-id="SR-1236">View Details</button>
-                        </td>
-                    </tr>
+                    <!-- Data will be loaded dynamically -->
                 </tbody>
             </table>
-        </div>
-        
-        <!-- Pagination -->
-        <div class="mt-4 flex items-center justify-between">
-            <div class="text-sm text-gray-500">
-                Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">3</span> results
-            </div>
-            <div class="flex items-center space-x-2">
-                <button class="px-3 py-1 border rounded text-sm disabled:opacity-50" disabled>Previous</button>
-                <button class="px-3 py-1 bg-primary text-white rounded text-sm">1</button>
-                <button class="px-3 py-1 border rounded text-sm disabled:opacity-50" disabled>Next</button>
-            </div>
         </div>
     </div>
 </div>
@@ -351,204 +272,171 @@
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Check if we should show the track requests tab
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('tab') === 'track') {
+                document.getElementById('track-tab').click();
+            }
+
             // Tab Navigation
             const submitTab = document.getElementById('submit-tab');
             const trackTab = document.getElementById('track-tab');
             const submitSection = document.getElementById('submit-section');
             const trackSection = document.getElementById('track-section');
             
+            // Tab switching functionality
             submitTab.addEventListener('click', function() {
-                submitTab.classList.add('border-b-2', 'border-secondary', 'text-secondary');
-                submitTab.classList.remove('text-gray-500');
+                this.classList.add('border-b-2', 'border-secondary', 'text-secondary');
+                this.classList.remove('text-gray-500');
                 trackTab.classList.remove('border-b-2', 'border-secondary', 'text-secondary');
                 trackTab.classList.add('text-gray-500');
-                
                 submitSection.classList.remove('hidden');
                 trackSection.classList.add('hidden');
             });
-            
+
             trackTab.addEventListener('click', function() {
-                trackTab.classList.add('border-b-2', 'border-secondary', 'text-secondary');
-                trackTab.classList.remove('text-gray-500');
+                this.classList.add('border-b-2', 'border-secondary', 'text-secondary');
+                this.classList.remove('text-gray-500');
                 submitTab.classList.remove('border-b-2', 'border-secondary', 'text-secondary');
                 submitTab.classList.add('text-gray-500');
-                
-                trackSection.classList.remove('hidden');
                 submitSection.classList.add('hidden');
+                trackSection.classList.remove('hidden');
+                loadServiceRequests();
             });
-            
-            // Request type selection
-            const maintenanceRadio = document.getElementById('maintenance');
-            const securityRadio = document.getElementById('security');
-            
-            maintenanceRadio.addEventListener('change', function() {
-                if (this.checked) {
-                    document.querySelector('label[for="maintenance"] i').classList.add('text-secondary');
-                    document.querySelector('label[for="security"] i').classList.remove('text-secondary');
-                }
-            });
-            
-            securityRadio.addEventListener('change', function() {
-                if (this.checked) {
-                    document.querySelector('label[for="security"] i').classList.add('text-secondary');
-                    document.querySelector('label[for="maintenance"] i').classList.remove('text-secondary');
-                }
-            });
-            
-            // Image upload preview
-            const imageUpload = document.getElementById('image-upload');
-            const imagePreview = document.getElementById('image-preview');
-            
-            imageUpload.addEventListener('change', function() {
-                imagePreview.innerHTML = '';
-                if (this.files) {
-                    const filesAmount = Math.min(this.files.length, 3); // Limit to 3 images
-                    for (let i = 0; i < filesAmount; i++) {
-                        const reader = new FileReader();
-                        reader.onload = function(event) {
-                            const img = document.createElement('div');
-                            img.className = 'relative w-20 h-20';
-                            img.innerHTML = `
-                                <img src="${event.target.result}" class="w-full h-full object-cover rounded border border-gray-300" />
-                                <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs remove-image">
-                                    <i class="ph ph-x"></i>
-                                </button>
+
+            // Function to load service requests
+            function loadServiceRequests() {
+                fetch('/Services/GetUserRequests')
+                    .then(response => response.json())
+                    .then(requests => {
+                        const tableBody = document.getElementById('requests-table-body');
+                        tableBody.innerHTML = '';
+
+                        if (requests.length === 0) {
+                            const emptyRow = document.createElement('tr');
+                            emptyRow.innerHTML = `
+                                <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                                    No service requests found
+                                </td>
                             `;
-                            imagePreview.appendChild(img);
+                            tableBody.appendChild(emptyRow);
+                            return;
                         }
-                        reader.readAsDataURL(this.files[i]);
-                    }
-                }
-            });
-            
-            // Handle removing preview images
-            imagePreview.addEventListener('click', function(e) {
-                if (e.target.closest('.remove-image')) {
-                    e.target.closest('.relative').remove();
-                }
-            });
-            
-            // View Request Details
-            const viewButtons = document.querySelectorAll('[data-id]');
-            const detailsModal = document.getElementById('request-details-modal');
-            const closeModal = document.getElementById('close-modal');
-            
-            viewButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const requestId = this.dataset.id;
-                    detailsModal.classList.remove('hidden');
-                    
-                    // In a real application, you would fetch the details from an API
-                    // For now, we'll simulate loading and then displaying dummy data
-                    setTimeout(() => {
-                        document.getElementById('request-details-content').innerHTML = `
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                                <div>
-                                    <p class="text-sm text-gray-500">Request ID</p>
-                                    <p class="font-medium">#${requestId}</p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Status</p>
-                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">In Progress</span>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Type</p>
-                                    <p class="font-medium flex items-center gap-1">
-                                        <i class="ph ph-hammer text-secondary"></i>
-                                        Maintenance
-                                    </p>
-                                </div>
-                                <div>
-                                    <p class="text-sm text-gray-500">Submitted On</p>
-                                    <p class="font-medium">May 2, 2025</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <p class="text-sm text-gray-500">Location</p>
-                                <p class="font-medium">Main entrance gate</p>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <p class="text-sm text-gray-500">Description</p>
-                                <p>The main entrance gate has a mechanical issue. The left side doesn't open completely and makes a grinding noise when operated. Please send maintenance staff to check it out.</p>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <p class="text-sm text-gray-500">Images</p>
-                                <div class="flex flex-wrap gap-2 mt-2">
-                                    <div class="w-24 h-24 border rounded overflow-hidden">
-                                        <img src="~/images/gate_repair.jpg" onerror="this.src='https://placehold.co/100x100/e2e8f0/64748b?text=Gate+Image'" alt="Request image" class="w-full h-full object-cover" />
+
+                        requests.forEach(request => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">#SR-${request.id}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <i class="ph ${request.requestType === 'Maintenance' ? 'ph-hammer' : 'ph-shield-warning'} text-secondary mr-2"></i>
+                                        <div class="text-sm font-medium text-gray-900">${request.requestType}</div>
                                     </div>
-                                </div>
-                            </div>
-                            
-                            <div class="mb-6">
-                                <p class="text-sm text-gray-500">Staff Notes</p>
-                                <div class="bg-gray-50 p-3 rounded">
-                                    <p class="text-sm italic">Maintenance team scheduled for repair on May 6. Will check gate motor and tracking. - John (Maintenance Supervisor)</p>
-                                </div>
-                            </div>
-                            
-                            <div class="mt-8 pt-6 border-t">
-                                <h4 class="font-medium text-tertiary mb-4">Request Timeline</h4>
-                                
-                                <div class="space-y-4">
-                                    <div class="flex gap-3">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                                <i class="ph ph-check text-green-500"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium">Request Submitted</p>
-                                            <p class="text-sm text-gray-500">May 2, 2025 - 10:23 AM</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex gap-3">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                                <i class="ph ph-eye text-blue-500"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium">Request Reviewed</p>
-                                            <p class="text-sm text-gray-500">May 3, 2025 - 11:45 AM</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex gap-3">
-                                        <div class="flex-shrink-0">
-                                            <div class="w-8 h-8 rounded-full bg-yellow-100 flex items-center justify-center">
-                                                <i class="ph ph-clock text-yellow-500"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p class="font-medium">In Progress</p>
-                                            <p class="text-sm text-gray-500">May 4, 2025 - 9:30 AM</p>
-                                            <p class="text-sm mt-1">Maintenance scheduled for May 6</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">${request.location || 'N/A'}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(request.status)}">
+                                        ${request.status}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    ${new Date(request.createdAt).toLocaleDateString()}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    <button onclick="viewRequestDetails(${request.id})" class="text-secondary hover:text-secondary/80">
+                                        View Details
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('Error loading service requests:', error);
+                        const tableBody = document.getElementById('requests-table-body');
+                        tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-red-500">
+                                    Error loading service requests. Please try again later.
+                                </td>
+                            </tr>
                         `;
-                    }, 1000);
+                    });
+            }
+
+            // Function to get status class for styling
+            function getStatusClass(status) {
+                switch (status) {
+                    case 'Open':
+                        return 'bg-yellow-100 text-yellow-800';
+                    case 'Processing':
+                        return 'bg-blue-100 text-blue-800';
+                    case 'Scheduled':
+                        return 'bg-purple-100 text-purple-800';
+                    case 'In Progress':
+                        return 'bg-indigo-100 text-indigo-800';
+                    case 'Completed':
+                        return 'bg-green-100 text-green-800';
+                    case 'Rejected':
+                    case 'Cancelled':
+                        return 'bg-red-100 text-red-800';
+                    default:
+                        return 'bg-gray-100 text-gray-800';
+                }
+            }
+
+            // Function to view request details (to be implemented)
+            function viewRequestDetails(requestId) {
+                // TODO: Implement request details view
+                console.log('View details for request:', requestId);
+            }
+
+            // Filter functionality
+            document.getElementById('request-filter').addEventListener('change', function() {
+                const filter = this.value;
+                const rows = document.querySelectorAll('#requests-table-body tr');
+                
+                rows.forEach(row => {
+                    if (filter === 'all') {
+                        row.style.display = '';
+                    } else {
+                        const statusCell = row.querySelector('td:nth-child(4) span');
+                        row.style.display = statusCell.textContent.trim() === filter ? '' : 'none';
+                    }
                 });
             });
-            
-            // Cancel request button
-            const cancelRequestBtn = document.getElementById('cancel-request');
-            cancelRequestBtn.addEventListener('click', function() {
-                document.getElementById('service-request-form').reset();
-                document.getElementById('image-preview').innerHTML = '';
-            });
-            
-            // Request filter change
-            const requestFilter = document.getElementById('request-filter');
-            requestFilter.addEventListener('change', function() {
-                // In a real app, this would filter the table data
-                console.log('Filter changed to: ' + this.value);
+
+            // Image upload preview functionality
+            const imageUpload = document.getElementById('image-upload');
+            const imagePreview = document.getElementById('image-preview');
+
+            imageUpload.addEventListener('change', function() {
+                imagePreview.innerHTML = '';
+                const files = this.files;
+
+                for (let i = 0; i < Math.min(files.length, 3); i++) {
+                    const file = files[i];
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File size must be less than 5MB');
+                        continue;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'relative';
+                        div.innerHTML = `
+                            <img src="${e.target.result}" class="h-20 w-20 object-cover rounded">
+                            <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-xs" onclick="this.parentElement.remove()">×</button>
+                        `;
+                        imagePreview.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                }
             });
         });
     </script>

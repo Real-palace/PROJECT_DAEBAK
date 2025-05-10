@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using daebak_subdivision_website.Models;
-using daebak_subdivision_website.Controllers; // Add this line
+using daebak_subdivision_website.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,17 +9,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Remove or comment out this line:
-// builder.Services.AddScoped<AnnouncementsController>();
-
 // ✅ 2. Add Authentication & Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";   // Redirect to login page if not authenticated
-        options.AccessDeniedPath = "/Shared/AccessDenied"; // Redirect if access is denied
-        options.ExpireTimeSpan = TimeSpan.FromDays(7); // Keep user logged in for 7 days
+        options.LoginPath = "/Account/Login";
+        options.AccessDeniedPath = "/Shared/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);
         options.SlidingExpiration = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.HttpOnly = true;
     });
 
 // ✅ 3. Add Authorization (for security)
@@ -31,9 +31,11 @@ builder.Services.AddAuthorization(options =>
 // ✅ 4. Add Session Support
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 // ✅ 5. Add MVC Services
