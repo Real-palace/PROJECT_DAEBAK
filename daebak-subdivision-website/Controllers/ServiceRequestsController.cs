@@ -13,6 +13,7 @@ using System.IO;
 
 namespace daebak_subdivision_website.Controllers
 {
+    [Authorize]
     public class ServiceRequestsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -24,45 +25,59 @@ namespace daebak_subdivision_website.Controllers
             _logger = logger;
         }
 
+        [Authorize(Roles = "HOMEOWNER")]
         public IActionResult Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var serviceRequests = _context.ServiceRequests
+                .Join(_context.Users,
+                    sr => sr.UserId,
+                    u => u.UserId,
+                    (sr, u) => new { sr, RequestedBy = u.FirstName + " " + u.LastName })
+                .GroupJoin(_context.Users,
+                    sr_u => sr_u.sr.AssignedTo,
+                    u => u.UserId,
+                    (sr_u, assigned) => new { sr_u, assigned })
+                .SelectMany(x => x.assigned.DefaultIfEmpty(), (x, assigned) => new ServiceRequestView
+                {
+                    Id = x.sr_u.sr.Id,
+                    UserId = x.sr_u.sr.UserId,
+                    Location = x.sr_u.sr.Location,
+                    RequestType = x.sr_u.sr.RequestType,
+                    Description = x.sr_u.sr.Description,
+                    Status = x.sr_u.sr.Status,
+                    CreatedAt = x.sr_u.sr.CreatedAt,
+                    UpdatedAt = x.sr_u.sr.UpdatedAt,
+                    AssignedTo = x.sr_u.sr.AssignedTo,
+                    RequestedBy = x.sr_u.RequestedBy,
+                    AssignedToName = assigned != null ? assigned.FirstName + " " + assigned.LastName : "Unassigned"
+                })
+                .ToList();
+
+            return View("~/Views/Management/ServiceRequests.cshtml", serviceRequests);
+        }
+
+        [Authorize(Roles = "HOMEOWNER")]
+        public IActionResult TrackRequests()
+        {
+            var userId = User.FindFirst("UserId")?.Value;
             if (int.TryParse(userId, out int userIdInt))
             {
                 var serviceRequests = _context.ServiceRequests
-                    .Include(sr => sr.Homeowner)
                     .Where(sr => sr.UserId == userIdInt)
                     .Select(sr => new ServiceRequestView
                     {
                         Id = sr.Id,
-                        UserId = sr.UserId,
-                        HouseNumber = sr.HouseNumber,
                         RequestType = sr.RequestType,
                         Description = sr.Description,
                         Status = sr.Status,
-                        CreatedAt = sr.CreatedAt,
-                        UpdatedAt = sr.UpdatedAt,
-                        AssignedTo = sr.AssignedTo,
-                        RequestedBy = _context.Users
-                            .Where(u => u.UserId == sr.UserId)
-                            .Select(u => u.FirstName + " " + u.LastName)
-                            .FirstOrDefault(),
-                        AssignedToName = _context.Users
-                            .Where(u => u.UserId == sr.AssignedTo)
-                            .Select(u => u.FirstName + " " + u.LastName)
-                            .FirstOrDefault() ?? "Unassigned",
-                        Location = sr.Location,
-                        AdminResponse = sr.StaffNotes,
-                        StaffNotes = sr.StaffNotes,
-                        ScheduledDate = sr.ScheduledDate
+                        CreatedAt = sr.CreatedAt
                     })
-                    .OrderByDescending(sr => sr.CreatedAt)
                     .ToList();
 
-                return View("~/Views/Homeowner/Services.cshtml", serviceRequests);
+                return View(serviceRequests);
             }
 
-            return View("~/Views/Homeowner/Services.cshtml", new List<ServiceRequestView>());
+            return View(new List<ServiceRequestView>());
         }
 
         [HttpPost]
@@ -163,35 +178,38 @@ namespace daebak_subdivision_website.Controllers
             }
         }
 
-        [Authorize]
-        public IActionResult TrackRequests()
+        [Authorize(Roles = "HOMEOWNER")]
+        [HttpPost]
+        [Route("Services/SubmitRequest")]
+        public IActionResult SubmitRequest([FromForm] ServiceRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (int.TryParse(userId, out int userIdInt))
+            if (!ModelState.IsValid)
             {
-                var serviceRequests = _context.ServiceRequests
-                    .Include(sr => sr.Homeowner)
-                    .Where(sr => sr.UserId == userIdInt)
-                    .Select(sr => new ServiceRequestView
-                    {
-                        Id = sr.Id,
-                        RequestType = sr.RequestType,
-                        Description = sr.Description,
-                        Status = sr.Status,
-                        CreatedAt = sr.CreatedAt,
-                        UpdatedAt = sr.UpdatedAt,
-                        AdminResponse = sr.StaffNotes,
-                        StaffNotes = sr.StaffNotes,
-                        HouseNumber = sr.HouseNumber,
-                        ScheduledDate = sr.ScheduledDate
-                    })
-                    .OrderByDescending(sr => sr.CreatedAt)
-                    .ToList();
-
-                return View(serviceRequests);
+                return BadRequest(ModelState);
             }
 
-            return View(new List<ServiceRequestView>());
+            // Get the current user's ID from the custom claim
+            var userId = User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                _logger.LogWarning("Failed to get user ID from claims");
+                return Unauthorized();
+            }
+
+            // Set the user ID and initial values
+            request.UserId = userIdInt;
+            request.Status = "Open";
+            request.CreatedAt = DateTime.Now;
+            request.UpdatedAt = DateTime.Now;
+            request.StaffNotes = string.Empty;
+            request.Location = request.Location ?? string.Empty;
+
+            // Add the request to the database
+            _context.ServiceRequests.Add(request);
+            _context.SaveChanges();
+
+            // Redirect to the Services view with the track tab parameter
+            return RedirectToAction("Services", "Homeowner", new { tab = "track" });
         }
 
         // Add this action for admin service requests
@@ -212,7 +230,6 @@ namespace daebak_subdivision_website.Controllers
                 {
                     Id = x.sr_u.sr.Id,
                     UserId = x.sr_u.sr.UserId,
-                    HouseNumber = x.sr_u.sr.HouseNumber,
                     RequestType = x.sr_u.sr.RequestType,
                     Description = x.sr_u.sr.Description,
                     Status = x.sr_u.sr.Status,
@@ -237,40 +254,162 @@ namespace daebak_subdivision_website.Controllers
             return View("~/Views/Admin/ServiceRequests.cshtml");
         }
 
-        // Add these API endpoints for admin operations
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        [Route("Admin/ServiceRequests/GetAll")]
+        public IActionResult GetAllServiceRequests()
+        {
+            var serviceRequests = _context.ServiceRequests
+                .Join(_context.Users,
+                    sr => sr.UserId,
+                    u => u.UserId,
+                    (sr, u) => new ServiceRequestView
+                    {
+                        Id = sr.Id,
+                        UserId = sr.UserId,
+                        RequestType = sr.RequestType,
+                        Description = sr.Description,
+                        Location = sr.Location,
+                        Status = sr.Status,
+                        CreatedAt = sr.CreatedAt,
+                        UpdatedAt = sr.UpdatedAt,
+                        RequestedBy = u.FirstName + " " + u.LastName,
+                        StaffNotes = sr.StaffNotes
+                    })
+                .OrderByDescending(sr => sr.CreatedAt)
+                .ToList();
+
+            return Json(serviceRequests);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        [Route("Admin/ServiceRequests/GetStats")]
+        public IActionResult GetServiceRequestStats()
+        {
+            var stats = new
+            {
+                Total = _context.ServiceRequests.Count(),
+                Pending = _context.ServiceRequests.Count(sr => sr.Status == "Open"),
+                Completed = _context.ServiceRequests.Count(sr => sr.Status == "Completed"),
+                Canceled = _context.ServiceRequests.Count(sr => sr.Status == "Rejected")
+            };
+
+            return Json(stats);
+        }
+
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
         [Route("Admin/ServiceRequests/UpdateStatus")]
-        public IActionResult UpdateServiceRequestStatus(int id, string status, string adminResponse)
+        public IActionResult UpdateStatus([FromBody] UpdateStatusRequest request)
         {
-            var serviceRequest = _context.ServiceRequests.Find(id);
-            if (serviceRequest == null)
+            try
             {
-                return NotFound();
-            }
+                if (request == null)
+                {
+                    _logger.LogWarning("UpdateStatus called with null request");
+                    return Json(new { success = false, message = "Invalid request data" });
+                }
 
-            serviceRequest.Status = status;
-            serviceRequest.AdminResponse = adminResponse;
-            serviceRequest.UpdatedAt = System.DateTime.Now;
-            
-            _context.SaveChanges();
-            return Json(new { success = true });
+                _logger.LogInformation("Attempting to update service request {Id} with status {Status}", 
+                    request.Id, request.Status);
+
+                var serviceRequest = _context.ServiceRequests.Find(request.Id);
+                if (serviceRequest == null)
+                {
+                    _logger.LogWarning("Service request not found with ID: {Id}", request.Id);
+                    return Json(new { success = false, message = "Service request not found" });
+                }
+
+                // Validate status
+                var validStatuses = new[] { "Open", "In Progress", "Scheduled", "Completed", "Rejected" };
+                if (!validStatuses.Contains(request.Status))
+                {
+                    _logger.LogWarning("Invalid status provided: {Status}", request.Status);
+                    return Json(new { success = false, message = "Invalid status provided" });
+                }
+
+                serviceRequest.Status = request.Status;
+                serviceRequest.StaffNotes = request.StaffNotes;
+                serviceRequest.UpdatedAt = DateTime.UtcNow;
+
+                _logger.LogInformation("Saving changes to database for request {Id}", request.Id);
+                _context.SaveChanges();
+                
+                _logger.LogInformation("Service request {Id} updated successfully", request.Id);
+                return Json(new { success = true, message = "Service request updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating service request {Id}. Error: {ErrorMessage}", 
+                    request?.Id, ex.Message);
+                return Json(new { 
+                    success = false, 
+                    message = "An error occurred while updating the service request",
+                    error = ex.Message,
+                    innerException = ex.InnerException?.Message
+                });
+            }
+        }
+
+        public class UpdateStatusRequest
+        {
+            public int Id { get; set; }
+            public string Status { get; set; }
+            public string StaffNotes { get; set; }
         }
 
         [HttpDelete]
         [Authorize(Roles = "ADMIN")]
         [Route("Admin/ServiceRequests/Delete/{id}")]
-        public IActionResult DeleteServiceRequest(int id)
+        public IActionResult Delete(int id)
         {
-            var serviceRequest = _context.ServiceRequests.Find(id);
-            if (serviceRequest == null)
+            try
             {
-                return NotFound();
+                var serviceRequest = _context.ServiceRequests.Find(id);
+                if (serviceRequest == null)
+                {
+                    return Json(new { success = false, message = "Service request not found" });
+                }
+
+                _context.ServiceRequests.Remove(serviceRequest);
+                _context.SaveChanges();
+                return Json(new { success = true, message = "Service request deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting service request {Id}", id);
+                return Json(new { success = false, message = "An error occurred while deleting the service request" });
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "HOMEOWNER")]
+        [Route("Services/GetUserRequests")]
+        public IActionResult GetUserRequests()
+        {
+            var userId = User.FindFirst("UserId")?.Value;
+            if (!int.TryParse(userId, out int userIdInt))
+            {
+                return Unauthorized();
             }
 
-            _context.ServiceRequests.Remove(serviceRequest);
-            _context.SaveChanges();
-            return Json(new { success = true });
+            var serviceRequests = _context.ServiceRequests
+                .Where(sr => sr.UserId == userIdInt)
+                .OrderByDescending(sr => sr.CreatedAt)
+                .Select(sr => new ServiceRequestView
+                {
+                    Id = sr.Id,
+                    RequestType = sr.RequestType,
+                    Description = sr.Description,
+                    Location = sr.Location,
+                    Status = sr.Status,
+                    CreatedAt = sr.CreatedAt,
+                    UpdatedAt = sr.UpdatedAt
+                })
+                .ToList();
+
+            return Json(serviceRequests);
         }
     }
 }

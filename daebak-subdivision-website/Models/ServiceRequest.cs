@@ -14,21 +14,19 @@ namespace daebak_subdivision_website.Models
         [Column("USER_ID")]
         public int UserId { get; set; }
 
-        [Column("REQUEST_TYPE")]
-        [Required]
-        public string RequestType { get; set; }
-
         [Column("LOCATION")]
-        [Required]
-        public string Location { get; set; }
+        public string? Location { get; set; }
 
-        [Column("DESCRIPTION")]
         [Required]
-        public string Description { get; set; }
+        [Column("REQUEST_TYPE")]
+        public string RequestType { get; set; } = string.Empty;
+
+        [Required]
+        [Column("DESCRIPTION")]
+        public string Description { get; set; } = string.Empty;
 
         [Column("STATUS")]
-        [Required]
-        public string Status { get; set; } = "Pending"; // Default status
+        public string? Status { get; set; } // Open, In Progress, Scheduled, Completed, Cancelled
 
         [Column("CREATED_AT")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -37,7 +35,7 @@ namespace daebak_subdivision_website.Models
         public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
         [Column("ASSIGNED_TO")]
-        public int? AssignedTo { get; set; } // Nullable as per DB schema
+        public int? AssignedTo { get; set; }
 
         [Column("SCHEDULED_DATE")]
         public DateTime? ScheduledDate { get; set; }
@@ -45,33 +43,14 @@ namespace daebak_subdivision_website.Models
         [Column("STAFF_NOTES")]
         public string? StaffNotes { get; set; }
 
-        // Navigation properties
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; }
-
-        [ForeignKey("UserId")]
-        public virtual Homeowner Homeowner { get; set; }
-
-        // Map AdminResponse to STAFF_NOTES
         [NotMapped]
         public string? AdminResponse
         {
-            get => StaffNotes;
-            set => StaffNotes = value;
+            get { return StaffNotes; }
+            set { StaffNotes = value; }
         }
 
-        // Map HouseNumber from Homeowner
-        [NotMapped]
-        public string? HouseNumber
-        {
-            get => Homeowner?.HouseNumber;
-            set
-            {
-                if (Homeowner != null)
-                {
-                    Homeowner.HouseNumber = value;
-                }
-            }
-        }
+        // Navigation property for images
+        public ICollection<RequestImage> Images { get; set; } = new List<RequestImage>();
     }
 }
