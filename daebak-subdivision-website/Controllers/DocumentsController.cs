@@ -21,10 +21,47 @@ namespace daebak_subdivision_website.Controllers
         }
 
         // GET: Documents
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string category = null)
         {
-            var documents = await _dbContext.Documents
+            var query = _dbContext.Documents
+                .Include(d => d.CreatedBy)
+                .Where(d => d.IsPublic == true);
+                
+            // Apply category filter if provided
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(d => d.Category == category);
+                ViewData["CurrentCategory"] = category;
+            }
+            
+            var documents = await query
                 .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
+
+            // Calculate file sizes for display
+            foreach (var doc in documents)
+            {
+                if (!string.IsNullOrEmpty(doc.FilePath))
+                {
+                    string fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        var fileInfo = new FileInfo(fullPath);
+                        doc.FileSize = fileInfo.Length;
+                    }
+                    else
+                    {
+                        doc.FileSize = 0;
+                    }
+                }
+            }
+            
+            // Get available categories for filtering
+            ViewData["Categories"] = await _dbContext.Documents
+                .Where(d => d.IsPublic == true)
+                .Select(d => d.Category)
+                .Distinct()
+                .OrderBy(c => c)
                 .ToListAsync();
 
             return View(documents);
@@ -149,11 +186,11 @@ namespace daebak_subdivision_website.Controllers
                 // Update document properties
                 document.FilePath = "/" + relativePath.Replace("\\", "/");
                 document.FileSize = document.DocumentFile.Length;
-                
+
                 // Set current user as creator if authenticated
                 if (User.Identity.IsAuthenticated)
                 {
-                    var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => 
+                    var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u =>
                         u.Username == User.Identity.Name);
                     if (currentUser != null)
                     {
@@ -164,14 +201,22 @@ namespace daebak_subdivision_website.Controllers
                     document.CreatedAt = DateTime.Now;
                     document.UpdatedAt = DateTime.Now;
 
-                // Save to database
-                _dbContext.Documents.Add(document);
-                await _dbContext.SaveChangesAsync();
-                
-                _logger.LogInformation("Document created successfully: {Title}, ID: {Id}", document.Title, document.DocumentId);
-                
-                TempData["SuccessMessage"] = "Document uploaded successfully!";
-                return RedirectToAction(nameof(AdminIndex));
+                    // Save to database
+                    _dbContext.Documents.Add(document);
+                    await _dbContext.SaveChangesAsync();
+
+                    _logger.LogInformation("Document created successfully: {Title}, ID: {Id}", document.Title, document.DocumentId);
+
+                    TempData["SuccessMessage"] = "Document uploaded successfully!";
+                    return RedirectToAction(nameof(AdminIndex));
+                }
+                else
+                {
+                    // Handle case when user is not authenticated
+                    _logger.LogWarning("Document creation attempt by unauthenticated user");
+                    TempData["ErrorMessage"] = "You must be logged in to upload documents";
+                    return RedirectToAction(nameof(AdminIndex));
+                }
             }
             catch (Exception ex)
             {
