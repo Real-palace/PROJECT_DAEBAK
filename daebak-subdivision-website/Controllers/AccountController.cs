@@ -136,7 +136,6 @@ namespace daebak_subdivision_website.Controllers
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 HouseNumber = homeowner.HouseNumber ?? string.Empty,
-                ProfilePicture = "/images/profile/default.jpg", // Always use default image since ProfilePicture column doesn't exist
                 Role = "Homeowner",
                 CreatedAt = user.CreatedAt
             };

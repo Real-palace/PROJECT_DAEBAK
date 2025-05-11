@@ -4,6 +4,9 @@ namespace daebak_subdivision_website.Models
 {
     public class UserProfileViewModel
     {
+        // Remove Required attribute from UserId
+        public string UserId { get; set; }
+        
         [Required(ErrorMessage = "Username is required")]
         [Display(Name = "Username")]
         [StringLength(50, ErrorMessage = "Username cannot exceed 50 characters")]
@@ -32,9 +35,6 @@ namespace daebak_subdivision_website.Models
         [Display(Name = "House Number")]
         [StringLength(10, ErrorMessage = "House number cannot exceed 10 characters")]
         public string HouseNumber { get; set; }
-
-        [Display(Name = "Profile Picture")]
-        public string ProfilePicture { get; set; }
         
         [DataType(DataType.Password)]
         [Display(Name = "Current Password")]

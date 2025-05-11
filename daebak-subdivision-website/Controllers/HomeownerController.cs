@@ -21,7 +21,9 @@ namespace daebak_subdivision_website.Controllers
             _logger = logger;
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async
+        
+         Task<IActionResult> Dashboard()
         {
             // Get current user ID
             var userId = User.FindFirst("UserId")?.Value;
@@ -117,6 +119,24 @@ namespace daebak_subdivision_website.Controllers
             ViewBag.Events = events;
             ViewBag.EventCount = events.Count(e => e.StartDate >= DateTime.Now);
 
+            // Fetch document categories for the dashboard cards
+            var documentsByCategory = new Dictionary<string, List<Document>>();
+            var categories = new[] { "MANUAL", "GUIDELINE", "FORM", "MAP" };
+            
+            foreach (var category in categories)
+            {
+                var documents = await _context.Documents
+                    .Where(d => d.Category == category && d.IsPublic == true)
+                    .OrderBy(d => d.Title)
+                    .ToListAsync();
+                
+                // Don't try to set FormattedFileSize directly since it's a read-only property
+                // The FormattedFileSize property will calculate itself when accessed in the view
+                documentsByCategory.Add(category, documents);
+            }
+
+            ViewBag.DocumentsByCategory = documentsByCategory;
+
             return View();
         }
 
@@ -131,6 +151,22 @@ namespace daebak_subdivision_website.Controllers
             if (title.Contains("celebration")) return "#FFDAC1";
             // Default color
             return "#94B0DF";
+        }
+
+        // Helper method to format file size
+        private string FormatFileSize(long bytes)
+        {
+            string[] suffixes = { "B", "KB", "MB", "GB" };
+            int counter = 0;
+            double size = bytes;
+            
+            while (size > 1024 && counter < suffixes.Length - 1)
+            {
+                size /= 1024;
+                counter++;
+            }
+            
+            return $"{size:0.##} {suffixes[counter]}";
         }
 
         public IActionResult Billing()
@@ -257,6 +293,7 @@ namespace daebak_subdivision_website.Controllers
             // Create a model for the profile view
             var model = new UserProfileViewModel
             {
+                UserId = user.UserId.ToString(), // Set the UserId from the logged-in user
                 Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -288,6 +325,9 @@ namespace daebak_subdivision_website.Controllers
                 _logger.LogWarning($"UpdateProfile failed. User '{username}' not found.");
                 return RedirectToAction("Index", "Home");
             }
+
+            // Ensure we have the correct UserId from database, not from the form
+            model.UserId = user.UserId.ToString();
 
             // Explicitly clear password validation errors if no password change was requested
             if (string.IsNullOrEmpty(model.NewPassword) && string.IsNullOrEmpty(model.CurrentPassword) && string.IsNullOrEmpty(model.ConfirmNewPassword))
