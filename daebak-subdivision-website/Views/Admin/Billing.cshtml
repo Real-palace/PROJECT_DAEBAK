@@ -19,6 +19,14 @@
     </div>
 </div>
 
+<!-- Notification Alert -->
+<div id="notification" class="hidden relative px-4 py-3 mb-6 border rounded-lg" role="alert">
+    <span id="notification-message" class="block sm:inline"></span>
+    <button type="button" class="absolute top-0 bottom-0 right-0 px-4 py-3" onclick="this.parentElement.classList.add('hidden')">
+        <i class="ph ph-x"></i>
+    </button>
+</div>
+
 <!-- Billing Dashboard Main Content -->
 <div class="space-y-6">
     <!-- Statistics Cards -->
@@ -117,107 +125,68 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Static billing items data -->
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">Association Dues</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly association dues for subdivision maintenance</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">Dues</span></td>
-                                <td class="py-3 px-4 text-sm text-gray-500">15th of each month</td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="1">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="1">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="1">
-                                            <i class="ph ph-user-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">Water Bill</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly water consumption charges</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Varies</td>
-                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-cyan-100 text-cyan-800">Water</span></td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Last day of each month</td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="2">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="2">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="2">
-                                            <i class="ph ph-user-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">Security Fee</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly security service fee</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱1,000.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">Security</span></td>
-                                <td class="py-3 px-4 text-sm text-gray-500">15th of each month</td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="3">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="3">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="3">
-                                            <i class="ph ph-user-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">Maintenance Fee</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Special maintenance services fee</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">Maintenance</span></td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Last day of each month</td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="4">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="4">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="4">
-                                            <i class="ph ph-user-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">Special Assessment</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Pool renovation contribution</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱5,000.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500"><span class="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800">Special</span></td>
-                                <td class="py-3 px-4 text-sm text-gray-500">June 30, 2025</td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="5">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="5">
-                                            <i class="ph ph-trash"></i>
-                                        </button>
-                                        <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="5">
-                                            <i class="ph ph-user-plus"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @if (ViewBag.BillingItems != null && ViewBag.BillingItems.Count > 0)
+                            {
+                                foreach (var item in ViewBag.BillingItems)
+                                {
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-900">@item.ItemName</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@item.Description</td>
+                                        <td class="py-3 px-4 text-sm text-gray-900">₱@item.Amount.ToString("N2")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">
+                                            @{
+                                                string colorClass = "bg-blue-100 text-blue-800"; // Default
+                                                
+                                                switch (item.Category?.ToLower())
+                                                {
+                                                    case "dues":
+                                                        colorClass = "bg-blue-100 text-blue-800";
+                                                        break;
+                                                    case "water":
+                                                        colorClass = "bg-cyan-100 text-cyan-800";
+                                                        break;
+                                                    case "security":
+                                                        colorClass = "bg-yellow-100 text-yellow-800";
+                                                        break;
+                                                    case "maintenance":
+                                                        colorClass = "bg-green-100 text-green-800";
+                                                        break;
+                                                    case "special":
+                                                        colorClass = "bg-purple-100 text-purple-800";
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+                                            <span class="px-2 py-1 text-xs rounded-full @colorClass">@(string.IsNullOrEmpty(item.Category) ? "Other" : item.Category)</span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">
+                                            @(item.IsRecurring ? 
+                                              (item.DueDate.Day == 1 ? "1st" : item.DueDate.Day == 15 ? "15th" : item.DueDate.Day == 30 || item.DueDate.Day == 31 ? "Last day" : $"{item.DueDate.Day.ToString().PadLeft(2, '0')}") + " of each month" : 
+                                              item.DueDate.ToString("MMMM d, yyyy"))
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-center">
+                                            <div class="flex justify-center space-x-2">
+                                                <button class="edit-billing-item-btn p-1 text-blue-600 hover:text-blue-800" data-id="@item.ItemId">
+                                                    <i class="ph ph-pencil-simple"></i>
+                                                </button>
+                                                <button class="delete-billing-item-btn p-1 text-red-600 hover:text-red-800" data-id="@item.ItemId">
+                                                    <i class="ph ph-trash"></i>
+                                                </button>
+                                                <button class="assign-bill-btn p-1 text-green-600 hover:text-green-800" data-id="@item.ItemId">
+                                                    <i class="ph ph-user-plus"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" class="py-4 px-4 text-center text-gray-500">No billing items found.</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -264,12 +233,21 @@
                         <div>
                             <label for="bill-category-filter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
                             <select id="bill-category-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
-                                <option value="all">All Categories</option>
-                                <option value="dues">Association Dues</option>
-                                <option value="water">Water</option>
-                                <option value="security">Security</option>
-                                <option value="maintenance">Maintenance</option>
-                                <option value="special">Special Assessment</option>
+                                <option value="all">All Categories</option>                                @if (ViewBag.BillingItems != null)
+                                {
+                                    var categories = new HashSet<string>();
+                                    foreach (var item in ViewBag.BillingItems)
+                                    {
+                                        if (!string.IsNullOrEmpty(item.Category))
+                                        {
+                                            categories.Add(item.Category);
+                                        }
+                                    }
+                                    foreach (var category in categories)
+                                    {
+                                        <option value="@category.ToLower()">@category</option>
+                                    }
+                                }
                             </select>
                         </div>
                         <div>
@@ -302,82 +280,73 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Sample data - will be replaced with actual data from ViewBag.Bills -->
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4221</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Juan Dela Cruz (House #101)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - May 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">May 15, 2025</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        Pending
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4221">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="edit-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4221">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="send-reminder-btn p-1 text-yellow-600 hover:text-yellow-800" data-id="BILL-2025-4221">
-                                            <i class="ph ph-bell-ringing"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4220</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Maria Santos (House #102)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - May 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">May 15, 2025</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Paid
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4220">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="view-payment-btn p-1 text-green-600 hover:text-green-800" data-id="BILL-2025-4220">
-                                            <i class="ph ph-receipt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr class="bg-red-50">
-                                <td class="py-3 px-4 text-sm text-gray-900">BILL-2025-4152</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Antonio Reyes (House #103)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Monthly Association Dues - April 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Mar 15, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Apr 15, 2025</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                        Overdue
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4152">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="edit-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="BILL-2025-4152">
-                                            <i class="ph ph-pencil-simple"></i>
-                                        </button>
-                                        <button class="send-reminder-btn p-1 text-yellow-600 hover:text-yellow-800" data-id="BILL-2025-4152">
-                                            <i class="ph ph-bell-ringing"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @if (ViewBag.UserBills != null && ViewBag.UserBills.Count > 0)
+                            {
+                                foreach (var bill in ViewBag.UserBills)
+                                {
+                                    string rowClass = bill.Status.ToLower() == "overdue" ? "bg-red-50" : "";
+                                    
+                                    <tr class="@rowClass">
+                                        <td class="py-3 px-4 text-sm text-gray-900">@bill.BillNumber</td>
+                                        <td class="py-3 px-4 text-sm text-gray-900">@(bill.User != null ? $"{bill.User.FirstName} {bill.User.LastName}" : "N/A") (@(bill.User?.HouseNumber ?? "No House #"))</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@(bill.BillingItem?.Description ?? "N/A")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-900">₱@bill.Amount.ToString("N2")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@bill.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@bill.DueDate.ToString("MMM dd, yyyy")</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            @{
+                                                string statusClass = "bg-yellow-100 text-yellow-800"; // Default for Pending
+                                                
+                                                switch (bill.Status.ToLower())
+                                                {
+                                                    case "paid":
+                                                        statusClass = "bg-green-100 text-green-800";
+                                                        break;
+                                                    case "overdue":
+                                                        statusClass = "bg-red-100 text-red-800";
+                                                        break;
+                                                    case "cancelled":
+                                                        statusClass = "bg-gray-100 text-gray-800";
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @statusClass">
+                                                @bill.Status
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-center">
+                                            <div class="flex justify-center space-x-2">
+                                                <button class="view-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="@bill.BillId">
+                                                    <i class="ph ph-eye"></i>
+                                                </button>
+                                                @if (bill.Status.ToLower() != "paid")
+                                                {
+                                                    <button class="edit-bill-btn p-1 text-blue-600 hover:text-blue-800" data-id="@bill.BillId">
+                                                        <i class="ph ph-pencil-simple"></i>
+                                                    </button>
+                                                    <button class="send-reminder-btn p-1 text-yellow-600 hover:text-yellow-800" data-id="@bill.BillId">
+                                                        <i class="ph ph-bell-ringing"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button class="view-payment-btn p-1 text-green-600 hover:text-green-800" data-bill-id="@bill.BillId">
+                                                        <i class="ph ph-receipt"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="py-4 px-4 text-center text-gray-500">No bills found.</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -385,7 +354,7 @@
                 <!-- Pagination -->
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm text-gray-500">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">35</span> results
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">@(ViewBag.UserBills?.Count > 0 ? Math.Min(ViewBag.UserBills.Count, 10) : 0)</span> of <span class="font-medium">@(ViewBag.UserBills?.Count ?? 0)</span> results
                     </div>
                     <div class="flex space-x-1">
                         <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
@@ -394,15 +363,24 @@
                         <button class="px-3 py-1 bg-primary border border-primary rounded-lg text-sm font-medium text-white hover:bg-primary/80">
                             1
                         </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            2
-                        </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            3
-                        </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Next
-                        </button>
+                        @if ((ViewBag.UserBills?.Count ?? 0) > 10)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                2
+                            </button>
+                        }
+                        @if ((ViewBag.UserBills?.Count ?? 0) > 20)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                3
+                            </button>
+                        }
+                        @if ((ViewBag.UserBills?.Count ?? 0) > 10)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                Next
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -450,11 +428,29 @@
                             <label for="payment-method-filter" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                             <select id="payment-method-filter" class="w-full px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary/50">
                                 <option value="all">All Methods</option>
-                                <option value="credit_card">Credit Card</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="gcash">GCash</option>
-                                <option value="maya">Maya</option>
-                                <option value="cash">Cash</option>
+                                @if (ViewBag.Payments != null)
+                                {
+                                    var methods = new HashSet<string>();
+                                    foreach (var payment in ViewBag.Payments)
+                                    {
+                                        if (!string.IsNullOrEmpty(payment.PaymentMethod))
+                                        {
+                                            methods.Add(payment.PaymentMethod);
+                                        }
+                                    }
+                                    foreach (var method in methods)
+                                    {
+                                        <option value="@method.ToLower().Replace(" ", "_")">@method</option>
+                                    }
+                                }
+                                else
+                                {
+                                    <option value="credit_card">Credit Card</option>
+                                    <option value="bank_transfer">Bank Transfer</option>
+                                    <option value="gcash">GCash</option>
+                                    <option value="maya">Maya</option>
+                                    <option value="cash">Cash</option>
+                                }
                             </select>
                         </div>
                         <div>
@@ -487,79 +483,72 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Sample data - will be replaced with actual data from ViewBag.Payments -->
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6521</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Maria Santos (House #102)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4220</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">May 2, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">GCash</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Completed
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6521">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="print-receipt-btn p-1 text-gray-600 hover:text-gray-800" data-id="RCPT-2025-6521">
-                                            <i class="ph ph-printer"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6520</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Roberto Tan (House #105)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4215</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">May 1, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Bank Transfer</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                        Pending
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6520">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="verify-payment-btn p-1 text-green-600 hover:text-green-800" data-id="RCPT-2025-6520">
-                                            <i class="ph ph-check-circle"></i>
-                                        </button>
-                                        <button class="reject-payment-btn p-1 text-red-600 hover:text-red-800" data-id="RCPT-2025-6520">
-                                            <i class="ph ph-x-circle"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-3 px-4 text-sm text-gray-900">RCPT-2025-6519</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">Jose Garcia (House #110)</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">BILL-2025-4210</td>
-                                <td class="py-3 px-4 text-sm text-gray-900">₱2,500.00</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Apr 30, 2025</td>
-                                <td class="py-3 px-4 text-sm text-gray-500">Credit Card</td>
-                                <td class="py-3 px-4 text-sm">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        Completed
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-sm text-center">
-                                    <div class="flex justify-center space-x-2">
-                                        <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="RCPT-2025-6519">
-                                            <i class="ph ph-eye"></i>
-                                        </button>
-                                        <button class="print-receipt-btn p-1 text-gray-600 hover:text-gray-800" data-id="RCPT-2025-6519">
-                                            <i class="ph ph-printer"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            @if (ViewBag.Payments != null && ViewBag.Payments.Count > 0)
+                            {
+                                foreach (var payment in ViewBag.Payments)
+                                {
+                                    <tr>
+                                        <td class="py-3 px-4 text-sm text-gray-900">@payment.ReceiptNumber</td>
+                                        <td class="py-3 px-4 text-sm text-gray-900">@(payment.User != null ? $"{payment.User.FirstName} {payment.User.LastName}" : "N/A") (@(payment.User?.HouseNumber ?? "No House #"))</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@(payment.Bill?.BillNumber ?? "N/A")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-900">₱@payment.Amount.ToString("N2")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@payment.PaymentDate.ToString("MMM dd, yyyy")</td>
+                                        <td class="py-3 px-4 text-sm text-gray-500">@payment.PaymentMethod</td>
+                                        <td class="py-3 px-4 text-sm">
+                                            @{
+                                                string statusClass = "bg-yellow-100 text-yellow-800"; // Default for Pending
+                                                
+                                                switch (payment.Status.ToLower())
+                                                {
+                                                    case "completed":
+                                                        statusClass = "bg-green-100 text-green-800";
+                                                        break;
+                                                    case "failed":
+                                                        statusClass = "bg-red-100 text-red-800";
+                                                        break;
+                                                    case "refunded":
+                                                        statusClass = "bg-gray-100 text-gray-800";
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full @statusClass">
+                                                @payment.Status
+                                            </span>
+                                        </td>
+                                        <td class="py-3 px-4 text-sm text-center">
+                                            <div class="flex justify-center space-x-2">
+                                                <button class="view-payment-btn p-1 text-blue-600 hover:text-blue-800" data-id="@payment.PaymentId">
+                                                    <i class="ph ph-eye"></i>
+                                                </button>
+                                                
+                                                @if (payment.Status.ToLower() == "completed")
+                                                {
+                                                    <button class="print-receipt-btn p-1 text-gray-600 hover:text-gray-800" data-id="@payment.PaymentId">
+                                                        <i class="ph ph-printer"></i>
+                                                    </button>
+                                                }
+                                                else if (payment.Status.ToLower() == "pending")
+                                                {
+                                                    <button class="verify-payment-btn p-1 text-green-600 hover:text-green-800" data-id="@payment.PaymentId">
+                                                        <i class="ph ph-check-circle"></i>
+                                                    </button>
+                                                    <button class="reject-payment-btn p-1 text-red-600 hover:text-red-800" data-id="@payment.PaymentId">
+                                                        <i class="ph ph-x-circle"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="8" class="py-4 px-4 text-center text-gray-500">No payment records found.</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>
@@ -567,7 +556,7 @@
                 <!-- Pagination -->
                 <div class="flex items-center justify-between mt-4">
                     <div class="text-sm text-gray-500">
-                        Showing <span class="font-medium">1</span> to <span class="font-medium">3</span> of <span class="font-medium">42</span> results
+                        Showing <span class="font-medium">1</span> to <span class="font-medium">@(ViewBag.Payments?.Count > 0 ? Math.Min(ViewBag.Payments.Count, 10) : 0)</span> of <span class="font-medium">@(ViewBag.Payments?.Count ?? 0)</span> results
                     </div>
                     <div class="flex space-x-1">
                         <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50" disabled>
@@ -576,15 +565,24 @@
                         <button class="px-3 py-1 bg-primary border border-primary rounded-lg text-sm font-medium text-white hover:bg-primary/80">
                             1
                         </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            2
-                        </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            3
-                        </button>
-                        <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
-                            Next
-                        </button>
+                        @if ((ViewBag.Payments?.Count ?? 0) > 10)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                2
+                            </button>
+                        }
+                        @if ((ViewBag.Payments?.Count ?? 0) > 20)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                3
+                            </button>
+                        }
+                        @if ((ViewBag.Payments?.Count ?? 0) > 10)
+                        {
+                            <button class="px-3 py-1 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                Next
+                            </button>
+                        }
                     </div>
                 </div>
             </div>
@@ -654,6 +652,42 @@
                     closeModal(modalId + '-modal');
                 });
             });
+
+            // Show notification
+            function showNotification(message, type = 'success') {
+                const notification = document.getElementById('notification');
+                const notificationMessage = document.getElementById('notification-message');
+                
+                notification.classList.remove('bg-green-100', 'border-green-400', 'text-green-700');
+                notification.classList.remove('bg-red-100', 'border-red-400', 'text-red-700');
+                
+                if (type === 'success') {
+                    notification.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+                } else {
+                    notification.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
+                }
+                
+                notificationMessage.textContent = message;
+                notification.classList.remove('hidden');
+                
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 5000);
+            }
+            
+            // Fetch billing item data
+            async function fetchBillingItem(itemId) {
+                try {
+                    const response = await fetch(`/Billing/GetBillingItem?id=${itemId}`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch billing item data');
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Error fetching billing item data', 'error');
+                }
+            }
             
             // Billing Item Modal
             const newBillingItemBtn = document.getElementById('new-billing-item-btn');
@@ -674,17 +708,74 @@
             
             // Edit Billing Item
             document.querySelectorAll('.edit-billing-item-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const itemId = this.dataset.id;
                     document.getElementById('billing-item-modal-title').textContent = 'Edit Billing Item';
                     document.getElementById('billing-item-id').value = itemId;
                     
-                    // In a real application, you would fetch the item data from the server
-                    // and populate the form fields
+                    // Fetch billing item data from server
+                    const item = await fetchBillingItem(itemId);
+                    if (item) {
+                        document.getElementById('billing-item-name').value = item.itemName;
+                        document.getElementById('billing-item-description').value = item.description;
+                        document.getElementById('billing-item-amount').value = item.amount;
+                        document.getElementById('billing-item-category').value = item.category || '';
+                        document.getElementById('billing-item-is-recurring').checked = item.isRecurring;
+                        
+                        // Format date for input
+                        const dueDate = new Date(item.dueDate);
+                        const formattedDate = dueDate.toISOString().split('T')[0];
+                        document.getElementById('billing-item-due-date').value = formattedDate;
+                    }
                     
                     openModal('billing-item-modal');
                 });
             });
+            
+            // Submit Billing Item Form
+            const billingItemForm = document.getElementById('billing-item-form');
+            if (billingItemForm) {
+                billingItemForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const itemId = document.getElementById('billing-item-id').value;
+                    
+                    let url = '/Billing/CreateBillingItem';
+                    if (itemId) {
+                        url = '/Billing/UpdateBillingItem';
+                    }
+                    
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to save billing item');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeModal('billing-item-modal');
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while saving the billing item', 'error');
+                    }
+                });
+            }
             
             // Delete Billing Item
             document.querySelectorAll('.delete-billing-item-btn').forEach(btn => {
@@ -700,18 +791,112 @@
                 });
             });
             
+            // Delete Confirmation
+            const deleteConfirmForm = document.getElementById('delete-confirm-form');
+            if (deleteConfirmForm) {
+                deleteConfirmForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const itemId = document.getElementById('delete-item-id').value;
+                    const itemType = document.getElementById('delete-item-type').value;
+                    
+                    let url = '';
+                    if (itemType === 'billing-item') {
+                        url = `/Billing/DeleteBillingItem?id=${itemId}`;
+                    } else if (itemType === 'bill') {
+                        url = `/Billing/DeleteUserBill?id=${itemId}`;
+                    } else if (itemType === 'payment') {
+                        url = `/Billing/DeletePayment?id=${itemId}`;
+                    }
+                    
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to delete item');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeModal('delete-confirm-modal');
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while deleting the item', 'error');
+                    }
+                });
+            }
+            
             // Assign Bill
             document.querySelectorAll('.assign-bill-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const itemId = this.dataset.id;
                     document.getElementById('assign-billing-item-id').value = itemId;
                     
-                    // In a real application, you would fetch the billing item data and homeowners
-                    // list from the server and populate the form
+                    // Fetch billing item data for the title
+                    const item = await fetchBillingItem(itemId);
+                    if (item) {
+                        document.getElementById('assign-bill-modal-title').textContent = `Assign ${item.itemName}`;
+                    }
                     
                     openModal('assign-bill-modal');
                 });
             });
+            
+            // Submit Assign Bill Form
+            const assignBillForm = document.getElementById('assign-bill-form');
+            if (assignBillForm) {
+                assignBillForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch('/Billing/AssignBill', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to assign bill');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeModal('assign-bill-modal');
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while assigning the bill', 'error');
+                    }
+                });
+            }
             
             // Generate Bills
             const generateBillsBtn = document.getElementById('generate-bills-btn');
@@ -729,6 +914,45 @@
                 });
             }
             
+            // Submit Generate Bills Form
+            const generateBillsForm = document.getElementById('generate-bills-form');
+            if (generateBillsForm) {
+                generateBillsForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch('/Billing/GenerateBills', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to generate bills');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeModal('generate-bills-modal');
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while generating bills', 'error');
+                    }
+                });
+            }
+            
             // Record Payment
             const recordPaymentBtn = document.getElementById('record-payment-btn');
             if (recordPaymentBtn) {
@@ -741,14 +965,89 @@
                 });
             }
             
+            // Submit Record Payment Form
+            const recordPaymentForm = document.getElementById('record-payment-form');
+            if (recordPaymentForm) {
+                recordPaymentForm.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch('/Billing/RecordPayment', {
+                            method: 'POST',
+                            body: formData,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to record payment');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeModal('record-payment-modal');
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while recording the payment', 'error');
+                    }
+                });
+            }
+            
             // View Bill
             document.querySelectorAll('.view-bill-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', async function() {
                     const billId = this.dataset.id;
                     
-                    // In a real application, you would fetch the bill data from the server
-                    // and populate the modal
-                    document.getElementById('bill-number').textContent = `Bill #${billId}`;
+                    try {
+                        const response = await fetch(`/Billing/GetBillDetails?id=${billId}`);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch bill details');
+                        }
+                        
+                        const bill = await response.json();
+                        
+                        if (bill) {
+                            document.getElementById('view-bill-number').textContent = bill.billNumber;
+                            document.getElementById('view-bill-user').textContent = bill.homeownerName;
+                            document.getElementById('view-bill-description').textContent = bill.description;
+                            document.getElementById('view-bill-amount').textContent = `₱${bill.amount.toFixed(2)}`;
+                            document.getElementById('view-bill-issued').textContent = new Date(bill.createdAt).toLocaleDateString();
+                            document.getElementById('view-bill-due').textContent = new Date(bill.dueDate).toLocaleDateString();
+                            document.getElementById('view-bill-status').textContent = bill.status;
+                            
+                            // Set status label color
+                            const statusBadge = document.getElementById('view-bill-status-badge');
+                            statusBadge.className = 'px-2 py-1 text-xs rounded-full ';
+                            switch (bill.status.toLowerCase()) {
+                                case 'paid':
+                                    statusBadge.classList.add('bg-green-100', 'text-green-800');
+                                    break;
+                                case 'overdue':
+                                    statusBadge.classList.add('bg-red-100', 'text-red-800');
+                                    break;
+                                case 'cancelled':
+                                    statusBadge.classList.add('bg-gray-100', 'text-gray-800');
+                                    break;
+                                default:
+                                    statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                                    break;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('Error fetching bill details', 'error');
+                    }
                     
                     openModal('view-bill-modal');
                 });
@@ -756,212 +1055,468 @@
             
             // View Payment
             document.querySelectorAll('.view-payment-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const receiptId = this.dataset.id;
+                btn.addEventListener('click', async function() {
+                    const paymentId = this.dataset.id;
                     
-                    // In a real application, you would fetch the payment data from the server
-                    // and populate the modal
-                    document.getElementById('payment-receipt-number').textContent = `Receipt #${receiptId}`;
+                    try {
+                        const response = await fetch(`/Billing/GetPaymentDetails?id=${paymentId}`);
+                        if (!response.ok) {
+                            throw new Error('Failed to fetch payment details');
+                        }
+                        
+                        const payment = await response.json();
+                        
+                        if (payment) {
+                            document.getElementById('view-payment-receipt-number').textContent = payment.receiptNumber;
+                            document.getElementById('view-payment-user').textContent = payment.homeownerName;
+                            document.getElementById('view-payment-bill-number').textContent = payment.billNumber;
+                            document.getElementById('view-payment-amount').textContent = `₱${payment.amount.toFixed(2)}`;
+                            document.getElementById('view-payment-date').textContent = new Date(payment.paymentDate).toLocaleDateString();
+                            document.getElementById('view-payment-method').textContent = payment.paymentMethod;
+                            document.getElementById('view-payment-reference').textContent = payment.referenceNumber || 'N/A';
+                            document.getElementById('view-payment-status').textContent = payment.status;
+                            
+                            // Set status badge color
+                            const statusBadge = document.getElementById('view-payment-status-badge');
+                            statusBadge.className = 'px-2 py-1 text-xs rounded-full ';
+                            switch (payment.status.toLowerCase()) {
+                                case 'completed':
+                                    statusBadge.classList.add('bg-green-100', 'text-green-800');
+                                    break;
+                                case 'failed':
+                                    statusBadge.classList.add('bg-red-100', 'text-red-800');
+                                    break;
+                                case 'refunded':
+                                    statusBadge.classList.add('bg-gray-100', 'text-gray-800');
+                                    break;
+                                default:
+                                    statusBadge.classList.add('bg-yellow-100', 'text-yellow-800');
+                                    break;
+                            }
+                            
+                            // Show/hide proof of payment
+                            const proofContainer = document.getElementById('view-payment-proof-container');
+                            if (payment.proofOfPaymentUrl) {
+                                document.getElementById('view-payment-proof').src = payment.proofOfPaymentUrl;
+                                proofContainer.classList.remove('hidden');
+                            } else {
+                                proofContainer.classList.add('hidden');
+                            }
+                            
+                            // Show/hide action buttons based on status
+                            const pendingActions = document.getElementById('view-payment-pending-actions');
+                            if (payment.status.toLowerCase() === 'pending') {
+                                pendingActions.classList.remove('hidden');
+                                document.getElementById('view-payment-verify-btn').dataset.id = paymentId;
+                                document.getElementById('view-payment-reject-btn').dataset.id = paymentId;
+                            } else {
+                                pendingActions.classList.add('hidden');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('Error fetching payment details', 'error');
+                    }
                     
                     openModal('view-payment-modal');
                 });
             });
             
-            // Payment homeowner selection
-            const paymentHomeownerSelect = document.getElementById('payment-homeowner');
-            if (paymentHomeownerSelect) {
-                paymentHomeownerSelect.addEventListener('change', function() {
-                    const homeownerId = this.value;
-                    if (homeownerId) {
-                        // In a real application, you would fetch the homeowner's bills from the server
-                        // and populate the bills section
-                        document.getElementById('homeowner-bills-section').classList.remove('hidden');
-                    } else {
-                        document.getElementById('homeowner-bills-section').classList.add('hidden');
+            // Verify Payment
+            document.querySelectorAll('.verify-payment-btn, #view-payment-verify-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const paymentId = this.dataset.id;
+                    
+                    try {
+                        const response = await fetch('/Billing/VerifyPayment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: `id=${paymentId}`,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to verify payment');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeAllModals();
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while verifying the payment', 'error');
                     }
                 });
-            }
-            
-            // Bill checkboxes for payments
-            const billCheckboxes = document.querySelectorAll('.bill-checkbox');
-            billCheckboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateSelectedBillsTotal);
             });
             
-            function updateSelectedBillsTotal() {
-                const selectedCheckboxes = document.querySelectorAll('.bill-checkbox:checked');
-                let total = 0;
-                
-                selectedCheckboxes.forEach(checkbox => {
-                    total += parseFloat(checkbox.dataset.amount || 0);
+            // Reject Payment
+            document.querySelectorAll('.reject-payment-btn, #view-payment-reject-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const paymentId = this.dataset.id;
+                    
+                    try {
+                        const response = await fetch('/Billing/RejectPayment', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: `id=${paymentId}`,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to reject payment');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            closeAllModals();
+                            showNotification(result.message);
+                            
+                            // Reload the page to see changes
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1000);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while rejecting the payment', 'error');
+                    }
                 });
-                
-                document.getElementById('selected-bills-total').textContent = `₱${total.toFixed(2)}`;
-                document.getElementById('payment-amount').value = total.toFixed(2);
+            });
+            
+            // Print Receipt
+            document.querySelectorAll('.print-receipt-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const receiptId = this.dataset.id;
+                    window.open(`/Billing/PrintReceipt?id=${receiptId}`, '_blank');
+                });
+            });
+            
+            // Send Reminder
+            document.querySelectorAll('.send-reminder-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const billId = this.dataset.id;
+                    
+                    try {
+                        const response = await fetch('/Billing/SendReminder', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                            },
+                            body: `id=${billId}`,
+                            credentials: 'same-origin'
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error('Failed to send reminder');
+                        }
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showNotification(result.message);
+                        } else {
+                            showNotification(result.message, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        showNotification('An error occurred while sending the reminder', 'error');
+                    }
+                });
+            });
+            
+            // Filter Bills
+            const applyFiltersBtn = document.getElementById('apply-filters-btn');
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', function() {
+                    const status = document.getElementById('bill-status-filter').value;
+                    const dateRange = document.getElementById('bill-date-filter').value;
+                    const category = document.getElementById('bill-category-filter').value;
+                    
+                    // Implement client-side filtering
+                    filterBills(status, dateRange, category);
+                });
             }
             
-            // Select All Homeowners in Assign Bill Modal
-            const selectAllHomeowners = document.getElementById('select-all-homeowners');
-            if (selectAllHomeowners) {
-                selectAllHomeowners.addEventListener('change', function() {
-                    const isChecked = this.checked;
-                    document.querySelectorAll('.homeowner-checkbox').forEach(checkbox => {
-                        checkbox.checked = isChecked;
+            // Clear Bill Filters
+            const clearFiltersBtn = document.getElementById('clear-filters-btn');
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', function() {
+                    document.getElementById('bill-status-filter').value = 'all';
+                    document.getElementById('bill-date-filter').value = 'all';
+                    document.getElementById('bill-category-filter').value = 'all';
+                    document.getElementById('bill-search').value = '';
+                    
+                    // Reset table view
+                    filterBills('all', 'all', 'all');
+                });
+            }
+            
+            // Filter Payments
+            const applyPaymentFiltersBtn = document.getElementById('apply-payment-filters-btn');
+            if (applyPaymentFiltersBtn) {
+                applyPaymentFiltersBtn.addEventListener('click', function() {
+                    const status = document.getElementById('payment-status-filter').value;
+                    const dateRange = document.getElementById('payment-date-filter').value;
+                    const method = document.getElementById('payment-method-filter').value;
+                    
+                    // Implement client-side filtering
+                    filterPayments(status, dateRange, method);
+                });
+            }
+            
+            // Clear Payment Filters
+            const clearPaymentFiltersBtn = document.getElementById('clear-payment-filters-btn');
+            if (clearPaymentFiltersBtn) {
+                clearPaymentFiltersBtn.addEventListener('click', function() {
+                    document.getElementById('payment-status-filter').value = 'all';
+                    document.getElementById('payment-date-filter').value = 'all';
+                    document.getElementById('payment-method-filter').value = 'all';
+                    document.getElementById('payment-search').value = '';
+                    
+                    // Reset table view
+                    filterPayments('all', 'all', 'all');
+                });
+            }
+            
+            // Bill Search
+            const billSearch = document.getElementById('bill-search');
+            if (billSearch) {
+                billSearch.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#tab-bills table tbody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (text.includes(searchTerm)) {
+                            row.classList.remove('hidden');
+                        } else {
+                            row.classList.add('hidden');
+                        }
                     });
                 });
             }
             
-            // Bills Form - Show/Hide Custom Bill Details
-            const billTypeSelect = document.getElementById('bill-type');
-            if (billTypeSelect) {
-                billTypeSelect.addEventListener('change', function() {
-                    const customBillDetails = document.getElementById('custom-bill-details');
-                    if (this.value === 'custom') {
-                        customBillDetails.classList.remove('hidden');
+            // Payment Search
+            const paymentSearch = document.getElementById('payment-search');
+            if (paymentSearch) {
+                paymentSearch.addEventListener('input', function() {
+                    const searchTerm = this.value.toLowerCase();
+                    const rows = document.querySelectorAll('#tab-payments table tbody tr');
+                    
+                    rows.forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        if (text.includes(searchTerm)) {
+                            row.classList.remove('hidden');
+                        } else {
+                            row.classList.add('hidden');
+                        }
+                    });
+                });
+            }
+            
+            // Filter Bills Implementation
+            function filterBills(status, dateRange, category) {
+                const rows = document.querySelectorAll('#tab-bills table tbody tr');
+                
+                rows.forEach(row => {
+                    // Skip the "No bills found" row
+                    if (row.cells.length === 1) {
+                        return;
+                    }
+                    
+                    let showRow = true;
+                    
+                    // Filter by status
+                    if (status !== 'all') {
+                        const rowStatus = row.querySelector('td:nth-child(7) span').textContent.trim().toLowerCase();
+                        if (rowStatus !== status) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Filter by category (based on description)
+                    if (category !== 'all' && showRow) {
+                        const description = row.cells[2].textContent.toLowerCase();
+                        if (!description.includes(category)) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Filter by date range
+                    if (dateRange !== 'all' && showRow) {
+                        const dueDateText = row.cells[5].textContent.trim();
+                        const dueDate = new Date(dueDateText);
+                        const today = new Date();
+                        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                        const firstDayOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                        const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+                        const firstDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+                        const lastDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+                        
+                        switch (dateRange) {
+                            case 'this_month':
+                                if (dueDate < firstDayOfMonth || dueDate > lastDayOfMonth) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'last_month':
+                                if (dueDate < firstDayOfLastMonth || dueDate > lastDayOfLastMonth) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'next_month':
+                                if (dueDate < firstDayOfNextMonth || dueDate > lastDayOfNextMonth) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'custom':
+                                // For custom range, we would need date pickers implemented
+                                break;
+                        }
+                    }
+                    
+                    // Show or hide row
+                    if (showRow) {
+                        row.classList.remove('hidden');
                     } else {
-                        customBillDetails.classList.add('hidden');
+                        row.classList.add('hidden');
                     }
                 });
-            }
-            
-            // Recipients Radio Toggle
-            const specificHomeownersRadio = document.getElementById('specific-homeowners');
-            if (specificHomeownersRadio) {
-                specificHomeownersRadio.addEventListener('change', function() {
-                    document.getElementById('specific-homeowners-section').classList.toggle('hidden', !this.checked);
-                });
                 
-                document.getElementById('all-homeowners').addEventListener('change', function() {
-                    document.getElementById('specific-homeowners-section').classList.toggle('hidden', this.checked);
-                });
-            }
-            
-            // Form submissions
-            document.getElementById('billing-item-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Here you would handle the form submission, likely via AJAX
-                alert('Billing item saved successfully!');
-                closeModal('billing-item-modal');
-            });
-            
-            document.getElementById('assign-bill-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Here you would handle the form submission
-                alert('Bills assigned successfully!');
-                closeModal('assign-bill-modal');
-            });
-            
-            document.getElementById('record-payment-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Here you would handle the form submission
-                alert('Payment recorded successfully!');
-                closeModal('record-payment-modal');
-            });
-            
-            document.getElementById('generate-bills-form')?.addEventListener('submit', function(e) {
-                e.preventDefault();
-                // Here you would handle the form submission
-                alert('Bills generated successfully!');
-                closeModal('generate-bills-modal');
-            });
-            
-            // Delete confirmation
-            document.getElementById('confirm-delete-btn')?.addEventListener('click', function() {
-                const itemId = document.getElementById('delete-item-id').value;
-                const itemType = document.getElementById('delete-item-type').value;
+                // Check if no visible rows
+                const visibleRows = document.querySelectorAll('#tab-bills table tbody tr:not(.hidden)');
+                const noResultsRow = document.querySelector('#tab-bills table tbody tr.no-results');
                 
-                // Here you would send a request to delete the item
-                alert(`${itemType} with ID ${itemId} deleted successfully!`);
-                closeModal('delete-confirm-modal');
-            });
-            
-            document.getElementById('cancel-delete-btn')?.addEventListener('click', function() {
-                closeModal('delete-confirm-modal');
-            });
-
-            // Filter buttons
-            document.getElementById('apply-filters-btn')?.addEventListener('click', function() {
-                // Here you would apply the filters and reload the bills table
-                alert('Filters applied!');
-            });
-            
-            document.getElementById('clear-filters-btn')?.addEventListener('click', function() {
-                // Here you would reset the filters and reload the bills table
-                document.getElementById('bill-status-filter').value = 'all';
-                document.getElementById('bill-date-filter').value = 'all';
-                document.getElementById('bill-category-filter').value = 'all';
-                alert('Filters cleared!');
-            });
-            
-            document.getElementById('apply-payment-filters-btn')?.addEventListener('click', function() {
-                // Here you would apply the filters and reload the payments table
-                alert('Payment filters applied!');
-            });
-            
-            document.getElementById('clear-payment-filters-btn')?.addEventListener('click', function() {
-                // Here you would reset the filters and reload the payments table
-                document.getElementById('payment-status-filter').value = 'all';
-                document.getElementById('payment-date-filter').value = 'all';
-                document.getElementById('payment-method-filter').value = 'all';
-                alert('Payment filters cleared!');
-            });
-
-            // Cancel buttons for forms
-            document.getElementById('cancel-billing-item-btn')?.addEventListener('click', function() {
-                closeModal('billing-item-modal');
-            });
-            
-            document.getElementById('cancel-assign-bill-btn')?.addEventListener('click', function() {
-                closeModal('assign-bill-modal');
-            });
-            
-            document.getElementById('cancel-record-payment-btn')?.addEventListener('click', function() {
-                closeModal('record-payment-modal');
-            });
-            
-            document.getElementById('cancel-generate-bills-btn')?.addEventListener('click', function() {
-                closeModal('generate-bills-modal');
-            });
-            
-            document.getElementById('close-view-bill-details-btn')?.addEventListener('click', function() {
-                closeModal('view-bill-modal');
-            });
-            
-            document.getElementById('close-view-payment-details-btn')?.addEventListener('click', function() {
-                closeModal('view-payment-modal');
-            });
-            
-            // Print buttons
-            document.getElementById('print-bill-btn')?.addEventListener('click', function() {
-                alert('Print functionality would be implemented here');
-            });
-            
-            document.getElementById('print-view-payment-btn')?.addEventListener('click', function() {
-                alert('Print functionality would be implemented here');
-            });
-            
-            // Add event listener for the file input change
-            document.getElementById('payment-proof')?.addEventListener('change', function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function() {
-                        // Here you would typically display a preview of the uploaded file
-                        console.log('File uploaded:', file.name);
-                    };
-                    reader.readAsDataURL(file);
+                if (visibleRows.length === 0) {
+                    if (!noResultsRow) {
+                        const tbody = document.querySelector('#tab-bills table tbody');
+                        const newRow = document.createElement('tr');
+                        newRow.className = 'no-results';
+                        newRow.innerHTML = '<td colspan="8" class="py-4 px-4 text-center text-gray-500">No bills match the selected filters.</td>';
+                        tbody.appendChild(newRow);
+                    } else {
+                        noResultsRow.classList.remove('hidden');
+                    }
+                } else if (noResultsRow) {
+                    noResultsRow.classList.add('hidden');
                 }
-            });
+            }
             
-            // Close modals when clicking outside
-            window.addEventListener('click', function(e) {
-                const modals = document.querySelectorAll('[id$="-modal"]');
-                modals.forEach(modal => {
-                    if (e.target === modal) {
-                        closeModal(modal.id);
+            // Filter Payments Implementation
+            function filterPayments(status, dateRange, method) {
+                const rows = document.querySelectorAll('#tab-payments table tbody tr');
+                
+                rows.forEach(row => {
+                    // Skip the "No payments found" row
+                    if (row.cells.length === 1) {
+                        return;
+                    }
+                    
+                    let showRow = true;
+                    
+                    // Filter by status
+                    if (status !== 'all') {
+                        const rowStatus = row.querySelector('td:nth-child(7) span').textContent.trim().toLowerCase();
+                        if (rowStatus !== status) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Filter by payment method
+                    if (method !== 'all' && showRow) {
+                        const paymentMethod = row.cells[5].textContent.trim().toLowerCase().replace(' ', '_');
+                        if (paymentMethod !== method) {
+                            showRow = false;
+                        }
+                    }
+                    
+                    // Filter by date range
+                    if (dateRange !== 'all' && showRow) {
+                        const dateText = row.cells[4].textContent.trim();
+                        const paymentDate = new Date(dateText);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        // Calculate date ranges
+                        const oneDay = 24 * 60 * 60 * 1000;
+                        const startOfWeek = new Date(today.getTime() - today.getDay() * oneDay);
+                        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+                        const thirtyDaysAgo = new Date(today.getTime() - 30 * oneDay);
+                        
+                        switch (dateRange) {
+                            case 'today':
+                                if (paymentDate < today) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'this_week':
+                                if (paymentDate < startOfWeek) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'this_month':
+                                if (paymentDate < firstDayOfMonth) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'last_30_days':
+                                if (paymentDate < thirtyDaysAgo) {
+                                    showRow = false;
+                                }
+                                break;
+                            case 'custom':
+                                // For custom range, we would need date pickers implemented
+                                break;
+                        }
+                    }
+                    
+                    // Show or hide row
+                    if (showRow) {
+                        row.classList.remove('hidden');
+                    } else {
+                        row.classList.add('hidden');
                     }
                 });
-            });
+                
+                // Check if no visible rows
+                const visibleRows = document.querySelectorAll('#tab-payments table tbody tr:not(.hidden)');
+                const noResultsRow = document.querySelector('#tab-payments table tbody tr.no-results');
+                
+                if (visibleRows.length === 0) {
+                    if (!noResultsRow) {
+                        const tbody = document.querySelector('#tab-payments table tbody');
+                        const newRow = document.createElement('tr');
+                        newRow.className = 'no-results';
+                        newRow.innerHTML = '<td colspan="8" class="py-4 px-4 text-center text-gray-500">No payments match the selected filters.</td>';
+                        tbody.appendChild(newRow);
+                    } else {
+                        noResultsRow.classList.remove('hidden');
+                    }
+                } else if (noResultsRow) {
+                    noResultsRow.classList.add('hidden');
+                }
+            }
         });
     </script>
 }
@@ -1544,3 +2099,505 @@
         </div>
     </div>
 }
+
+@* Hidden Modals *@
+<!-- CSRF Token for forms -->
+@Html.AntiForgeryToken()
+
+<!-- Billing Item Modal -->
+<div id="billing-item-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 id="billing-item-modal-title" class="text-lg font-medium text-gray-900">Add New Billing Item</h3>
+                    <button id="close-billing-item-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="billing-item-form" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="billing-item-id" name="ItemId" value="" />
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="billing-item-name" class="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                        <input type="text" id="billing-item-name" name="ItemName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="billing-item-description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="billing-item-description" name="Description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="billing-item-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
+                        <input type="number" id="billing-item-amount" name="Amount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="billing-item-category" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <select id="billing-item-category" name="Category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="">Select a category</option>
+                            <option value="Dues">Association Dues</option>
+                            <option value="Water">Water</option>
+                            <option value="Security">Security</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Special">Special Assessment</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="billing-item-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" id="billing-item-due-date" name="DueDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div class="flex items-center">
+                        <input type="checkbox" id="billing-item-is-recurring" name="IsRecurring" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <label for="billing-item-is-recurring" class="ml-2 block text-sm text-gray-700">Is this a recurring item?</label>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" id="close-billing-item-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary/80">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Bill Modal -->
+<div id="assign-bill-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 id="assign-bill-modal-title" class="text-lg font-medium text-gray-900">Assign Bill to Homeowner</h3>
+                    <button id="close-assign-bill-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="assign-bill-form" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="assign-billing-item-id" name="ItemId" value="" />
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="assign-bill-homeowner" class="block text-sm font-medium text-gray-700 mb-1">Select Homeowner</label>
+                        <select id="assign-bill-homeowner" name="UserId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="">Choose a homeowner</option>
+                            @if (ViewBag.Homeowners != null)
+                            {
+                                foreach (var homeowner in ViewBag.Homeowners)
+                                {
+                                    <option value="@homeowner.UserId">@homeowner.User.FirstName @homeowner.User.LastName (@homeowner.User.HouseNumber)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="assign-bill-all-homeowners" class="flex items-center">
+                            <input type="checkbox" id="assign-bill-all-homeowners" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                            <span class="ml-2 block text-sm text-gray-700">Assign to all homeowners</span>
+                        </label>
+                    </div>
+                    
+                    <div>
+                        <label for="assign-bill-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" id="assign-bill-due-date" name="DueDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="assign-bill-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
+                        <input type="number" id="assign-bill-amount" name="Amount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" id="close-assign-bill-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary/80">
+                        Assign
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Generate Bills Modal -->
+<div id="generate-bills-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Generate Bills</h3>
+                    <button id="close-generate-bills-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="generate-bills-form" method="post">
+                @Html.AntiForgeryToken()
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="generate-bill-type" class="block text-sm font-medium text-gray-700 mb-1">Bill Type</label>
+                        <select id="generate-bill-type" name="BillType" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="">Select bill type</option>
+                            <option value="monthly_dues">Monthly Association Dues</option>
+                            <option value="water">Monthly Water Bills</option>
+                            <option value="security">Security Fees</option>
+                            <option value="maintenance">Maintenance Fees</option>
+                            <option value="special">Special Assessment</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="generate-bill-issue-date" class="block text-sm font-medium text-gray-700 mb-1">Issue Date</label>
+                        <input type="date" id="generate-bill-issue-date" name="IssueDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="generate-bill-due-date" class="block text-sm font-medium text-gray-700 mb-1">Due Date</label>
+                        <input type="date" id="generate-bill-due-date" name="DueDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" id="close-generate-bills-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary/80">
+                        Generate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div id="record-payment-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Record Payment</h3>
+                    <button id="close-record-payment-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="record-payment-form" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label for="payment-homeowner" class="block text-sm font-medium text-gray-700 mb-1">Homeowner</label>
+                        <select id="payment-homeowner" name="UserId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="">Select a homeowner</option>
+                            @if (ViewBag.Homeowners != null)
+                            {
+                                foreach (var homeowner in ViewBag.Homeowners)
+                                {
+                                    <option value="@homeowner.UserId">@homeowner.User.FirstName @homeowner.User.LastName (@homeowner.User.HouseNumber)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-bill" class="block text-sm font-medium text-gray-700 mb-1">Bill Reference</label>
+                        <select id="payment-bill" name="BillId" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="">No specific bill (advance payment)</option>
+                            <!-- Will be populated via JavaScript when homeowner is selected -->
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-amount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₱)</label>
+                        <input type="number" id="payment-amount" name="Amount" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-date" class="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
+                        <input type="date" id="payment-date" name="PaymentDate" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-method" class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                        <select id="payment-method" name="PaymentMethod" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50" required>
+                            <option value="Cash">Cash</option>
+                            <option value="Bank Transfer">Bank Transfer</option>
+                            <option value="GCash">GCash</option>
+                            <option value="Maya">Maya</option>
+                            <option value="Credit Card">Credit Card</option>
+                            <option value="Check">Check</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="payment-reference" class="block text-sm font-medium text-gray-700 mb-1">Reference Number</label>
+                        <input type="text" id="payment-reference" name="ReferenceNumber" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50">
+                    </div>
+                    
+                    <div>
+                        <label for="payment-details" class="block text-sm font-medium text-gray-700 mb-1">Payment Details</label>
+                        <textarea id="payment-details" name="PaymentDetails" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"></textarea>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" id="close-record-payment-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-primary border border-transparent rounded-md text-sm font-medium text-white hover:bg-primary/80">
+                        Record Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- View Bill Modal -->
+<div id="view-bill-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 id="view-bill-number" class="text-lg font-medium text-gray-900">Bill #BILL-2025-4221</h3>
+                    <button id="close-view-bill-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Homeowner</p>
+                        <p id="view-bill-user" class="text-sm font-medium text-gray-900">Juan Dela Cruz (House #101)</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="text-sm font-medium">
+                            <span id="view-bill-status-badge" class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
+                                <span id="view-bill-status">Pending</span>
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Description</p>
+                        <p id="view-bill-description" class="text-sm font-medium text-gray-900">Monthly Association Dues - May 2025</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Amount</p>
+                        <p id="view-bill-amount" class="text-sm font-medium text-gray-900">₱2,500.00</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Issue Date</p>
+                        <p id="view-bill-issued" class="text-sm font-medium text-gray-900">Apr 15, 2025</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Due Date</p>
+                        <p id="view-bill-due" class="text-sm font-medium text-gray-900">May 15, 2025</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                <button type="button" id="close-view-bill-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Close
+                </button>
+                <button type="button" id="print-bill-btn" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200">
+                    <i class="ph ph-printer mr-1"></i> Print
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View Payment Modal -->
+<div id="view-payment-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-lg w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-medium text-gray-900">Payment Details</h3>
+                    <button id="close-view-payment-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Receipt Number</p>
+                        <p id="view-payment-receipt-number" class="text-sm font-medium text-gray-900">RCPT-2025-6521</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Status</p>
+                        <p class="text-sm font-medium">
+                            <span id="view-payment-status-badge" class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                                <span id="view-payment-status">Completed</span>
+                            </span>
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Homeowner</p>
+                        <p id="view-payment-user" class="text-sm font-medium text-gray-900">Maria Santos (House #102)</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Bill Reference</p>
+                        <p id="view-payment-bill-number" class="text-sm font-medium text-gray-900">BILL-2025-4220</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Amount</p>
+                        <p id="view-payment-amount" class="text-sm font-medium text-gray-900">₱2,500.00</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Payment Date</p>
+                        <p id="view-payment-date" class="text-sm font-medium text-gray-900">May 2, 2025</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Payment Method</p>
+                        <p id="view-payment-method" class="text-sm font-medium text-gray-900">GCash</p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm text-gray-500">Reference Number</p>
+                        <p id="view-payment-reference" class="text-sm font-medium text-gray-900">GCASH12345</p>
+                    </div>
+                </div>
+                
+                <div id="view-payment-proof-container" class="border rounded-lg p-4">
+                    <p class="text-sm font-medium text-gray-900 mb-2">Proof of Payment</p>
+                    <img id="view-payment-proof" src="" alt="Proof of Payment" class="w-full h-auto rounded-lg">
+                </div>
+                
+                <div id="view-payment-pending-actions" class="border rounded-lg p-4 bg-yellow-50">
+                    <p class="text-sm font-medium text-yellow-800 mb-2">Payment Verification</p>
+                    <p class="text-sm text-yellow-600 mb-3">This payment is pending verification. Review the details and take an action.</p>
+                    <div class="flex space-x-3">
+                        <button id="view-payment-verify-btn" type="button" class="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center">
+                            <i class="ph ph-check-circle mr-1"></i> Verify Payment
+                        </button>
+                        <button id="view-payment-reject-btn" type="button" class="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center">
+                            <i class="ph ph-x-circle mr-1"></i> Reject Payment
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                <button type="button" id="close-view-payment-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    Close
+                </button>
+                <button id="print-receipt-modal-btn" type="button" class="px-4 py-2 bg-gray-100 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-200">
+                    <i class="ph ph-printer mr-1"></i> Print Receipt
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-confirm-modal" class="fixed inset-0 z-50 hidden overflow-y-auto">
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 bg-opacity-75"></div>
+        </div>
+        
+        <div class="relative bg-white rounded-lg max-w-md w-full mx-auto shadow-xl">
+            <div class="px-6 py-4 border-b">
+                <div class="flex items-center justify-between">
+                    <h3 id="delete-confirm-title" class="text-lg font-medium text-gray-900">Delete Item</h3>
+                    <button id="close-delete-confirm-btn" type="button" class="text-gray-400 hover:text-gray-500">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <form id="delete-confirm-form" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="delete-item-id" name="id" value="" />
+                <input type="hidden" id="delete-item-type" name="type" value="" />
+                
+                <div class="p-6">
+                    <div class="flex items-center mb-4">
+                        <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                            <i class="ph ph-warning-circle text-2xl text-red-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-lg font-medium text-gray-900">Confirm Deletion</h3>
+                        </div>
+                    </div>
+                    <p id="delete-confirm-message" class="text-sm text-gray-500">
+                        Are you sure you want to delete this item? This action cannot be undone.
+                    </p>
+                </div>
+                
+                <div class="px-6 py-4 border-t bg-gray-50 flex justify-end space-x-3">
+                    <button type="button" id="close-delete-confirm-modal-btn" class="px-4 py-2 bg-white border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-red-600 border border-transparent rounded-md text-sm font-medium text-white hover:bg-red-500">
+                        Delete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
