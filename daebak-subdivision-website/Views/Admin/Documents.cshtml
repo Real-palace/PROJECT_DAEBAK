@@ -32,6 +32,18 @@
     </div>
 }
 
+<!-- Error Message Toast -->
+@if (TempData["ErrorMessage"] != null)
+{
+    <div id="error-toast" class="fixed top-5 right-5 bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-lg transition-all duration-300 z-50 flex items-center">
+        <i class="ph ph-x-circle text-xl mr-2"></i>
+        <p>@TempData["ErrorMessage"]</p>
+        <button class="ml-auto pl-4 text-red-700 hover:text-red-900 focus:outline-none" onclick="hideErrorToast()">
+            <i class="ph ph-x"></i>
+        </button>
+    </div>
+}
+
 <!-- All Documents Content -->
 <div id="all-docs-content">
     <!-- Search and Filter Options -->
@@ -157,6 +169,7 @@
         </div>
 
         <form id="document-form" action="@Url.Action("Create", "Documents")" method="post" enctype="multipart/form-data" class="space-y-4">
+            @Html.AntiForgeryToken()
             <div>
                 <label for="document-title" class="block text-sm font-medium text-gray-700 mb-1">Document Title*</label>
                 <input type="text" id="document-title" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
@@ -270,7 +283,7 @@
             const fileInfo = document.getElementById('file-info');
             const fileName = document.getElementById('file-name');
             const removeFileBtn = document.getElementById('remove-file');
-            
+
             if (documentFileInput) {
                 documentFileInput.addEventListener('change', function(e) {
                     if (this.files.length > 0) {
@@ -289,6 +302,33 @@
                     fileInfo.classList.add('hidden');
                 });
             }
+            
+            // Add this to your document-form event listener
+            document.getElementById('document-form').addEventListener('submit', function(e) {
+                const fileInput = document.getElementById('document-file');
+                if (fileInput.files.length === 0) {
+                    e.preventDefault();
+                    alert('Please select a file to upload');
+                    return false;
+                }
+                
+                const file = fileInput.files[0];
+                if (file.size > 10485760) { // 10MB
+                    e.preventDefault();
+                    alert('File size cannot exceed 10MB');
+                    return false;
+                }
+                
+                const fileName = file.name.toLowerCase();
+                const validExtensions = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.png', '.jpg', '.jpeg'];
+                const hasValidExtension = validExtensions.some(ext => fileName.endsWith(ext));
+                
+                if (!hasValidExtension) {
+                    e.preventDefault();
+                    alert('Invalid file type. Only PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, and JPEG files are allowed.');
+                    return false;
+                }
+            });
             
             // Edit document
             const editDocumentBtns = document.querySelectorAll('.edit-document-btn');
@@ -371,6 +411,20 @@
                     successToast.classList.add('opacity-0');
                     setTimeout(() => {
                         successToast.classList.add('hidden');
+                    }, 300);
+                }
+            }
+
+            // Error toast auto-hide
+            setTimeout(hideErrorToast, 5000);
+
+            // Function to hide the error toast
+            function hideErrorToast() {
+                const errorToast = document.getElementById('error-toast');
+                if (errorToast) {
+                    errorToast.classList.add('opacity-0');
+                    setTimeout(() => {
+                        errorToast.classList.add('hidden');
                     }, 300);
                 }
             }

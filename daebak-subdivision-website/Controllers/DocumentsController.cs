@@ -42,15 +42,18 @@ namespace daebak_subdivision_website.Controllers
             // Calculate file sizes for display
             foreach (var doc in documents)
             {
-                string fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
+                if (!string.IsNullOrEmpty(doc.FilePath))
                 {
-                    var fileInfo = new FileInfo(fullPath);
-                    doc.FormattedFileSize = FormatFileSize(fileInfo.Length);
-                }
-                else
-                {
-                    doc.FormattedFileSize = "N/A";
+                    string fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", doc.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(fullPath))
+                    {
+                        var fileInfo = new FileInfo(fullPath);
+                        doc.FileSize = fileInfo.Length;
+                    }
+                    else
+                    {
+                        doc.FileSize = 0;
+                    }
                 }
             }
 
@@ -88,7 +91,8 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         public IActionResult Create()
         {
-            return View();
+            // Instead of looking for a Create.cshtml view, redirect to the Documents admin page
+            return RedirectToAction("AdminIndex");
         }
 
         // POST: Documents/Create
@@ -97,28 +101,55 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Create(Document document)
         {
-            if (ModelState.IsValid)
+            try
             {
-                if (document.DocumentFile != null && document.DocumentFile.Length > 0)
+                // Log the submission attempt
+                _logger.LogInformation("Document create attempt: {Title}", document.Title);
+
+                // Validate the document file
+                if (document.DocumentFile == null || document.DocumentFile.Length == 0)
                 {
-                    // Generate unique filename
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(document.DocumentFile.FileName);
-                    var relativePath = Path.Combine("documents", fileName);
-                    var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
-
-                    // Ensure directory exists
-                    Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents"));
-
-                    // Save file
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await document.DocumentFile.CopyToAsync(stream);
-                    }
-
-                    // Update document properties
-                    document.FilePath = "/" + relativePath.Replace("\\", "/");
+                    ModelState.AddModelError("DocumentFile", "Please select a file to upload");
+                    TempData["ErrorMessage"] = "Please select a file to upload";
+                    return RedirectToAction(nameof(AdminIndex));
                 }
 
+                // Validate file size
+                if (document.DocumentFile.Length > 10485760) // 10MB
+                {
+                    ModelState.AddModelError("DocumentFile", "File size cannot exceed 10MB");
+                    TempData["ErrorMessage"] = "File size cannot exceed 10MB";
+                    return RedirectToAction(nameof(AdminIndex));
+                }
+
+                // Validate file type
+                var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg" };
+                var extension = Path.GetExtension(document.DocumentFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(extension))
+                {
+                    ModelState.AddModelError("DocumentFile", "Invalid file type");
+                    TempData["ErrorMessage"] = "Invalid file type. Only PDF, DOC, DOCX, XLS, XLSX, PNG, JPG, and JPEG files are allowed.";
+                    return RedirectToAction(nameof(AdminIndex));
+                }
+
+                // Generate unique filename
+                var fileName = Guid.NewGuid().ToString() + extension;
+                var relativePath = Path.Combine("documents", fileName);
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
+
+                // Ensure directory exists
+                Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "documents"));
+
+                // Save file to disk
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await document.DocumentFile.CopyToAsync(stream);
+                }
+
+                // Update document properties
+                document.FilePath = "/" + relativePath.Replace("\\", "/");
+                document.FileSize = document.DocumentFile.Length;
+                
                 // Set current user as creator if authenticated
                 if (User.Identity.IsAuthenticated)
                 {
@@ -126,7 +157,7 @@ namespace daebak_subdivision_website.Controllers
                         u.Username == User.Identity.Name);
                     if (currentUser != null)
                     {
-                        document.CreatedById = currentUser.UserId; // Use UserId instead of Id
+                        document.CreatedById = currentUser.UserId;
                     }
                 }
 
@@ -134,15 +165,21 @@ namespace daebak_subdivision_website.Controllers
                 document.CreatedAt = DateTime.Now;
                 document.UpdatedAt = DateTime.Now;
 
-                _dbContext.Add(document);
+                // Save to database
+                _dbContext.Documents.Add(document);
                 await _dbContext.SaveChangesAsync();
                 
-                _logger.LogInformation("Document created: {Title}", document.Title);
+                _logger.LogInformation("Document created successfully: {Title}, ID: {Id}", document.Title, document.DocumentId);
                 
                 TempData["SuccessMessage"] = "Document uploaded successfully!";
                 return RedirectToAction(nameof(AdminIndex));
             }
-            return View(document);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating document: {Message}", ex.Message);
+                TempData["ErrorMessage"] = "An error occurred while uploading the document: " + ex.Message;
+                return RedirectToAction(nameof(AdminIndex));
+            }
         }
 
         // GET: Documents/Edit/5
