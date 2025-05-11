@@ -1,6 +1,22 @@
 ﻿@{
     ViewData["Title"] = "Home - Subdivision Homeowner's Portal";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    
+    // Define category mappings for icons and colors
+    var categoryIcons = new Dictionary<string, (string icon, string color)> {
+        { "MANUAL", ("ph-book-open", "blue") },
+        { "GUIDELINE", ("ph-file-pdf", "green") },
+        { "FORM", ("ph-clipboard", "yellow") },
+        { "MAP", ("ph-map-pin", "purple") }
+    };
+    
+    // Define display names for categories
+    var categoryDisplayNames = new Dictionary<string, string> {
+        { "MANUAL", "Homeowner's Manual" },
+        { "GUIDELINE", "Community Guidelines" },
+        { "FORM", "Visitor Request Form" },
+        { "MAP", "Community Map" }
+    };
 }
 
 <!-- Success Message Toast - Non-modal top-right notification -->
@@ -174,36 +190,31 @@
                 <i class="ph ph-file-text text-lg text-tertiary"></i>
                 <h3 class="font-semibold text-lg text-tertiary">Documents & Resources</h3>
             </div>
+            <a href="@Url.Action("Index", "Documents")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
+                View All
+                <i class="ph ph-arrow-right text-xs"></i>
+            </a>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                <div class="bg-blue-50 p-3 rounded-full mb-2">
-                    <i class="ph ph-book-open text-xl text-blue-500"></i>
-                </div>
-                <span class="text-sm font-medium text-center">Homeowner's Manual</span>
-            </a>
-
-            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                <div class="bg-green-50 p-3 rounded-full mb-2">
-                    <i class="ph ph-file-pdf text-xl text-green-500"></i>
-                </div>
-                <span class="text-sm font-medium text-center">Community Guidelines</span>
-            </a>
-
-            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                <div class="bg-yellow-50 p-3 rounded-full mb-2">
-                    <i class="ph ph-clipboard text-xl text-yellow-500"></i>
-                </div>
-                <span class="text-sm font-medium text-center">Visitor Request Form</span>
-            </a>
-
-            <a href="#" class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors">
-                <div class="bg-purple-50 p-3 rounded-full mb-2">
-                    <i class="ph ph-map-pin text-xl text-purple-500"></i>
-                </div>
-                <span class="text-sm font-medium text-center">Community Map</span>
-            </a>
+            @foreach (var category in new[] { "MANUAL", "GUIDELINE", "FORM", "MAP" })
+            {
+                var (icon, color) = categoryIcons[category];
+                var documentList = ViewBag.DocumentsByCategory != null && 
+                                   ViewBag.DocumentsByCategory.ContainsKey(category) ? 
+                                   ViewBag.DocumentsByCategory[category] : null;
+                var count = documentList?.Count ?? 0;
+                
+                <a href="@Url.Action("Index", "Documents", new { category = category })" 
+                   class="border border-gray-200 rounded-lg p-4 flex flex-col items-center hover:bg-gray-50 transition-colors document-category"
+                   data-category="@category">
+                    <div class="bg-@(color)-50 p-3 rounded-full mb-2">
+                        <i class="ph @icon text-xl text-@(color)-500"></i>
+                    </div>
+                    <span class="text-sm font-medium text-center">@categoryDisplayNames[category]</span>
+                    <span class="mt-1 text-xs text-gray-500">@count document@(count != 1 ? "s" : "")</span>
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -388,17 +399,19 @@
             // Success toast auto-hide
             setTimeout(hideSuccessToast, 5000);
 
-            // Additional button for submissions modal
-            const altViewBtn = document.getElementById('view-recent-submissions-alt');
-            if (altViewBtn) {
-                altViewBtn.addEventListener('click', function() {
-                    const submissionsModal = document.getElementById('submissions-modal');
-                    if (submissionsModal) {
-                        submissionsModal.classList.remove('hidden');
-                        document.body.style.overflow = 'hidden';
-                    }
+            // Document category handling
+            const documentCategories = document.querySelectorAll('.document-category');
+            documentCategories.forEach(category => {
+                category.addEventListener('click', function(e) {
+                    const categoryName = this.dataset.category;
+                    // You can choose to either navigate to a documents page with filter
+                    // or show a modal with documents in this category
+                    
+                    // Option 1: Open modal with documents (better UX)
+                    e.preventDefault();
+                    showDocumentsModal(categoryName);
                 });
-            }
+            });
         });
 
         // Calendar functionality
@@ -628,6 +641,184 @@
             if (successToast) {
                 successToast.classList.add('hidden');
             }
+        }
+
+        // Function to display documents modal
+        function showDocumentsModal(category) {
+            console.log("Opening documents modal for:", category);
+
+            // Create loading indicator
+            const loadingModal = document.createElement('div');
+            loadingModal.id = 'loading-documents-modal';
+            loadingModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            loadingModal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-xl p-8 flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-tertiary mb-4"></div>
+                    <p class="text-gray-700">Loading documents...</p>
+                </div>
+            `;
+            document.body.appendChild(loadingModal);
+            document.body.style.overflow = 'hidden';
+
+            // Category display name mapping
+            const categoryNames = {
+                'MANUAL': 'Homeowner\'s Manual',
+                'GUIDELINE': 'Community Guidelines',
+                'FORM': 'Visitor Request Form',
+                'MAP': 'Community Map'
+            };
+
+            // Handle existing modals
+            const existingModal = document.getElementById('documents-modal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Fetch documents for the category
+            fetch(`/Documents/GetDocumentsByCategory?category=${encodeURIComponent(category)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(result => {
+                // Remove loading indicator
+                const loadingIndicator = document.getElementById('loading-documents-modal');
+                if (loadingIndicator) {
+                    loadingIndicator.remove();
+                }
+                
+                if (result && result.success === true && Array.isArray(result.data)) {
+                    const documents = result.data;
+                    
+                    // Create modal content
+                    let modalHTML = `
+                    <div id="documents-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+                            <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i class="ph ph-file-text text-xl text-tertiary"></i>
+                                    <h3 class="font-semibold text-xl text-tertiary">${categoryNames[category] || category}</h3>
+                                </div>
+                                <button id="close-documents-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+                                    <i class="ph ph-x text-xl"></i>
+                                </button>
+                            </div>
+                            <div class="p-6 overflow-y-auto">`;
+                    
+                    if (documents.length === 0) {
+                        modalHTML += `<p class="text-center text-gray-500 py-8">No documents available in this category.</p>`;
+                    } else {
+                        modalHTML += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">`;
+                        documents.forEach(doc => {
+                            // Get file extension to determine icon
+                            const filePath = doc.filePath || '';
+                            const extension = filePath.split('.').pop().toLowerCase();
+                            let iconClass = 'ph-file-text text-gray-500';
+                            
+                            if (extension === 'pdf') iconClass = 'ph-file-pdf text-red-500';
+                            else if (['doc', 'docx'].includes(extension)) iconClass = 'ph-file-doc text-blue-500';
+                            else if (['xls', 'xlsx'].includes(extension)) iconClass = 'ph-file-xls text-green-500';
+                            else if (['jpg', 'jpeg', 'png'].includes(extension)) iconClass = 'ph-image text-purple-500';
+                            
+                            // Format file size if not provided
+                            const fileSize = doc.formattedFileSize || formatFileSize(doc.fileSize);
+                            
+                            modalHTML += `
+                            <a href="/Documents/Download/${doc.documentId}" target="_blank" class="border border-gray-200 rounded-lg p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+                                <div class="flex-shrink-0">
+                                    <i class="ph ${iconClass} text-2xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium">${doc.title || 'Untitled Document'}</h4>
+                                    <p class="text-sm text-gray-500">${doc.description || ''}</p>
+                                    <span class="text-xs text-gray-400 mt-2 block">${fileSize}</span>
+                                </div>
+                            </a>`;
+                        });
+                        modalHTML += `</div>`;
+                    }
+                    
+                    modalHTML += `
+                            </div>
+                        </div>
+                    </div>`;
+                    
+                    // Insert modal into DOM
+                    const modalContainer = document.createElement('div');
+                    modalContainer.innerHTML = modalHTML;
+                    document.body.appendChild(modalContainer.firstChild);
+                    
+                    // Add event listeners for modal
+                    document.getElementById('close-documents-modal').addEventListener('click', function() {
+                        document.getElementById('documents-modal').remove();
+                        document.body.style.overflow = '';
+                    });
+                    
+                    document.getElementById('documents-modal').addEventListener('click', function(e) {
+                        if (e.target === this) {
+                            this.remove();
+                            document.body.style.overflow = '';
+                        }
+                    });
+                } else {
+                    showErrorModal('No documents found or invalid data format.');
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                document.getElementById('loading-documents-modal')?.remove();
+                showErrorModal('Error loading documents. Please try again later.');
+            });
+        }
+
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (!bytes || bytes === 0) return '0 B';
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(1024));
+            return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+        }
+
+        // Show error modal
+        function showErrorModal(message) {
+            const errorModal = document.createElement('div');
+            errorModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            errorModal.innerHTML = `
+                <div class="bg-white rounded-xl shadow-xl p-8 max-w-md w-full">
+                    <div class="flex items-center justify-center text-red-500 mb-4">
+                        <i class="ph ph-warning text-4xl"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-center mb-2">Error</h3>
+                    <p class="text-gray-600 text-center mb-6">${message}</p>
+                    <div class="flex justify-center">
+                        <button class="px-4 py-2 bg-tertiary text-white rounded-lg hover:bg-tertiary/90 transition-colors error-close-btn">
+                            OK
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(errorModal);
+            document.body.style.overflow = 'hidden';
+            
+            errorModal.querySelector('.error-close-btn').addEventListener('click', function() {
+                errorModal.remove();
+                document.body.style.overflow = '';
+            });
+            
+            errorModal.addEventListener('click', function(e) {
+                if (e.target === errorModal) {
+                    errorModal.remove();
+                    document.body.style.overflow = '';
+                }
+            });
         }
     </script>
 }
