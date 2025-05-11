@@ -428,18 +428,74 @@ namespace daebak_subdivision_website.Controllers
                         d.Category,
                         d.CreatedAt,
                         d.UpdatedAt,
-                        FormattedFileSize = FormatFileSize(d.FileSize)  // Use helper method to format
+                        FormattedFileSize = FormatFileSize(d.FileSize),
+                        IsPublic = d.IsPublic  // Include IsPublic flag
                     })
                     .ToListAsync();
 
                 _logger.LogInformation("Found {Count} documents in category {Category}", documents.Count, category);
                 
-                return Json(new { success = true, data = documents });
+                // Return proper data structure including more document details
+                return Json(new { 
+                    success = true, 
+                    data = documents,
+                    count = documents.Count
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting {Category} documents: {Message}", category, ex.Message);
                 return Json(new { success = false, message = $"Error retrieving {category} documents: {ex.Message}" });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DebugDocuments(string category = null)
+        {
+            try
+            {
+                var query = _dbContext.Documents.AsQueryable();
+                
+                // Apply category filter if provided
+                if (!string.IsNullOrEmpty(category))
+                {
+                    query = query.Where(d => d.Category == category);
+                }
+                
+                // Only get public documents
+                query = query.Where(d => d.IsPublic == true);
+                
+                var documents = await query
+                    .OrderBy(d => d.Category)
+                    .ThenBy(d => d.Title)
+                    .ToListAsync();
+                
+                // Return detailed info for debugging
+                var result = new
+                {
+                    success = true,
+                    totalCount = documents.Count,
+                    categoryCounts = documents.GroupBy(d => d.Category)
+                        .Select(g => new { category = g.Key, count = g.Count() }),
+                    data = documents.Select(d => new
+                    {
+                        d.DocumentId,
+                        d.Title,
+                        d.Category,
+                        d.Description,
+                        d.IsPublic,
+                        FilePath = d.FilePath ?? "(null)",
+                        FileExists = !string.IsNullOrEmpty(d.FilePath) && 
+                            System.IO.File.Exists(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", d.FilePath.TrimStart('/')))
+                    })
+                };
+                
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in debug documents");
+                return Json(new { success = false, message = $"Error: {ex.Message}", stackTrace = ex.StackTrace });
             }
         }
 
