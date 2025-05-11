@@ -97,12 +97,42 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Create(Document document)
         {
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(document.Title))
+            {
+                ModelState.AddModelError("Title", "Document title is required.");
+                return View(document);
+            }
+
+            // Validate file
+            if (document.DocumentFile == null || document.DocumentFile.Length == 0)
+            {
+                ModelState.AddModelError("DocumentFile", "Please select a file to upload.");
+                return View(document);
+            }
+
+            // Validate file size (10MB max)
+            if (document.DocumentFile.Length > 10 * 1024 * 1024)
+            {
+                ModelState.AddModelError("DocumentFile", "File size must be less than 10MB.");
+                return View(document);
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".png", ".jpg", ".jpeg" };
+            var fileExtension = Path.GetExtension(document.DocumentFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                ModelState.AddModelError("DocumentFile", "Invalid file type. Allowed types: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG");
+                return View(document);
+            }
+
             if (ModelState.IsValid)
             {
-                if (document.DocumentFile != null && document.DocumentFile.Length > 0)
+                try
                 {
                     // Generate unique filename
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(document.DocumentFile.FileName);
+                    var fileName = Guid.NewGuid().ToString() + fileExtension;
                     var relativePath = Path.Combine("documents", fileName);
                     var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", relativePath);
 
@@ -117,30 +147,36 @@ namespace daebak_subdivision_website.Controllers
 
                     // Update document properties
                     document.FilePath = "/" + relativePath.Replace("\\", "/");
-                }
 
-                // Set current user as creator if authenticated
-                if (User.Identity.IsAuthenticated)
-                {
-                    var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => 
-                        u.Username == User.Identity.Name);
-                    if (currentUser != null)
+                    // Set current user as creator if authenticated
+                    if (User.Identity.IsAuthenticated)
                     {
-                        document.CreatedById = currentUser.UserId; // Use UserId instead of Id
+                        var currentUser = await _dbContext.Users.FirstOrDefaultAsync(u => 
+                            u.Username == User.Identity.Name);
+                        if (currentUser != null)
+                        {
+                            document.CreatedById = currentUser.UserId;
+                        }
                     }
+
+                    // Set creation and update dates
+                    document.CreatedAt = DateTime.Now;
+                    document.UpdatedAt = DateTime.Now;
+
+                    _dbContext.Add(document);
+                    await _dbContext.SaveChangesAsync();
+                    
+                    _logger.LogInformation("Document created: {Title}", document.Title);
+                    
+                    TempData["SuccessMessage"] = "Document uploaded successfully!";
+                    return RedirectToAction(nameof(AdminIndex));
                 }
-
-                // Set creation and update dates
-                document.CreatedAt = DateTime.Now;
-                document.UpdatedAt = DateTime.Now;
-
-                _dbContext.Add(document);
-                await _dbContext.SaveChangesAsync();
-                
-                _logger.LogInformation("Document created: {Title}", document.Title);
-                
-                TempData["SuccessMessage"] = "Document uploaded successfully!";
-                return RedirectToAction(nameof(AdminIndex));
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error uploading document");
+                    ModelState.AddModelError("", "An error occurred while uploading the document. Please try again.");
+                    return View(document);
+                }
             }
             return View(document);
         }

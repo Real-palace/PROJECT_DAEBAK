@@ -97,7 +97,7 @@ namespace daebak_subdivision_website.Controllers
                     return Json(new { success = false, message = "Invalid request data", errors = errors });
                 }
 
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirst("UserId")?.Value;
                 _logger.LogInformation("User ID from claims: {UserId}", userId);
 
                 if (string.IsNullOrEmpty(userId))
@@ -112,7 +112,7 @@ namespace daebak_subdivision_website.Controllers
                     return Json(new { success = false, message = "Invalid user ID format" });
                 }
 
-                var user = await _context.Homeowners.FindAsync(userIdInt);
+                var user = await _context.Users.FindAsync(userIdInt);
                 if (user == null)
                 {
                     _logger.LogWarning("User not found in database: {UserId}", userId);
@@ -120,7 +120,7 @@ namespace daebak_subdivision_website.Controllers
                 }
 
                 request.UserId = userIdInt;
-                request.Status = "Pending";
+                request.Status = "Open";
                 request.CreatedAt = DateTime.UtcNow;
                 request.UpdatedAt = DateTime.UtcNow;
 
@@ -405,11 +405,48 @@ namespace daebak_subdivision_website.Controllers
                     Location = sr.Location,
                     Status = sr.Status,
                     CreatedAt = sr.CreatedAt,
-                    UpdatedAt = sr.UpdatedAt
+                    UpdatedAt = sr.UpdatedAt,
+                    StaffNotes = sr.StaffNotes
                 })
                 .ToList();
 
             return Json(serviceRequests);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        [Route("Admin/ServiceRequests/Details/{id}")]
+        public IActionResult GetServiceRequestDetails(int id)
+        {
+            var request = _context.ServiceRequests
+                .Include(sr => sr.Images)
+                .FirstOrDefault(sr => sr.Id == id);
+            if (request == null)
+            {
+                return NotFound(new { success = false, message = "Service request not found" });
+            }
+
+            var user = _context.Users.Include(u => u.Homeowner).FirstOrDefault(u => u.UserId == request.UserId);
+            if (user == null)
+            {
+                return NotFound(new { success = false, message = "User not found" });
+            }
+
+            var details = new {
+                RequestId = request.Id,
+                Status = request.Status,
+                RequestType = request.RequestType,
+                Description = request.Description,
+                Location = request.Location,
+                SubmittedDate = request.CreatedAt,
+                Homeowner = user.FirstName + " " + user.LastName,
+                Address = user.Homeowner?.HouseNumber ?? "-",
+                ContactInformation = user.PhoneNumber ?? "-",
+                Images = request.Images.Select(img => img.ImagePath).ToList(),
+                StaffNotes = request.StaffNotes
+            };
+
+            return Json(new { success = true, details });
         }
     }
 }

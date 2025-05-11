@@ -152,8 +152,8 @@
                         <p class="font-medium" id="detailsHomeowner">-</p>
                     </div>
                     <div class="md:col-span-2">
-                        <h4 class="text-sm text-gray-500">Address</h4>
-                        <p class="font-medium" id="detailsAddress">-</p>
+                        <h4 class="text-sm text-gray-500">Location</h4>
+                        <p class="font-medium" id="detailsLocation">-</p>
                     </div>
                     <div class="md:col-span-2">
                         <h4 class="text-sm text-gray-500">Contact Information</h4>
@@ -162,7 +162,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <h4 class="text-sm text-gray-500 mb-1">Description</h4>
+                    <h4 class="text-sm text-gray-500 mb-1">Detailed Description</h4>
                     <div class="p-3 bg-gray-50 rounded-lg" id="detailsDescription">-</div>
                 </div>
 
@@ -385,25 +385,47 @@
             const modal = document.getElementById('requestDetailsModal');
             modal.classList.remove('hidden');
 
-            // Find the request in the table
-            const request = Array.from(document.querySelectorAll('#serviceRequestsTableBody tr'))
-                .find(row => row.querySelector('td:first-child').textContent.includes(requestId.toString()));
-
-            if (request) {
-                const cells = request.querySelectorAll('td');
-                document.getElementById('detailsRequestId').textContent = cells[0].textContent;
-                document.getElementById('detailsHomeowner').textContent = cells[1].textContent;
-                document.getElementById('detailsServiceType').textContent = cells[2].querySelector('.text-sm').textContent;
-                document.getElementById('detailsSubmissionDate').textContent = cells[3].textContent;
-                document.getElementById('detailsStatus').textContent = cells[4].querySelector('span').textContent;
-                
-                // Set the current status in the dropdown
-                document.getElementById('statusUpdate').value = cells[4].querySelector('span').textContent;
-            }
-
-            // Store the request ID for updates
-            document.getElementById('btnUpdateRequest').dataset.requestId = requestId;
-            document.getElementById('btnDeleteRequest').dataset.requestId = requestId;
+            // Fetch full details from the backend
+            fetch(`/Admin/ServiceRequests/Details/${requestId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) {
+                        alert('Failed to load request details');
+                        return;
+                    }
+                    const details = data.details;
+                    document.getElementById('detailsRequestId').textContent = `#SR-${details.requestId}`;
+                    document.getElementById('detailsHomeowner').textContent = details.homeowner;
+                    document.getElementById('detailsServiceType').textContent = details.requestType;
+                    document.getElementById('detailsSubmissionDate').textContent = new Date(details.submittedDate).toLocaleDateString();
+                    document.getElementById('detailsStatus').textContent = details.status;
+                    document.getElementById('detailsLocation').textContent = details.location || '-';
+                    document.getElementById('detailsContact').textContent = details.contactInformation || '-';
+                    document.getElementById('detailsDescription').textContent = details.description || '-';
+                    // Attachments
+                    const attachmentsDiv = document.getElementById('detailsAttachments');
+                    attachmentsDiv.innerHTML = '';
+                    if (details.images && details.images.length > 0) {
+                        details.images.forEach(imgPath => {
+                            const img = document.createElement('img');
+                            img.src = '/' + imgPath.replace(/^\\|\//, '');
+                            img.className = 'rounded shadow h-24 w-full object-cover';
+                            attachmentsDiv.appendChild(img);
+                        });
+                    } else {
+                        attachmentsDiv.innerHTML = '<span class="text-gray-400 italic">No attachments</span>';
+                    }
+                    // Set the current status in the dropdown
+                    document.getElementById('statusUpdate').value = details.status;
+                    // Set staff notes
+                    document.getElementById('adminResponseText').value = details.staffNotes || '';
+                    // Store the request ID for updates
+                    document.getElementById('btnUpdateRequest').dataset.requestId = details.requestId;
+                    document.getElementById('btnDeleteRequest').dataset.requestId = details.requestId;
+                })
+                .catch(error => {
+                    alert('Failed to load request details.');
+                });
         }
 
         // Function to close request details modal

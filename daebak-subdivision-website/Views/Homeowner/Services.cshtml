@@ -255,14 +255,34 @@
         </div>
         
         <div id="request-details-content">
-            <!-- This will be populated with AJAX -->
-            <div class="animate-pulse">
-                <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-                <div class="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
-                <div class="h-20 bg-gray-200 rounded mb-4"></div>
-                <div class="grid grid-cols-2 gap-4 mb-4">
-                    <div class="h-4 bg-gray-200 rounded"></div>
-                    <div class="h-4 bg-gray-200 rounded"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <h4 class="text-sm text-gray-500">Request ID</h4>
+                    <p class="font-medium" id="detailsRequestId">-</p>
+                </div>
+                <div>
+                    <h4 class="text-sm text-gray-500">Request Type</h4>
+                    <p class="font-medium" id="detailsRequestType">-</p>
+                </div>
+                <div>
+                    <h4 class="text-sm text-gray-500">Status</h4>
+                    <p class="font-medium" id="detailsStatus">-</p>
+                </div>
+                <div>
+                    <h4 class="text-sm text-gray-500">Submitted Date</h4>
+                    <p class="font-medium" id="detailsSubmittedDate">-</p>
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="text-sm text-gray-500">Location</h4>
+                    <p class="font-medium" id="detailsLocation">-</p>
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="text-sm text-gray-500">Description</h4>
+                    <p class="font-medium" id="detailsDescription">-</p>
+                </div>
+                <div class="md:col-span-2">
+                    <h4 class="text-sm text-gray-500">Admin Response</h4>
+                    <p class="font-medium" id="detailsAdminResponse">-</p>
                 </div>
             </div>
         </div>
@@ -271,6 +291,31 @@
 
 @section Scripts {
     <script>
+        // Global function for viewing request details
+        function viewRequestDetails(requestId) {
+            fetch(`/Services/GetUserRequests`)
+                .then(response => response.json())
+                .then(requests => {
+                    const request = requests.find(r => r.id === requestId);
+                    if (request) {
+                        document.getElementById('detailsRequestId').textContent = `#SR-${request.id}`;
+                        document.getElementById('detailsRequestType').textContent = request.requestType;
+                        document.getElementById('detailsStatus').textContent = request.status;
+                        document.getElementById('detailsSubmittedDate').textContent = new Date(request.createdAt).toLocaleDateString();
+                        document.getElementById('detailsLocation').textContent = request.location || 'N/A';
+                        document.getElementById('detailsDescription').textContent = request.description;
+                        document.getElementById('detailsAdminResponse').textContent = request.staffNotes || 'No response yet';
+                        
+                        // Show the modal
+                        document.getElementById('request-details-modal').classList.remove('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading request details:', error);
+                    alert('Error loading request details. Please try again.');
+                });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Check if we should show the track requests tab
             const urlParams = new URLSearchParams(window.location.search);
@@ -389,11 +434,10 @@
                 }
             }
 
-            // Function to view request details (to be implemented)
-            function viewRequestDetails(requestId) {
-                // TODO: Implement request details view
-                console.log('View details for request:', requestId);
-            }
+            // Close modal functionality
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('request-details-modal').classList.add('hidden');
+            });
 
             // Filter functionality
             document.getElementById('request-filter').addEventListener('change', function() {
@@ -437,6 +481,35 @@
                     };
                     reader.readAsDataURL(file);
                 }
+            });
+
+            // Form submission handling
+            const form = document.getElementById('service-request-form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                fetch('/ServiceRequests/Create', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        // Clear the form
+                        form.reset();
+                        // Switch to track tab
+                        document.getElementById('track-tab').click();
+                    } else {
+                        alert(data.message || 'Failed to submit service request');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while submitting the request. Please try again.');
+                });
             });
         });
     </script>
