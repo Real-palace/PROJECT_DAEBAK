@@ -41,6 +41,9 @@ namespace daebak_subdivision_website.Models
         [Column("DESCRIPTION")]
         public string Description { get; set; }
         
+        [Column("IS_PUBLIC")]
+        public bool IsPublic { get; set; } = true; // Default to true so existing documents are visible
+        
         // Navigation property
         [ForeignKey("CreatedById")]
         public virtual User CreatedBy { get; set; }
@@ -49,7 +52,6 @@ namespace daebak_subdivision_website.Models
         [NotMapped]
         public IFormFile DocumentFile { get; set; }
         
-        // Add the missing properties
         [NotMapped]
         public string DocumentType => Category;
         

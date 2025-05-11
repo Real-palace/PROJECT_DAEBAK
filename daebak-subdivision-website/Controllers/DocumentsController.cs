@@ -380,6 +380,69 @@ namespace daebak_subdivision_website.Controllers
             return File(memory, contentType, fileName);
         }
 
+        // Add this method to your DocumentsController
+        [HttpGet]
+        public async Task<IActionResult> GetHomeownerDocuments()
+        {
+            try
+            {
+                // Get all public documents grouped by category
+                var documents = await _dbContext.Documents
+                    .Where(d => d.IsPublic == true) // Assuming you have an IsPublic flag, if not, remove this condition
+                    .OrderBy(d => d.Category)
+                    .ThenBy(d => d.Title)
+                    .ToListAsync();
+
+                // Group documents by category
+                var groupedDocuments = documents
+                    .GroupBy(d => d.Category)
+                    .ToDictionary(g => g.Key, g => g.ToList());
+
+                return Json(new { success = true, data = groupedDocuments });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting homeowner documents");
+                return Json(new { success = false, message = "Error retrieving documents" });
+            }
+        }
+
+        // Add this method to support direct fetching for the Dashboard view
+        [HttpGet]
+        public async Task<IActionResult> GetDocumentsByCategory(string category)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching documents for category: {Category}", category);
+                
+                // Fetch documents for the specified category
+                var documents = await _dbContext.Documents
+                    .Where(d => d.Category == category && d.IsPublic == true)
+                    .OrderBy(d => d.Title)
+                    .Select(d => new {
+                        d.DocumentId,
+                        d.Title,
+                        d.Description,
+                        d.FilePath,
+                        d.FileSize,
+                        d.Category,
+                        d.CreatedAt,
+                        d.UpdatedAt,
+                        FormattedFileSize = FormatFileSize(d.FileSize)  // Use helper method to format
+                    })
+                    .ToListAsync();
+
+                _logger.LogInformation("Found {Count} documents in category {Category}", documents.Count, category);
+                
+                return Json(new { success = true, data = documents });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting {Category} documents: {Message}", category, ex.Message);
+                return Json(new { success = false, message = $"Error retrieving {category} documents: {ex.Message}" });
+            }
+        }
+
         // Helper methods
         private bool DocumentExists(int id)
         {
@@ -388,7 +451,7 @@ namespace daebak_subdivision_website.Controllers
 
         private string FormatFileSize(long bytes)
         {
-            string[] suffixes = { "B", "KB", "MB", "GB" };
+            string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
             int counter = 0;
             double size = bytes;
             
