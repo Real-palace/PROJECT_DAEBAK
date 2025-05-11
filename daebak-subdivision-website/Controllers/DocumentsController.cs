@@ -159,11 +159,10 @@ namespace daebak_subdivision_website.Controllers
                     {
                         document.CreatedById = currentUser.UserId;
                     }
-                }
 
-                // Set creation and update dates
-                document.CreatedAt = DateTime.Now;
-                document.UpdatedAt = DateTime.Now;
+                    // Set creation and update dates
+                    document.CreatedAt = DateTime.Now;
+                    document.UpdatedAt = DateTime.Now;
 
                 // Save to database
                 _dbContext.Documents.Add(document);

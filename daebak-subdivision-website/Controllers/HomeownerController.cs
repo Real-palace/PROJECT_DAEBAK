@@ -293,6 +293,7 @@ namespace daebak_subdivision_website.Controllers
             // Create a model for the profile view
             var model = new UserProfileViewModel
             {
+                UserId = user.UserId.ToString(), // Set the UserId from the logged-in user
                 Username = user.Username,
                 FirstName = user.FirstName,
                 LastName = user.LastName,
@@ -324,6 +325,9 @@ namespace daebak_subdivision_website.Controllers
                 _logger.LogWarning($"UpdateProfile failed. User '{username}' not found.");
                 return RedirectToAction("Index", "Home");
             }
+
+            // Ensure we have the correct UserId from database, not from the form
+            model.UserId = user.UserId.ToString();
 
             // Explicitly clear password validation errors if no password change was requested
             if (string.IsNullOrEmpty(model.NewPassword) && string.IsNullOrEmpty(model.CurrentPassword) && string.IsNullOrEmpty(model.ConfirmNewPassword))

@@ -146,14 +146,10 @@
                 <i class="ph ph-chat-circle-text text-lg text-tertiary"></i>
                 <h3 class="font-semibold text-lg text-tertiary">Feedback & Complaints</h3>
             </div>
-            <a href="@Url.Action("Feedback", "Feedback")" class="text-blue-500 text-sm flex items-center gap-1 hover:underline">
-                View All
-                <i class="ph ph-arrow-right text-xs"></i>
-            </a>
         </div>
         
         <!-- Quick Feedback Submission Form -->
-        <form asp-controller="Feedback" asp-action="Create" method="post" class="mb-4">
+        <form method="post" action="@Url.Action("Create", "Feedback")" class="mb-4">
             <div class="mb-3">
                 <label class="block text-gray-700 text-sm font-medium mb-2" for="feedback-type">
                     Type
@@ -176,56 +172,12 @@
             </button>
         </form>
         
-        <!-- Recent Feedback Status -->
-        <div class="mt-4">
-            <h4 class="text-sm font-medium text-gray-700 mb-2">Recent Submissions</h4>
-            <ul class="space-y-2">
-                @if (ViewBag.RecentFeedback != null)
-                {
-                    foreach (var item in ViewBag.RecentFeedback)
-                    {
-                        <li class="flex items-center justify-between border-b border-gray-100 pb-2">
-                            <div>
-                                <p class="font-medium text-sm">@item.FeedbackType</p>
-                                <span class="text-xs text-gray-500">@item.CreatedAt</span>
-                            </div>
-                            <span class="px-2 py-1 rounded-full text-xs 
-                                @(item.Status == "Submitted" ? "bg-blue-100 text-blue-600" : 
-                                  item.Status == "In Review" ? "bg-yellow-100 text-yellow-600" :
-                                  item.Status == "In Progress" ? "bg-purple-100 text-purple-600" :
-                                  item.Status == "Resolved" ? "bg-green-100 text-green-600" :
-                                  "bg-gray-100 text-gray-600")">
-                                @item.Status
-                            </span>
-                        </li>
-                    }
-                }
-                else
-                {
-                    <!-- Sample feedback items -->
-                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
-                        <div>
-                            <p class="font-medium text-sm">Street light repair request</p>
-                            <span class="text-xs text-gray-500">Apr 03, 2025</span>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-600">Submitted</span>
-                    </li>
-                    <li class="flex items-center justify-between border-b border-gray-100 pb-2">
-                        <div>
-                            <p class="font-medium text-sm">Suggestion for playground</p>
-                            <span class="text-xs text-gray-500">Mar 28, 2025</span>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs bg-yellow-100 text-yellow-600">In Review</span>
-                    </li>
-                    <li class="flex items-center justify-between">
-                        <div>
-                            <p class="font-medium text-sm">Noise complaint</p>
-                            <span class="text-xs text-gray-500">Mar 15, 2025</span>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs bg-green-100 text-green-600">Resolved</span>
-                    </li>
-                }
-            </ul>
+        <!-- Prompt to view submissions -->
+        <div class="mt-4 text-center p-4 border border-dashed border-gray-200 rounded-lg bg-gray-50">
+            <p class="text-gray-600 mb-2">View the status of your recent feedback submissions</p>
+            <button id="view-recent-submissions-alt" class="text-tertiary flex items-center gap-1 mx-auto hover:text-tertiary/80 transition-colors">
+                <i class="ph ph-eye"></i> Check Submission Status
+            </button>
         </div>
     </div>
 </div>
@@ -356,6 +308,76 @@
     </div>
 </div>
 
+<!-- Recent Submissions Modal -->
+<div id="submissions-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
+        <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="ph ph-chat-circle-text text-xl text-tertiary"></i>
+                <h3 class="font-semibold text-xl text-tertiary">Recent Feedback Submissions</h3>
+            </div>
+            <button id="close-submissions-modal" class="text-gray-500 hover:text-gray-700 focus:outline-none p-2 rounded-full transition-colors z-10">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+        <div class="p-6 overflow-y-auto">
+            <ul class="space-y-4">
+                @if (ViewBag.RecentFeedback != null && ViewBag.RecentFeedback.Count > 0)
+                {
+                    foreach (var item in ViewBag.RecentFeedback)
+                    {
+                        <li class="border-b border-gray-100 p-4 hover:bg-gray-50 rounded-md transition-colors">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="font-medium">@item.FeedbackType</span>
+                                <span class="px-2 py-1 rounded-full text-xs 
+                                    @(item.Status == "Submitted" ? "bg-blue-100 text-blue-600" : 
+                                      item.Status == "In Review" ? "bg-yellow-100 text-yellow-600" :
+                                      item.Status == "In Progress" ? "bg-purple-100 text-purple-600" :
+                                      item.Status == "Resolved" ? "bg-green-100 text-green-600" :
+                                      "bg-gray-100 text-gray-600")">
+                                    @item.Status
+                                </span>
+                            </div>
+                            <p class="text-gray-600 mb-2">@item.Description</p>
+                            <div class="flex justify-between items-center text-xs text-gray-500">
+                                <span>Submitted on: @item.CreatedAt</span>
+                                
+                                @* Remove the Response property check since it doesn't exist *@
+                                @if (item.Status == "Resolved")
+                                {
+                                    <span class="text-green-600">Response received</span>
+                                }
+                            </div>
+                            
+                            @* Replace the Response section with a conditional note based on Status *@
+                            @if (item.Status == "Resolved")
+                            {
+                                <div class="mt-3 bg-gray-50 p-3 rounded-md">
+                                    <p class="text-sm font-medium mb-1">Response:</p>
+                                    <p class="text-sm text-gray-600">Your issue has been addressed. Thank you for your feedback.</p>
+                                </div>
+                            }
+                            else if (item.Status == "In Progress")
+                            {
+                                <div class="mt-3 bg-yellow-50 p-3 rounded-md">
+                                    <p class="text-sm text-yellow-700">Your submission is currently being processed.</p>
+                                </div>
+                            }
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="text-center py-8 text-gray-500">
+                        <i class="ph ph-chat-dots text-4xl mb-2"></i>
+                        <p>No feedback submissions found.</p>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
@@ -367,6 +389,9 @@
             
             // Setup announcements modal
             setupAnnouncementsModal();
+            
+            // Setup submissions modal
+            setupSubmissionsModal();
             
             // Initialize calendar
             initializeCalendar();
@@ -573,6 +598,38 @@
                 announcementsModal.addEventListener('click', function(e) {
                     if (e.target === announcementsModal) {
                         announcementsModal.classList.add('hidden');
+                        document.body.style.overflow = '';
+                    }
+                });
+            }
+        }
+        
+        function setupSubmissionsModal() {
+            const submissionsModal = document.getElementById('submissions-modal');
+            const viewRecentSubmissionsBtn = document.getElementById('view-recent-submissions');
+            const closeSubmissionsModalBtn = document.getElementById('close-submissions-modal');
+            
+            if (submissionsModal && closeSubmissionsModalBtn) {
+                // Event handler for close button
+                closeSubmissionsModalBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Stop event propagation
+                    submissionsModal.classList.add('hidden');
+                    document.body.style.overflow = '';
+                });
+                
+                // Setup open button if it exists
+                if (viewRecentSubmissionsBtn) {
+                    viewRecentSubmissionsBtn.addEventListener('click', function() {
+                        submissionsModal.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                    });
+                }
+                
+                // Background click to close
+                submissionsModal.addEventListener('click', function(e) {
+                    if (e.target === submissionsModal) {
+                        submissionsModal.classList.add('hidden');
                         document.body.style.overflow = '';
                     }
                 });

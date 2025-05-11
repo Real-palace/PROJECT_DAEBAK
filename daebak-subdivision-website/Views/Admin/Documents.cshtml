@@ -172,12 +172,14 @@
             @Html.AntiForgeryToken()
             <div>
                 <label for="document-title" class="block text-sm font-medium text-gray-700 mb-1">Document Title*</label>
-                <input type="text" id="document-title" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                <input type="text" id="document-title" name="Title" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required maxlength="100">
+                <span class="text-sm text-gray-500">Maximum 100 characters</span>
             </div>
 
             <div>
                 <label for="document-category" class="block text-sm font-medium text-gray-700 mb-1">Category*</label>
-                <select id="document-category" name="Category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                <select id="document-category" name="Category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    <option value="">Select a category</option>
                     <option value="FORM">Form</option>
                     <option value="POLICY">Policy</option>
                     <option value="GUIDELINE">Guideline</option>
@@ -194,8 +196,8 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Document File*</label>
-                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                    <input type="file" id="document-file" name="DocumentFile" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="drop-zone">
+                    <input type="file" id="document-file" name="DocumentFile" class="hidden" accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" required>
                     <label for="document-file" class="flex flex-col items-center cursor-pointer">
                         <i class="ph ph-upload-simple text-4xl text-gray-400 mb-2"></i>
                         <span class="text-gray-500">Click to upload or drag and drop</span>
@@ -213,6 +215,7 @@
                         </div>
                     </div>
                 </div>
+                <div id="file-error" class="mt-2 text-sm text-red-600 hidden"></div>
             </div>
 
             <div class="flex justify-end gap-3 pt-4">
@@ -278,7 +281,7 @@
                 }
             });
             
-            // File upload handling
+            // File upload handling with validation
             const documentFileInput = document.getElementById('document-file');
             const fileInfo = document.getElementById('file-info');
             const fileName = document.getElementById('file-name');
@@ -287,21 +290,92 @@
             if (documentFileInput) {
                 documentFileInput.addEventListener('change', function(e) {
                     if (this.files.length > 0) {
-                        fileName.textContent = this.files[0].name;
-                        fileInfo.classList.remove('hidden');
+                        const file = this.files[0];
+                        if (validateFile(file)) {
+                            fileName.textContent = file.name;
+                            fileInfo.classList.remove('hidden');
+                        } else {
+                            this.value = '';
+                            fileInfo.classList.add('hidden');
+                        }
                     } else {
                         fileInfo.classList.add('hidden');
                     }
                 });
             }
-            
-            if (removeFileBtn) {
-                removeFileBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    documentFileInput.value = '';
-                    fileInfo.classList.add('hidden');
-                });
+
+            // Drag and drop handling
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
             }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                dropZone.classList.add('border-primary');
+            }
+
+            function unhighlight(e) {
+                dropZone.classList.remove('border-primary');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (validateFile(file)) {
+                        documentFileInput.files = files;
+                        fileName.textContent = file.name;
+                        fileInfo.classList.remove('hidden');
+                    }
+                }
+            }
+
+            // Form submission validation
+            const documentForm = document.getElementById('document-form');
+            documentForm.addEventListener('submit', function(e) {
+                const title = document.getElementById('document-title').value.trim();
+                const category = document.getElementById('document-category').value;
+                const file = documentFileInput.files[0];
+
+                if (!title) {
+                    e.preventDefault();
+                    alert('Please enter a document title');
+                    return;
+                }
+
+                if (!category) {
+                    e.preventDefault();
+                    alert('Please select a category');
+                    return;
+                }
+
+                if (!file) {
+                    e.preventDefault();
+                    alert('Please select a file to upload');
+                    return;
+                }
+
+                if (!validateFile(file)) {
+                    e.preventDefault();
+                    return;
+                }
+            });
             
             // Add this to your document-form event listener
             document.getElementById('document-form').addEventListener('submit', function(e) {

@@ -213,5 +213,177 @@ namespace daebak_subdivision_website.Controllers
         {
             return _dbContext.Events.Any(e => e.Id == id);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFeedbackDetails(int id)
+        {
+            try
+            {
+                var feedback = await _dbContext.Feedbacks
+                    .Include(f => f.User)
+                    .FirstOrDefaultAsync(f => f.FeedbackId == id);
+
+                if (feedback == null)
+                {
+                    return NotFound(new { success = false, message = "Feedback not found" });
+                }
+
+                // Get responses for this feedback
+                var responses = await _dbContext.FeedbackResponses
+                    .Where(r => r.FeedbackId == id)
+                    .OrderBy(r => r.CreatedAt)
+                    .Select(r => new
+                    {
+                        ResponseId = r.ResponseId,
+                        ResponseText = r.ResponseText,
+                        RespondedBy = r.RespondedBy,
+                        RespondedAt = r.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    })
+                    .ToListAsync();
+
+                var result = new
+                {
+                    success = true,
+                    feedback = new 
+                    {
+                        FeedbackId = feedback.FeedbackId,
+                        UserId = feedback.UserId,
+                        UserName = feedback.User != null ? feedback.User.FirstName + " " + feedback.User.LastName : "Unknown",
+                        HouseNumber = feedback.User != null && feedback.User.Homeowner != null ? feedback.User.Homeowner.HouseNumber : string.Empty,
+                        FeedbackType = feedback.FeedbackType,
+                        Description = feedback.Description,
+                        Status = feedback.Status,
+                        CreatedAt = feedback.CreatedAt.ToString("yyyy-MM-dd"),
+                        Responses = responses
+                    }
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving feedback details for ID {id}");
+                return StatusCode(500, new { success = false, message = $"Failed to retrieve feedback details: {ex.Message}" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFeedbackStatus([FromBody] FeedbackStatusUpdateModel model)
+        {
+            try
+            {
+                var feedback = await _dbContext.Feedbacks.FindAsync(model.Id);
+                if (feedback == null)
+                {
+                    return NotFound(new { success = false, message = "Feedback not found" });
+                }                // Validate status against database schema values (Submitted, In Review, In Progress, Resolved, Closed)
+                if (model.Status != "Submitted" && model.Status != "In Review" && model.Status != "In Progress" && model.Status != "Resolved" && model.Status != "Closed")
+                {
+                    return BadRequest(new { success = false, message = "Invalid status value" });
+                }
+
+                feedback.Status = model.Status;
+                feedback.UpdatedAt = DateTime.Now;
+
+                await _dbContext.SaveChangesAsync();
+                return Json(new { success = true, message = $"Status updated to {model.Status}" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating feedback status for ID {model.Id}");
+                return StatusCode(500, new { success = false, message = "Failed to update feedback status" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFeedback([FromBody] FeedbackDeleteModel model)
+        {
+            try
+            {
+                var feedback = await _dbContext.Feedbacks.FindAsync(model.Id);
+                if (feedback == null)
+                {
+                    return NotFound(new { success = false, message = "Feedback not found" });
+                }
+
+                // Delete related responses first
+                var responses = await _dbContext.FeedbackResponses.Where(r => r.FeedbackId == model.Id).ToListAsync();
+                _dbContext.FeedbackResponses.RemoveRange(responses);
+
+                // Then delete the feedback
+                _dbContext.Feedbacks.Remove(feedback);
+                await _dbContext.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Feedback deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting feedback with ID {model.Id}");
+                return StatusCode(500, new { success = false, message = "Failed to delete feedback" });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddFeedbackResponse([FromBody] FeedbackResponseModel model)
+        {
+            try
+            {
+                // Check if feedback exists
+                var feedback = await _dbContext.Feedbacks.FindAsync(model.FeedbackId);
+                if (feedback == null)
+                {
+                    return NotFound(new { success = false, message = "Feedback not found" });
+                }
+
+                // Validate input
+                if (string.IsNullOrWhiteSpace(model.ResponseText))
+                {
+                    return BadRequest(new { success = false, message = "Response text cannot be empty" });
+                }
+
+                // Get current admin name
+                string adminName = User.Identity.Name ?? "Administrator";
+
+                // Create new response
+                var response = new FeedbackResponse
+                {
+                    FeedbackId = model.FeedbackId,
+                    ResponseText = model.ResponseText,
+                    RespondedBy = adminName,
+                    CreatedAt = DateTime.Now
+                };
+
+                _dbContext.FeedbackResponses.Add(response);                // Update the feedback status to "In Progress" if it's currently "Submitted"
+                if (feedback.Status == "Submitted")
+                {
+                    feedback.Status = "In Progress";
+                    feedback.UpdatedAt = DateTime.Now;
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                // Return formatted response for display
+                return Json(new
+                {
+                    success = true,
+                    message = "Response added successfully",
+                    response = new
+                    {
+                        ResponseId = response.ResponseId,
+                        ResponseText = response.ResponseText,
+                        RespondedBy = response.RespondedBy,
+                        RespondedAt = response.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error adding feedback response for ID {model.FeedbackId}");
+                return StatusCode(500, new { success = false, message = "Failed to add response" });
+            }
+        }
     }
 }
