@@ -157,9 +157,8 @@ namespace daebak_subdivision_website.Controllers
                 var model = new AdminPageModel();
                 
                 // Get feedback statistics
-                model.FeedbackStats = new
-                {
-                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                model.FeedbackStats = new                {
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted"),
                     InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
                     ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
                     TotalCount = await _context.Feedbacks.CountAsync()
@@ -228,8 +227,8 @@ namespace daebak_subdivision_website.Controllers
 
         [Authorize(Roles = "ADMIN")]
         [HttpGet]
-        [Route("Admin/GetFeedbackDetails/{id}")]
-        public async Task<IActionResult> GetFeedbackDetails(int id)
+        [Route("Admin/Feedback/GetDetails/{id}")]
+        public async Task<IActionResult> GetDetails(int id)
         {
             try
             {
@@ -239,45 +238,52 @@ namespace daebak_subdivision_website.Controllers
 
                 if (feedback == null)
                 {
-                    return NotFound(new { success = false, message = "Feedback not found" });
+                    _logger.LogWarning($"Feedback with ID {id} not found");
+                    return Json(new { success = false, message = $"Feedback #{id} not found" });
                 }
 
-                // Get responses for this feedback
+                // Get responses
                 var responses = await _context.FeedbackResponses
                     .Where(r => r.FeedbackId == id)
-                    .OrderBy(r => r.CreatedAt)
+                    .OrderByDescending(r => r.CreatedAt)
                     .Select(r => new
                     {
-                        ResponseId = r.ResponseId,
-                        ResponseText = r.ResponseText,
-                        RespondedBy = r.RespondedBy,
-                        RespondedAt = r.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                        responseId = r.ResponseId,
+                        responseText = r.ResponseText,
+                        respondedBy = r.RespondedBy,
+                        respondedAt = r.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
                     })
                     .ToListAsync();
 
-                var result = new
+                // Format the house number if available
+                string houseNumber = "Not specified";
+                if (feedback.User?.Homeowner != null)
+                {
+                    houseNumber = feedback.User.Homeowner.HouseNumber;
+                }
+
+                return Json(new
                 {
                     success = true,
-                    feedback = new 
+                    feedback = new
                     {
-                        FeedbackId = feedback.FeedbackId,
-                        UserId = feedback.UserId,
-                        UserName = feedback.User != null ? feedback.User.FirstName + " " + feedback.User.LastName : "Unknown",
-                        HouseNumber = feedback.User != null && feedback.User.Homeowner != null ? feedback.User.Homeowner.HouseNumber : string.Empty, // Get from User.Homeowner
-                        FeedbackType = feedback.FeedbackType,
-                        Description = feedback.Description,
-                        Status = feedback.Status,
-                        CreatedAt = feedback.CreatedAt.ToString("yyyy-MM-dd"),
-                        Responses = responses
+                        feedbackId = feedback.FeedbackId,
+                        userId = feedback.UserId,
+                        userName = $"{feedback.User?.FirstName} {feedback.User?.LastName}",
+                        houseNumber = houseNumber,
+                        feedbackType = feedback.FeedbackType,
+                        description = feedback.Description,
+                        status = feedback.Status,
+                        createdAt = feedback.CreatedAt,
+                        updatedAt = feedback.UpdatedAt,
+                        responses = responses
                     }
-                };
-
-                return Json(result);
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error retrieving feedback details for ID {id}");
-                return StatusCode(500, new { success = false, message = "Failed to retrieve feedback details" });
+                return StatusCode(500, new { success = false, message = "An error occurred while retrieving feedback details" });
             }
         }
 
@@ -293,10 +299,8 @@ namespace daebak_subdivision_website.Controllers
                 if (feedback == null)
                 {
                     return NotFound(new { success = false, message = "Feedback not found" });
-                }
-
-                // Validate status
-                if (status != "Open" && status != "In Progress" && status != "Resolved")
+                }                // Validate status against database schema values (Submitted, In Review, In Progress, Resolved, Closed)
+                if (status != "Submitted" && status != "In Review" && status != "In Progress" && status != "Resolved" && status != "Closed")
                 {
                     return BadRequest(new { success = false, message = "Invalid status value" });
                 }
@@ -347,10 +351,8 @@ namespace daebak_subdivision_website.Controllers
                     CreatedAt = DateTime.Now
                 };
 
-                _context.FeedbackResponses.Add(response);
-
-                // Update the feedback status to "In Progress" if it's currently "Open"
-                if (feedback.Status == "Open")
+                _context.FeedbackResponses.Add(response);                // Update the feedback status to "In Progress" if it's currently "Submitted"
+                if (feedback.Status == "Submitted")
                 {
                     feedback.Status = "In Progress";
                     feedback.UpdatedAt = DateTime.Now;
@@ -458,10 +460,9 @@ namespace daebak_subdivision_website.Controllers
         public async Task<IActionResult> GetFeedbackStats()
         {
             try
-            {
-                var stats = new
+            {                var stats = new
                 {
-                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted" || f.Status == "Open"),
+                    OpenCount = await _context.Feedbacks.CountAsync(f => f.Status == "Submitted"),
                     InProgressCount = await _context.Feedbacks.CountAsync(f => f.Status == "In Progress" || f.Status == "In Review"),
                     ResolvedCount = await _context.Feedbacks.CountAsync(f => f.Status == "Resolved" || f.Status == "Closed"),
                     TotalCount = await _context.Feedbacks.CountAsync()

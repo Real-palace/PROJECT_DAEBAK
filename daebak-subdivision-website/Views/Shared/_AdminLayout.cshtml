@@ -503,8 +503,8 @@
                 }
                 // Otherwise, keep the ViewData["Title"]
             }
-        });
-
+        });     
+           
         // Force management icon highlighting when any management section is active
         document.addEventListener('DOMContentLoaded', function() {
             const isManagementActive = @Json.Serialize(isAnyManagementActive);
@@ -516,13 +516,8 @@
                     managementBtn.classList.add('text-tertiary');
                     managementIcon.classList.add('sidebar-icon-active');
                     
-                    // Show dropdown initially on page load when in management section
-                    const managementDropdown = document.getElementById('management-dropdown');
-                    if (managementDropdown) {
-                        setTimeout(function() {
-                            managementDropdown.classList.add('active');
-                        }, 100);
-                    }
+                    // Don't automatically show dropdown on page load
+                    // This was causing the dropdown to appear every time the page reloads
                 }
             }
         });

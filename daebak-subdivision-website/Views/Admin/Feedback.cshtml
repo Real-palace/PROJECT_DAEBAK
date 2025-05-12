@@ -17,11 +17,14 @@
             font-weight: 500;
             padding: 0.25rem 0.5rem;
             border-radius: 9999px;
-        }
-
-        .status-open {
+        }        .status-submitted {
             background-color: rgba(220, 38, 38, 0.1);
             color: rgb(185, 28, 28);
+        }
+        
+        .status-in-review {
+            background-color: rgba(79, 70, 229, 0.1);
+            color: rgb(67, 56, 202);
         }
 
         .status-in-progress {
@@ -32,6 +35,17 @@
         .status-resolved {
             background-color: rgba(34, 197, 94, 0.1);
             color: rgb(21, 128, 61);
+        }
+        
+        .status-closed {
+            background-color: rgba(75, 85, 99, 0.1);
+            color: rgb(55, 65, 81);
+        }
+        
+        /* For backward compatibility */
+        .status-open {
+            background-color: rgba(220, 38, 38, 0.1);
+            color: rgb(185, 28, 28);
         }
 
         /* Transition for table rows */
@@ -208,11 +222,14 @@
 
                     <!-- Status Filters -->
                     <div class="mb-4">
-                        <p class="text-xs text-gray-500 mb-2">Status</p>
-                        <div class="space-y-2">
+                        <p class="text-xs text-gray-500 mb-2">Status</p>                        <div class="space-y-2">
                             <label class="flex items-center">
-                                <input type="checkbox" name="status" value="Open" class="rounded text-primary focus:ring-primary">
-                                <span class="ml-2 text-sm text-gray-700">Open</span>
+                                <input type="checkbox" name="status" value="Submitted" class="rounded text-primary focus:ring-primary">
+                                <span class="ml-2 text-sm text-gray-700">Submitted</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="status" value="In Review" class="rounded text-primary focus:ring-primary">
+                                <span class="ml-2 text-sm text-gray-700">In Review</span>
                             </label>
                             <label class="flex items-center">
                                 <input type="checkbox" name="status" value="In Progress" class="rounded text-primary focus:ring-primary">
@@ -221,6 +238,10 @@
                             <label class="flex items-center">
                                 <input type="checkbox" name="status" value="Resolved" class="rounded text-primary focus:ring-primary">
                                 <span class="ml-2 text-sm text-gray-700">Resolved</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" name="status" value="Closed" class="rounded text-primary focus:ring-primary">
+                                <span class="ml-2 text-sm text-gray-700">Closed</span>
                             </label>
                         </div>
                     </div>
@@ -334,13 +355,15 @@
                                 @date
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                @{
-                                    string statusClass = feedback.Status switch
+                                @{                                    string statusClass = feedback.Status switch
                                     {
-                                        "Submitted" or "Open" => "status-open",
-                                        "In Review" or "In Progress" => "status-in-progress",
-                                        "Resolved" or "Closed" => "status-resolved",
-                                        _ => "status-open"
+                                        "Submitted" => "status-submitted",
+                                        "Open" => "status-submitted", // For backward compatibility
+                                        "In Review" => "status-in-review",
+                                        "In Progress" => "status-in-progress",
+                                        "Resolved" => "status-resolved",
+                                        "Closed" => "status-closed",
+                                        _ => "status-submitted"
                                     };
                                 }
                                 <span class="status-badge @statusClass">@feedback.Status</span>
@@ -403,13 +426,14 @@
                 <div class="flex items-center mb-2 sm:mb-0">
                     <span id="feedback-type-badge" class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full mr-2">Type</span>
                     <span id="feedback-date" class="text-sm text-gray-500">Submitted on: May 1, 2025</span>
-                </div>
-                <div class="flex items-center">
+                </div>                <div class="flex items-center">
                     <span class="text-sm text-gray-500 mr-2">Status:</span>
                     <select id="feedback-status" class="border-gray-300 rounded-md text-sm focus:ring-primary focus:border-primary">
-                        <option value="Open">Open</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="In Review">In Review</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Resolved">Resolved</option>
+                        <option value="Closed">Closed</option>
                     </select>
                     <button id="save-status" class="ml-2 bg-secondary text-white px-2 py-1 rounded text-xs">Update</button>
                 </div>
@@ -480,22 +504,9 @@
 
 @section Scripts {
     <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Highlight the management icon since we're on the feedback page
-            const managementBtn = document.getElementById('management-btn');
-            if (managementBtn) {
-                const managementIcon = managementBtn.querySelector('i');
-                if (managementIcon) {
-                    managementIcon.classList.add('text-tertiary');
-                }
-                managementBtn.closest('.management-item').classList.add('active');
-            }
-            
-            // Toast notification function (same as dashboard)
-            function showToast(message, type = 'success') {
+    <div id="toast-container" class="fixed top-4 right-4 z-50"></div>    <script>
+        // Toast notification function - defined at global scope so it can be accessed by all functions
+        function showToast(message, type = 'success') {
                 const toast = document.createElement('div');
                 const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
 
@@ -517,10 +528,20 @@
                     toast.classList.add('translate-x-full');
                     setTimeout(() => {
                         toast.remove();
-                    }, 300);
-                }, 4000);
+                    }, 300);                }, 4000);
             }
-
+            
+        document.addEventListener('DOMContentLoaded', function() {
+            // Highlight the management icon since we're on the feedback page
+            const managementBtn = document.getElementById('management-btn');
+            if (managementBtn) {
+                const managementIcon = managementBtn.querySelector('i');
+                if (managementIcon) {
+                    managementIcon.classList.add('text-tertiary');
+                }
+                managementBtn.closest('.management-item').classList.add('active');
+            }
+            
             // Handle click events for view and delete buttons
             document.querySelectorAll('.view-feedback').forEach(button => {
                 button.addEventListener('click', function(e) {
@@ -551,11 +572,102 @@
 
             // Show feedback details in modal
             function showFeedbackDetails(id) {
-                // Fetch feedback details from the server
-                fetch(`/Feedback/Admin/GetFeedbackDetails/${id}`)
-                    .then(response => response.json())
+                // Display a loading state in the modal
+                document.getElementById('feedback-modal').classList.remove('hidden');
+                document.getElementById('feedback-detail-view').innerHTML = `
+                    <div class="flex justify-center items-center h-32">
+                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                        <span class="ml-3 text-gray-700">Loading feedback details...</span>
+                    </div>
+                `;
+                document.body.style.overflow = 'hidden'; // Prevent scrolling                // Fetch feedback details from the server
+                console.log(`Trying to fetch feedback details for ID: ${id}`);
+
+                // Use one specific endpoint with better error handling
+                fetch(`/Admin/Feedback/GetDetails/${id}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                // Try an alternative endpoint if the first one returns 404
+                                console.log('First endpoint returned 404, trying alternative endpoint...');
+                                return fetch(`/Feedback/GetDetails/${id}`);
+                            }
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response;
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
                     .then(data => {
                         if (data.success) {
+                            // Reset the modal content before populating
+                            document.getElementById('feedback-detail-view').innerHTML = `
+                                <!-- Feedback Type & Status -->
+                                <div class="flex flex-wrap items-center justify-between mb-4">
+                                    <div class="flex items-center mb-2 sm:mb-0">
+                                        <span id="feedback-type-badge" class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full mr-2">Type</span>
+                                        <span id="feedback-date" class="text-sm text-gray-500">Submitted on: May 1, 2025</span>
+                                    </div>                                    <div class="flex items-center">
+                                        <span class="text-sm text-gray-500 mr-2">Status:</span>
+                                        <select id="feedback-status" class="border-gray-300 rounded-md text-sm focus:ring-primary focus:border-primary">
+                                            <option value="Submitted">Submitted</option>
+                                            <option value="In Review">In Review</option>
+                                            <option value="In Progress">In Progress</option>
+                                            <option value="Resolved">Resolved</option>
+                                            <option value="Closed">Closed</option>
+                                        </select>
+                                        <button id="save-status" class="ml-2 bg-secondary text-white px-2 py-1 rounded text-xs">Update</button>
+                                    </div>
+                                </div>
+
+                                <!-- Resident Info -->
+                                <div class="bg-gray-50 p-4 rounded-lg mb-4">
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Resident Information</h4>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <p class="text-xs text-gray-500">Name</p>
+                                            <p id="resident-name" class="text-sm font-medium">John Smith</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs text-gray-500">House Number</p>
+                                            <p id="house-number" class="text-sm font-medium">Block 1, Lot 23</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Feedback Content -->
+                                <div class="mb-6">
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Feedback Content</h4>
+                                    <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                                        <p id="feedback-content" class="text-sm text-gray-700 whitespace-pre-line"></p>
+                                    </div>
+                                </div>
+
+                                <!-- Response Section -->
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Your Response</h4>
+                                    <textarea id="response-text" rows="4" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
+                                    <div class="mt-2">
+                                        <button id="send-response" class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                                            <i class="ph ph-paper-plane-right mr-1"></i> Send Response
+                                        </button>
+                                        <span id="response-message" class="ml-3 text-sm text-gray-500 hidden">Response sent successfully!</span>
+                                    </div>
+                                </div>
+
+                                <!-- Response History -->
+                                <div class="mt-6" id="response-history-section">
+                                    <h4 class="text-sm font-medium text-gray-700 mb-2">Response History</h4>
+                                    <div id="response-history" class="space-y-3">
+                                        <!-- Response history items will be added here by JavaScript -->
+                                    </div>
+                                </div>
+                            `;
+
                             const feedback = data.feedback;
                             
                             // Populate modal with feedback details
@@ -623,21 +735,54 @@
                                 responseHistory.innerHTML = '<p class="text-sm text-gray-500">No responses yet</p>';
                                 responseHistorySection.classList.remove('hidden');
                             }
-                            
-                            // Clear response text area
+                              // Clear response text area
                             document.getElementById('response-text').value = '';
                             document.getElementById('response-message').classList.add('hidden');
                             
-                            // Show the modal
-                            document.getElementById('feedback-modal').classList.remove('hidden');
-                            document.body.style.overflow = 'hidden'; // Prevent scrolling
+                            // Attach event listeners again after rebuilding the DOM - this is crucial
+                            // as the event listeners need to be reattached when the content is dynamically updated
+                            setTimeout(() => setupModalEventListeners(), 100);
                         } else {
+                            document.getElementById('feedback-detail-view').innerHTML = `
+                                <div class="p-4 bg-red-50 rounded-lg text-center">
+                                    <i class="ph ph-warning-circle text-3xl text-red-500 mb-2"></i>
+                                    <p class="text-red-700">Failed to load feedback details.</p>
+                                    <p class="text-red-600 mt-2 text-sm">Error: ${data.message || 'Unknown error'}</p>
+                                    <button id="retry-load" class="mt-3 px-4 py-2 bg-primary text-white rounded-lg">
+                                        Retry
+                                    </button>
+                                </div>
+                            `;
+                            
+                            document.getElementById('retry-load').addEventListener('click', function() {
+                                showFeedbackDetails(id);
+                            });
+                            
                             showToast('Failed to load feedback details', 'error');
                         }
                     })
                     .catch(error => {
                         console.error('Error fetching feedback details:', error);
-                        showToast('An error occurred while loading feedback details', 'error');
+                        document.getElementById('feedback-detail-view').innerHTML = `
+                            <div class="p-4 bg-red-50 rounded-lg text-center">
+                                <i class="ph ph-warning-circle text-3xl text-red-500 mb-2"></i>
+                                <p class="text-red-700">An error occurred while loading feedback details.</p>
+                                <p class="text-red-600 mt-2 text-sm">${error.message}</p>                                <div class="mt-3 text-sm text-gray-700 text-left p-2 bg-gray-100 rounded">
+                                    <p>Debugging info:</p>
+                                    <p>- Attempted endpoints: /Admin/GetFeedbackDetails/${id} and /Feedback/Admin/GetFeedbackDetails/${id}</p>
+                                    <p>- Please check network tab in dev tools for details</p>
+                                </div>
+                                <button id="retry-load" class="mt-3 px-4 py-2 bg-primary text-white rounded-lg">
+                                    Retry
+                                </button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('retry-load').addEventListener('click', function() {
+                            showFeedbackDetails(id);
+                        });
+                        
+                        showToast('An error occurred while loading feedback details: ' + error.message, 'error');
                     });
             }
 
@@ -698,69 +843,51 @@
                     showToast('Please enter a response message', 'error');
                     return;
                 }
-                
-                document.getElementById('response-message').classList.remove('hidden');
-                document.getElementById('response-text').value = '';
-                showToast('Response sent successfully');
-                
-                // Add to the response history for demo purposes
-                const responseHistory = document.getElementById('response-history');
-                const responseItem = document.createElement('div');
-                responseItem.className = 'border-l-2 border-gray-300 pl-3 py-2';
-                
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                const formattedTime = now.toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                responseItem.innerHTML = `
-                    <p class="text-xs text-gray-500">${formattedDate} at ${formattedTime}</p>
-                    <p class="text-sm text-gray-700 mt-1">${responseText}</p>
-                    <p class="text-xs text-gray-500 mt-1">- Admin</p>
-                `;
-                
-                responseHistory.insertBefore(responseItem, responseHistory.firstChild);
-                document.getElementById('response-history-section').classList.remove('hidden');
-            });
-            
-            // Event handler for updating status
-            document.getElementById('save-status').addEventListener('click', function() {
-                const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
-                const newStatus = document.getElementById('feedback-status').value;
-                
-                // Send AJAX request to update status
-                fetch('/Feedback/Admin/UpdateFeedbackStatus', {
+                  // Get the feedback ID from the modal title
+                const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');                  // Send API request to save the response
+                fetch('/Admin/AddFeedbackResponse', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
                     },
                     body: JSON.stringify({
-                        id: parseInt(feedbackId),
-                        status: newStatus
+                        feedbackId: parseInt(feedbackId),
+                        responseText: responseText
                     })
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showToast(`Status updated to ${newStatus}`);
-                        // Refresh the table or update the specific row
-                        setTimeout(() => location.reload(), 1000);
+                        document.getElementById('response-message').classList.remove('hidden');
+                        document.getElementById('response-text').value = '';
+                        showToast('Response sent successfully');
+                        
+                        // Add to the response history
+                        const responseHistory = document.getElementById('response-history');
+                        const responseItem = document.createElement('div');
+                        responseItem.className = 'border-l-2 border-gray-300 pl-3 py-2';
+                        
+                        responseItem.innerHTML = `
+                            <p class="text-xs text-gray-500">${data.response.respondedAt}</p>
+                            <p class="text-sm text-gray-700 mt-1">${data.response.responseText}</p>
+                            <p class="text-xs text-gray-500 mt-1">- ${data.response.respondedBy}</p>
+                        `;
+                        
+                        responseHistory.insertBefore(responseItem, responseHistory.firstChild);
+                        document.getElementById('response-history-section').classList.remove('hidden');
                     } else {
-                        showToast('Failed to update status', 'error');
+                        showToast('Failed to send response: ' + data.message, 'error');
                     }
                 })
                 .catch(error => {
-                    console.error('Error updating status:', error);
-                    showToast('An error occurred while updating status', 'error');
+                    console.error('Error sending response:', error);
+                    showToast('An error occurred while sending response', 'error');
                 });
-            });
+            });            
+            // Event handler for updating status - this handler is no longer needed here
+            // as it's been moved to the updateFeedbackStatus function 
+            // and attached via setupModalEventListeners
             
             // Event handlers for delete confirmation modal
             document.getElementById('cancel-delete').addEventListener('click', function() {
@@ -770,8 +897,7 @@
             
             document.getElementById('confirm-delete').addEventListener('click', function() {
                 const feedbackId = document.getElementById('delete-modal').dataset.feedbackId;
-                
-                // Send AJAX request to delete feedback
+                  // Send AJAX request to delete feedback
                 fetch('/Feedback/Admin/DeleteFeedback', {
                     method: 'POST',
                     headers: {
@@ -814,6 +940,129 @@
                     document.body.style.overflow = ''; // Re-enable scrolling
                 }
             });
-        });
+        });        // Function to set up event listeners for modal elements after the modal content is rebuilt
+        function setupModalEventListeners() {
+            // Make sure the elements exist before attaching event listeners
+            const saveStatusBtn = document.getElementById('save-status');
+            if (saveStatusBtn) {
+                saveStatusBtn.addEventListener('click', updateFeedbackStatus);
+            }
+            
+            const sendResponseBtn = document.getElementById('send-response');
+            if (sendResponseBtn) {
+                sendResponseBtn.addEventListener('click', sendFeedbackResponse);
+            }
+            // Add any other event listeners needed for elements inside the modal
+        }        function updateFeedbackStatus() {
+            // Get the current feedback ID and selected status
+            const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
+            const newStatus = document.getElementById('feedback-status').value;
+            
+            // Show updating indicator on the button
+            const saveStatusBtn = document.getElementById('save-status');
+            const originalBtnText = saveStatusBtn.innerHTML;
+            saveStatusBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Updating...';
+            saveStatusBtn.disabled = true;
+              // Send AJAX request to update status - use the correct endpoint
+            fetch('/Feedback/Admin/UpdateFeedbackStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    id: parseInt(feedbackId),
+                    status: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(`Status updated to ${newStatus}`);
+                    // Refresh the table or update the specific row
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast('Failed to update status: ' + (data.message || 'Unknown error'), 'error');
+                    // Restore button state
+                    saveStatusBtn.innerHTML = originalBtnText;
+                    saveStatusBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error updating status:', error);
+                showToast('An error occurred while updating status', 'error');
+                // Restore button state
+                saveStatusBtn.innerHTML = originalBtnText;
+                saveStatusBtn.disabled = false;
+            });
+        }        function sendFeedbackResponse() {
+            // Get the response text
+            const responseText = document.getElementById('response-text').value.trim();
+            if (!responseText) {
+                showToast('Please enter a response message', 'error');
+                return;
+            }
+            
+            // Get the feedback ID from the modal title
+            const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
+            
+            // Show sending indicator on the button
+            const sendBtn = document.getElementById('send-response');
+            const originalBtnText = sendBtn.innerHTML;
+            sendBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Sending...';
+            sendBtn.disabled = true;
+            
+            // Send API request to save the response
+            fetch('/Admin/AddFeedbackResponse', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: JSON.stringify({
+                    feedbackId: parseInt(feedbackId),
+                    responseText: responseText
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the response text area and show success message
+                    document.getElementById('response-message').classList.remove('hidden');
+                    document.getElementById('response-text').value = '';
+                    showToast('Response sent successfully');
+                    
+                    // Add to the response history
+                    const responseHistory = document.getElementById('response-history');
+                    const responseItem = document.createElement('div');
+                    responseItem.className = 'border-l-2 border-gray-300 pl-3 py-2';
+                    
+                    responseItem.innerHTML = `
+                        <p class="text-xs text-gray-500">${data.response.respondedAt}</p>
+                        <p class="text-sm text-gray-700 mt-1">${data.response.responseText}</p>
+                        <p class="text-xs text-gray-500 mt-1">- ${data.response.respondedBy}</p>
+                    `;
+                    
+                    responseHistory.insertBefore(responseItem, responseHistory.firstChild);
+                    document.getElementById('response-history-section').classList.remove('hidden');
+                    
+                    // Restore button state
+                    sendBtn.innerHTML = originalBtnText;
+                    sendBtn.disabled = false;
+                } else {
+                    showToast('Failed to send response: ' + (data.message || 'Unknown error'), 'error');
+                    // Restore button state
+                    sendBtn.innerHTML = originalBtnText;
+                    sendBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error sending response:', error);
+                showToast('An error occurred while sending response', 'error');
+                // Restore button state
+                sendBtn.innerHTML = originalBtnText;
+                sendBtn.disabled = false;
+            });
+        }
     </script>
 }

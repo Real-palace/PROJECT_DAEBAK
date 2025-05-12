@@ -129,8 +129,7 @@
                     <i class="ph ph-x text-xl"></i>
                 </button>
             </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="p-6">                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <h4 class="text-sm text-gray-500">Request ID</h4>
                         <p class="font-medium" id="detailsRequestId">-</p>
@@ -152,12 +151,8 @@
                         <p class="font-medium" id="detailsHomeowner">-</p>
                     </div>
                     <div class="md:col-span-2">
-                        <h4 class="text-sm text-gray-500">Address</h4>
-                        <p class="font-medium" id="detailsAddress">-</p>
-                    </div>
-                    <div class="md:col-span-2">
-                        <h4 class="text-sm text-gray-500">Contact Information</h4>
-                        <p class="font-medium" id="detailsContact">-</p>
+                        <h4 class="text-sm text-gray-500">Location</h4>
+                        <p class="font-medium" id="detailsLocation">-</p>
                     </div>
                 </div>
 
@@ -176,17 +171,14 @@
                 <div class="border-t border-gray-200 pt-4 mt-4" id="adminResponseSection">
                     <h4 class="text-sm font-medium text-gray-700 mb-2">Admin Response</h4>
                     <textarea id="adminResponseText" class="w-full border border-gray-300 rounded-lg p-3 h-24" placeholder="Enter response to the homeowner..."></textarea>
-                </div>
-
-                <div class="flex justify-between items-center mt-6">
+                </div>                <div class="flex justify-between items-center mt-6">
                     <div>
                         <select id="statusUpdate" class="border border-gray-300 rounded-lg px-3 py-2">
-                            <option value="">Update Status</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Scheduled">Scheduled</option>
+                            <option value="Open">Open</option>
                             <option value="In Progress">In Progress</option>
+                            <option value="Scheduled">Scheduled</option>
                             <option value="Completed">Completed</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="Cancelled">Cancelled</option>
                         </select>
                     </div>
                     <div class="flex gap-3">
@@ -213,16 +205,13 @@
             </div>
             <div class="p-6">
                 <div class="mb-4">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                    <select id="filterStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>                    <select id="filterStatus" class="w-full border border-gray-300 rounded-lg px-3 py-2">
                         <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Processing">Processing</option>
-                        <option value="Scheduled">Scheduled</option>
+                        <option value="Open">Open</option>
                         <option value="In Progress">In Progress</option>
+                        <option value="Scheduled">Scheduled</option>
                         <option value="Completed">Completed</option>
-                        <option value="Rejected">Rejected</option>
-                        <option value="Canceled">Canceled</option>
+                        <option value="Cancelled">Cancelled</option>
                     </select>
                 </div>
                 <div class="mb-4">
@@ -357,49 +346,155 @@
                 .catch(error => {
                     console.error('Error loading stats:', error);
                 });
-        }
-
-        // Function to get status class for styling
+        }        // Function to get status class for styling
         function getStatusClass(status) {
             switch (status) {
                 case 'Open':
                     return 'bg-yellow-100 text-yellow-800';
-                case 'Processing':
-                    return 'bg-blue-100 text-blue-800';
-                case 'Scheduled':
-                    return 'bg-purple-100 text-purple-800';
                 case 'In Progress':
                     return 'bg-indigo-100 text-indigo-800';
+                case 'Scheduled':
+                    return 'bg-purple-100 text-purple-800';
                 case 'Completed':
                     return 'bg-green-100 text-green-800';
-                case 'Rejected':
                 case 'Cancelled':
                     return 'bg-red-100 text-red-800';
                 default:
                     return 'bg-gray-100 text-gray-800';
             }
-        }
-
-        // Function to view request details
+        }// Function to view request details
         function viewRequestDetails(requestId) {
             const modal = document.getElementById('requestDetailsModal');
             modal.classList.remove('hidden');
-
-            // Find the request in the table
-            const request = Array.from(document.querySelectorAll('#serviceRequestsTableBody tr'))
+              // First find the request in the table to get the homeowner name
+            const requestRow = Array.from(document.querySelectorAll('#serviceRequestsTableBody tr'))
                 .find(row => row.querySelector('td:first-child').textContent.includes(requestId.toString()));
-
-            if (request) {
-                const cells = request.querySelectorAll('td');
-                document.getElementById('detailsRequestId').textContent = cells[0].textContent;
-                document.getElementById('detailsHomeowner').textContent = cells[1].textContent;
-                document.getElementById('detailsServiceType').textContent = cells[2].querySelector('.text-sm').textContent;
-                document.getElementById('detailsSubmissionDate').textContent = cells[3].textContent;
-                document.getElementById('detailsStatus').textContent = cells[4].querySelector('span').textContent;
-                
-                // Set the current status in the dropdown
-                document.getElementById('statusUpdate').value = cells[4].querySelector('span').textContent;
+            
+            let homeownerName = '-';
+            if (requestRow) {
+                homeownerName = requestRow.querySelector('td:nth-child(2) div').textContent.trim();
             }
+            
+            // Fetch detailed request information from the API
+            fetch(`/ServiceRequests/GetDetails/${requestId}`)
+                .then(response => response.json())
+                .then(request => {
+                    document.getElementById('detailsRequestId').textContent = `#SR-${request.id}`;
+                    // Use the homeowner name from the table since it's missing in the details API
+                    document.getElementById('detailsHomeowner').textContent = homeownerName;
+                    document.getElementById('detailsServiceType').textContent = request.requestType || '-';
+                    document.getElementById('detailsSubmissionDate').textContent = new Date(request.createdAt).toLocaleDateString();
+                    document.getElementById('detailsStatus').textContent = request.status || '-';
+                    document.getElementById('detailsLocation').textContent = request.location || '-';
+                    
+                    // Set the description
+                    document.getElementById('detailsDescription').textContent = request.description || '-';
+                    
+                    // Set the current status in the dropdown
+                    document.getElementById('statusUpdate').value = request.status || '';
+                    
+                    // Set the admin response/staff notes if available
+                    if (request.staffNotes) {
+                        document.getElementById('adminResponseText').value = request.staffNotes;
+                    } else {
+                        document.getElementById('adminResponseText').value = '';
+                    }
+                    
+                    // Handle attachments/images
+                    const attachmentsContainer = document.getElementById('detailsAttachments');
+                    attachmentsContainer.innerHTML = '';
+
+                    // Debug what's coming from the server
+                    console.log('Request image data:', request.images || request.imageUrls);
+
+                    if (request.images && request.images.length > 0) {
+                        request.images.forEach(image => {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'relative';
+                            
+                            // Handle different possible image object structures
+                            const imgSrc = typeof image === 'string' 
+                                ? image 
+                                : image.imagePath || image.path || image.url || '';
+                            
+                            if (!imgSrc) {
+                                console.warn('Could not determine image source from:', image);
+                                return;
+                            }
+                            
+                            const img = document.createElement('img');
+                            img.src = imgSrc;
+                            img.alt = 'Request Attachment';
+                            img.className = 'rounded-lg w-full h-32 object-cover cursor-pointer';
+                            img.onclick = function() {
+                                window.open(imgSrc, '_blank');
+                            };
+                            
+                            // Add download button
+                            const downloadBtn = document.createElement('button');
+                            downloadBtn.className = 'absolute bottom-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition';
+                            downloadBtn.innerHTML = '<i class="ph ph-download text-gray-700"></i>';
+                            downloadBtn.onclick = function(e) {
+                                e.stopPropagation();
+                                const a = document.createElement('a');
+                                a.href = imgSrc;
+                                a.download = `request-${request.id}-attachment`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            };
+                            
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(downloadBtn);
+                            attachmentsContainer.appendChild(imgContainer);
+                        });
+                        document.getElementById('pictureAttachmentSection').style.display = 'block';
+                    } else if (request.imageUrls && request.imageUrls.length > 0) {
+                        // Same code for imageUrls if they exist
+                        request.imageUrls.forEach(imageUrl => {
+                            // Similar code as above for imageUrls
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'relative';
+                            
+                            const img = document.createElement('img');
+                            img.src = imageUrl;
+                            img.alt = 'Request Attachment';
+                            img.className = 'rounded-lg w-full h-32 object-cover cursor-pointer';
+                            img.onclick = function() {
+                                window.open(imageUrl, '_blank');
+                            };
+                            
+                            const downloadBtn = document.createElement('button');
+                            downloadBtn.className = 'absolute bottom-2 right-2 bg-white bg-opacity-75 rounded-full p-1 hover:bg-opacity-100 transition';
+                            downloadBtn.innerHTML = '<i class="ph ph-download text-gray-700"></i>';
+                            downloadBtn.onclick = function(e) {
+                                e.stopPropagation();
+                                const a = document.createElement('a');
+                                a.href = imageUrl;
+                                a.download = `request-${request.id}-attachment`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                            };
+                            
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(downloadBtn);
+                            attachmentsContainer.appendChild(imgContainer);
+                        });
+                        document.getElementById('pictureAttachmentSection').style.display = 'block';
+                    } else {
+                        // Show "no attachments" message
+                        const noAttachmentsMsg = document.createElement('div');
+                        noAttachmentsMsg.className = 'text-center p-4 bg-gray-50 rounded-lg text-gray-500';
+                        noAttachmentsMsg.innerHTML = '<i class="ph ph-image-square text-2xl mb-2"></i><p>No images attached to this request</p>';
+                        attachmentsContainer.appendChild(noAttachmentsMsg);
+                        document.getElementById('pictureAttachmentSection').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching request details:', error);
+                    alert('Failed to load request details. Please try again.');
+                });
 
             // Store the request ID for updates
             document.getElementById('btnUpdateRequest').dataset.requestId = requestId;

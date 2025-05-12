@@ -87,8 +87,7 @@ namespace daebak_subdivision_website.Controllers
             try
             {
                 _logger.LogInformation("Attempting to create service request");
-                
-                if (!ModelState.IsValid)
+                  if (!ModelState.IsValid)
                 {
                     var errors = ModelState.Values
                         .SelectMany(v => v.Errors)
@@ -97,32 +96,29 @@ namespace daebak_subdivision_website.Controllers
                     return Json(new { success = false, message = "Invalid request data", errors = errors });
                 }
 
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = User.FindFirst("UserId")?.Value;
                 _logger.LogInformation("User ID from claims: {UserId}", userId);
 
                 if (string.IsNullOrEmpty(userId))
                 {
                     _logger.LogWarning("User not authenticated - no user ID found in claims");
                     return Json(new { success = false, message = "User not authenticated" });
-                }
-
-                if (!int.TryParse(userId, out int userIdInt))
+                }                if (!int.TryParse(userId, out int userIdInt))
                 {
                     _logger.LogWarning("Invalid user ID format: {UserId}", userId);
                     return Json(new { success = false, message = "Invalid user ID format" });
                 }
 
-                var user = await _context.Homeowners.FindAsync(userIdInt);
-                if (user == null)
+                var homeowner = await _context.Homeowners.FirstOrDefaultAsync(h => h.UserId == userIdInt);
+                if (homeowner == null)
                 {
-                    _logger.LogWarning("User not found in database: {UserId}", userId);
+                    _logger.LogWarning("Homeowner record not found for user ID: {UserId}", userId);
                     return Json(new { success = false, message = "User not found" });
-                }
-
-                request.UserId = userIdInt;
-                request.Status = "Pending";
+                }                request.UserId = userIdInt;
+                request.Status = "Open";
                 request.CreatedAt = DateTime.UtcNow;
                 request.UpdatedAt = DateTime.UtcNow;
+                request.StaffNotes = string.Empty;
 
                 _logger.LogInformation("Creating service request for user {UserId}", userId);
                 _context.ServiceRequests.Add(request);
@@ -410,6 +406,49 @@ namespace daebak_subdivision_website.Controllers
                 .ToList();
 
             return Json(serviceRequests);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "HOMEOWNER,ADMIN")]
+        [Route("ServiceRequests/GetDetails/{id}")]
+        public async Task<IActionResult> GetDetails(int id)
+        {
+            try
+            {
+                var userId = User.FindFirst("UserId")?.Value;
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out int userIdInt))
+                {
+                    return Unauthorized();
+                }
+
+                // Admins can see all requests, homeowners can only see their own
+                var isAdmin = User.IsInRole("ADMIN");
+                var serviceRequest = await _context.ServiceRequests
+                    .FirstOrDefaultAsync(r => r.Id == id && (isAdmin || r.UserId == userIdInt));
+
+                if (serviceRequest == null)
+                {
+                    return NotFound(new { success = false, message = "Service request not found" });
+                }
+
+                return Json(new ServiceRequestView
+                {
+                    Id = serviceRequest.Id,
+                    UserId = serviceRequest.UserId,
+                    RequestType = serviceRequest.RequestType,
+                    Description = serviceRequest.Description,
+                    Location = serviceRequest.Location,
+                    Status = serviceRequest.Status,
+                    CreatedAt = serviceRequest.CreatedAt,
+                    UpdatedAt = serviceRequest.UpdatedAt,
+                    StaffNotes = serviceRequest.StaffNotes
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving service request details for ID: {Id}", id);
+                return StatusCode(500, new { success = false, message = "An error occurred while retrieving the service request details" });
+            }
         }
     }
 }

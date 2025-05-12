@@ -269,6 +269,32 @@
     </div>
 </div>
 
+<!-- Success Modal (Hidden by default) -->
+<div id="success-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl p-6 max-w-md w-full">
+        <div class="flex flex-col items-center text-center">
+            <div class="mb-4 rounded-full bg-green-100 p-3">
+                <svg class="h-8 w-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Request Submitted!</h3>
+            <p class="text-gray-600 mb-4">Your service request has been successfully submitted. You can track its progress in the Track Requests tab.</p>
+            <div class="flex space-x-2">
+                <button id="view-requests-btn" class="bg-secondary text-white py-2 px-4 rounded-lg hover:bg-secondary/90 transition-colors">
+                    View My Requests
+                </button>
+                <button id="close-success-modal" class="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+                    Close
+                </button>
+            </div>
+            <div id="success-request-details" class="mt-4 text-sm text-gray-600 text-left w-full">
+                <!-- Request details will be shown here -->
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -302,6 +328,109 @@
                 submitSection.classList.add('hidden');
                 trackSection.classList.remove('hidden');
                 loadServiceRequests();
+            });
+
+            // Handle form submission with AJAX
+            const serviceRequestForm = document.getElementById('service-request-form');
+            const successModal = document.getElementById('success-modal');
+            const successRequestDetails = document.getElementById('success-request-details');
+            const closeSuccessModal = document.getElementById('close-success-modal');
+            const viewRequestsBtn = document.getElementById('view-requests-btn');
+            
+            serviceRequestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                // Fix image uploads by first checking if the input exists
+                const imageUpload = document.getElementById('image-upload');
+                if (imageUpload && imageUpload.files.length > 0) {
+                    // Remove any previous images that might cause conflicts
+                    if (formData.has('Images')) {
+                        formData.delete('Images');
+                    }
+                    
+                    // Add each file individually with proper naming
+                    for (let i = 0; i < imageUpload.files.length; i++) {
+                        formData.append(`Images[${i}]`, imageUpload.files[i]);
+                    }
+                }
+                
+                // Show loading state
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="ph ph-spinner ph-spin mr-2"></i> Submitting...';
+                
+                // Add debugging to see what's being sent
+                console.log('Form data being submitted:');
+                for (let [key, value] of formData.entries()) {
+                    console.log(`${key}: ${value instanceof File ? value.name : value}`);
+                }
+                
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Server responded with status ${response.status}: ${text}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    
+                    if (data.success) {
+                        // Reset the form
+                        serviceRequestForm.reset();
+                        document.getElementById('image-preview').innerHTML = '';
+                        
+                        // Show success details
+                        let detailsHtml = `
+                            <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                                <p class="font-medium text-gray-900">Request Details:</p>
+                                <ul class="list-disc pl-5 mt-2 space-y-1">
+                                    <li><span class="font-medium">Request Type:</span> ${formData.get('RequestType')}</li>
+                                    <li><span class="font-medium">Location:</span> ${formData.get('Location')}</li>
+                                </ul>
+                            </div>
+                        `;
+                        successRequestDetails.innerHTML = detailsHtml;
+                        
+                        // Show success modal
+                        successModal.classList.remove('hidden');
+                    } else {
+                        // Display structured error message
+                        const errorMessage = data.message || 'Failed to submit service request. Please try again.';
+                        showErrorAlert(errorMessage);
+                        console.error('Submission error:', data);
+                    }
+                })
+                .catch(error => {
+                    // Reset button state
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalBtnText;
+                    
+                    showErrorAlert('An error occurred while submitting the request: ' + error.message);
+                    console.error('Form submission error:', error);
+                });
+            });
+            
+            // Close success modal
+            closeSuccessModal.addEventListener('click', function() {
+                successModal.classList.add('hidden');
+            });
+            
+            // View requests button in success modal
+            viewRequestsBtn.addEventListener('click', function() {
+                successModal.classList.add('hidden');
+                trackTab.click();
             });
 
             // Function to load service requests
@@ -389,11 +518,190 @@
                 }
             }
 
-            // Function to view request details (to be implemented)
-            function viewRequestDetails(requestId) {
-                // TODO: Implement request details view
-                console.log('View details for request:', requestId);
-            }
+            // Function to view request details
+            window.viewRequestDetails = function(requestId) {
+                const modal = document.getElementById('request-details-modal');
+                const content = document.getElementById('request-details-content');
+                
+                // Show loading state
+                content.innerHTML = `
+                    <div class="animate-pulse">
+                        <div class="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
+                        <div class="h-4 bg-gray-200 rounded w-1/2 mb-6"></div>
+                        <div class="h-20 bg-gray-200 rounded mb-4"></div>
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="h-4 bg-gray-200 rounded"></div>
+                            <div class="h-4 bg-gray-200 rounded"></div>
+                        </div>
+                    </div>
+                `;
+                
+                modal.classList.remove('hidden');
+                  // Fetch request details
+                fetch(`/ServiceRequests/GetDetails/${requestId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Request failed');
+                        }
+                        return response.json();
+                    })
+                    .catch(error => {
+                        // Fallback to getting from current loaded requests if endpoint fails
+                        console.warn('Falling back to local request data:', error);
+                        return fetch('/Services/GetUserRequests')
+                            .then(response => response.json())
+                            .then(requests => {
+                                const request = requests.find(r => r.id === requestId);
+                                if (!request) {
+                                    throw new Error('Request not found in local data');
+                                }
+                                return request;
+                            });
+                    })
+                    .then(request => {
+                        // Format dates
+                        const createdDate = new Date(request.createdAt).toLocaleString();
+                        
+                        // Get status class for styling
+                        const statusClass = getStatusClass(request.status);
+                        
+                        // Build HTML content
+                        let statusHistory = `
+                            <div class="mb-4">
+                                <div class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-secondary"></div>
+                                <div class="font-medium">Request Submitted</div>
+                                <div class="text-xs text-gray-500">${createdDate}</div>
+                            </div>
+                        `;
+                        
+                        // Add status update history if available
+                        if (request.status !== 'Open' && request.updatedAt) {
+                            const updatedDate = new Date(request.updatedAt).toLocaleString();
+                            statusHistory += `
+                            <div>
+                                <div class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-secondary"></div>
+                                <div class="font-medium">Status Updated to ${request.status}</div>
+                                <div class="text-xs text-gray-500">${updatedDate}</div>
+                            </div>
+                            `;
+                        }
+                        
+                        // Build images section if images exist
+                        let imagesSection = '';
+                        if (request.images && request.images.length > 0) {
+                            // Debug the image structure
+                            console.log('Image structure:', JSON.stringify(request.images[0]));
+                            
+                            imagesSection = `
+                            <div class="mb-6">
+                                <div class="text-sm font-medium text-gray-700 mb-2">Attachments</div>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    ${request.images.map(image => {
+                                        // Handle different possible image object structures
+                                        const imgSrc = typeof image === 'string' 
+                                            ? image 
+                                            : image.imagePath || image.path || image.url || '';
+                                        
+                                        return `
+                                        <div class="relative">
+                                            <img src="${imgSrc}" alt="Request Attachment" 
+                                                 class="rounded-lg w-full h-32 object-cover cursor-pointer"
+                                                 onclick="window.open('${imgSrc}', '_blank')">
+                                        </div>`;
+                                    }).join('')}
+                                </div>
+                            </div>
+                            `;
+                        } else if (request.imageUrls && request.imageUrls.length > 0) {
+                            // Alternative property name the server might use
+                            imagesSection = `
+                            <div class="mb-6">
+                                <div class="text-sm font-medium text-gray-700 mb-2">Attachments</div>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    ${request.imageUrls.map(imageUrl => `
+                                        <div class="relative">
+                                            <img src="${imageUrl}" alt="Request Attachment" 
+                                                 class="rounded-lg w-full h-32 object-cover cursor-pointer"
+                                                 onclick="window.open('${imageUrl}', '_blank')">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            `;
+                        }
+                        
+                        // Debugging
+                        console.log('Request data:', request);
+                        console.log('Images data:', request.images || request.imageUrls);
+                        
+                        content.innerHTML = `
+                            <div class="mb-6">
+                                <div class="flex items-center justify-between mb-2">
+                                    <h4 class="text-lg font-medium text-gray-900">Request #SR-${request.id}</h4>
+                                    <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                        ${request.status}
+                                    </span>
+                                </div>
+                                <div class="text-sm text-gray-500">Submitted on ${createdDate}</div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-700 mb-1">Request Type</div>
+                                    <div class="flex items-center">
+                                        <i class="ph ${request.requestType === 'Maintenance' ? 'ph-hammer' : 'ph-shield-warning'} text-secondary mr-2"></i>
+                                        <span>${request.requestType}</span>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <div class="text-sm font-medium text-gray-700 mb-1">Location</div>
+                                    <div>${request.location || 'Not specified'}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <div class="text-sm font-medium text-gray-700 mb-1">Description</div>
+                                <div class="p-3 bg-gray-50 rounded-lg text-gray-700">
+                                    ${request.description}
+                                </div>
+                            </div>
+                            
+                            ${imagesSection}
+                            
+                            <div class="mb-6">
+                                <div class="text-sm font-medium text-gray-700 mb-1">Status History</div>
+                                <div class="relative pl-4 border-l-2 border-gray-200">
+                                    ${statusHistory}
+                                </div>
+                            </div>
+                            
+                            ${request.staffNotes ? `
+                            <div class="mb-4">
+                                <div class="text-sm font-medium text-gray-700 mb-1">Staff Notes</div>
+                                <div class="p-3 bg-blue-50 rounded-lg text-gray-700">
+                                    ${request.staffNotes}
+                                </div>
+                            </div>
+                            ` : ''}
+                        `;
+                    })
+                    .catch(error => {
+                        content.innerHTML = `
+                            <div class="text-center p-6">
+                                <div class="text-red-500 mb-2"><i class="ph ph-warning text-3xl"></i></div>
+                                <h4 class="text-lg font-medium text-gray-900 mb-1">Error Loading Details</h4>
+                                <p class="text-gray-600">Unable to load request details. Please try again later.</p>
+                            </div>
+                        `;
+                        console.error('Error fetching request details:', error);
+                    });
+            };
+            
+            // Add close modal functionality
+            document.getElementById('close-modal').addEventListener('click', function() {
+                document.getElementById('request-details-modal').classList.add('hidden');
+            });
 
             // Filter functionality
             document.getElementById('request-filter').addEventListener('change', function() {
@@ -418,26 +726,103 @@
                 imagePreview.innerHTML = '';
                 const files = this.files;
 
-                for (let i = 0; i < Math.min(files.length, 3); i++) {
+                if (files.length > 3) {
+                    showErrorAlert('You can only upload a maximum of 3 images');
+                    this.value = ''; // Clear the selected files
+                    return;
+                }
+
+                for (let i = 0; i < files.length; i++) {
                     const file = files[i];
                     if (file.size > 5 * 1024 * 1024) {
-                        alert('File size must be less than 5MB');
+                        showErrorAlert('File size must be less than 5MB');
                         continue;
                     }
 
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const div = document.createElement('div');
-                        div.className = 'relative';
+                        div.className = 'relative inline-block mr-2 mb-2';
                         div.innerHTML = `
                             <img src="${e.target.result}" class="h-20 w-20 object-cover rounded">
-                            <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-xs" onclick="this.parentElement.remove()">×</button>
+                            <button type="button" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-xs" 
+                                    onclick="removeImage(this, ${i})">×</button>
                         `;
                         imagePreview.appendChild(div);
                     };
                     reader.readAsDataURL(file);
                 }
             });
+
+            // Function to remove images and maintain consistency
+            window.removeImage = function(button, index) {
+                button.parentElement.remove();
+                
+                // Create a new FileList without the removed image
+                // Unfortunately we can't modify FileList directly, so we'll need to handle this during form submission
+                // This just removes the preview for now
+                console.log(`Removed image at index ${index}`);
+            };
+
+            // Add cancel button functionality 
+            document.getElementById('cancel-request').addEventListener('click', function() {
+                const formInputs = serviceRequestForm.querySelectorAll('input, textarea');
+                let hasInput = false;
+                formInputs.forEach(input => {
+                    if (input.value.trim() !== '' && input.type !== 'hidden') {
+                        hasInput = true;
+                    }
+                });
+
+                if (hasInput && !confirm('Are you sure you want to clear the form?')) {
+                    return;
+                }
+
+                // Reset the form
+                serviceRequestForm.reset();
+                
+                // Clear any image previews
+                document.getElementById('image-preview').innerHTML = '';
+                
+                // Clear any error messages that might be displayed
+                const errorMessages = document.querySelectorAll('.bg-red-100.border.border-red-400');
+                errorMessages.forEach(message => message.remove());
+                
+                // Optionally, scroll back to top of the form
+                serviceRequestForm.scrollIntoView({ behavior: 'smooth' });
+            });
+
+            serviceRequestForm.classList.add('opacity-50');
+            setTimeout(() => {
+                serviceRequestForm.classList.remove('opacity-50');
+            }, 300);
         });
+
+        // Add this new function to display errors in a user-friendly way
+        function showErrorAlert(message) {
+            // Create error alert element
+            const errorAlert = document.createElement('div');
+            errorAlert.className = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4';
+            errorAlert.innerHTML = `
+                <strong class="font-bold">Error!</strong>
+                <span class="block sm:inline"> ${message}</span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg onclick="this.parentElement.parentElement.remove()" class="fill-current h-6 w-6 text-red-500 cursor-pointer" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                    </svg>
+                </span>
+            `;
+            
+            // Insert at the top of the form
+            serviceRequestForm.parentNode.insertBefore(errorAlert, serviceRequestForm);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (errorAlert.parentNode) {
+                    errorAlert.remove();
+                }
+            }, 5000);
+        }
     </script>
 }
