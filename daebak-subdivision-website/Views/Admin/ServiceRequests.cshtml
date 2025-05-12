@@ -181,11 +181,11 @@
                 <div class="flex justify-between items-center mt-6">
                     <div>
                         <select id="statusUpdate" class="border border-gray-300 rounded-lg px-3 py-2">
-                            <option value="Processing">Processing</option>
+                            <option value="Open">Open</option>
                             <option value="Scheduled">Scheduled</option>
                             <option value="In Progress">In Progress</option>
                             <option value="Completed">Completed</option>
-                            <option value="Rejected">Rejected</option>
+                            <option value="Canceled">Cancelled</option>
                         </select>
                     </div>
                     <div class="flex gap-3">
@@ -414,8 +414,25 @@
                     } else {
                         attachmentsDiv.innerHTML = '<span class="text-gray-400 italic">No attachments</span>';
                     }
+                    
+                    // Update status dropdown selection to match current status
+                    const statusDropdown = document.getElementById('statusUpdate');
+                    // First make sure the option exists in our dropdown
+                    let optionExists = false;
+                    for (let i = 0; i < statusDropdown.options.length; i++) {
+                        if (statusDropdown.options[i].value === details.status) {
+                            optionExists = true;
+                            break;
+                        }
+                    }
+                    
                     // Set the current status in the dropdown
-                    document.getElementById('statusUpdate').value = details.status;
+                    if (optionExists) {
+                        statusDropdown.value = details.status;
+                    } else {
+                        console.warn(`Status value "${details.status}" not found in dropdown options`);
+                    }
+                    
                     // Set staff notes
                     document.getElementById('adminResponseText').value = details.staffNotes || '';
                     // Store the request ID for updates
@@ -423,6 +440,7 @@
                     document.getElementById('btnDeleteRequest').dataset.requestId = details.requestId;
                 })
                 .catch(error => {
+                    console.error('Error loading request details:', error);
                     alert('Failed to load request details.');
                 });
         }

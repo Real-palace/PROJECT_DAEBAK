@@ -292,7 +292,7 @@ namespace daebak_subdivision_website.Controllers
                 Total = _context.ServiceRequests.Count(),
                 Pending = _context.ServiceRequests.Count(sr => sr.Status == "Open"),
                 Completed = _context.ServiceRequests.Count(sr => sr.Status == "Completed"),
-                Canceled = _context.ServiceRequests.Count(sr => sr.Status == "Rejected")
+                Cancelled = _context.ServiceRequests.Count(sr => sr.Status == "Cancelled"),
             };
 
             return Json(stats);
@@ -322,7 +322,7 @@ namespace daebak_subdivision_website.Controllers
                 }
 
                 // Validate status
-                var validStatuses = new[] { "Open", "In Progress", "Scheduled", "Completed", "Rejected" };
+                var validStatuses = new[] { "Open", "In Progress", "Scheduled", "Completed", "Cancelled" };
                 if (!validStatuses.Contains(request.Status))
                 {
                     _logger.LogWarning("Invalid status provided: {Status}", request.Status);
