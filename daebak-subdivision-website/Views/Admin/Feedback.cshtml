@@ -754,76 +754,84 @@
             }
             
             function updateFeedbackStatus() {
-            // Get the current feedback ID and selected status
-            const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
-            const newStatus = document.getElementById('feedback-status').value;
-            
-            // Show updating indicator on the button
-            const saveStatusBtn = document.getElementById('save-status');
-            const originalBtnText = saveStatusBtn.innerHTML;
-            saveStatusBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Updating...';
-            saveStatusBtn.disabled = true;
-            
-            // Get CSRF token
-            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-            
-            // Create form data - this is key for proper submission
-            const formData = new FormData();
-            formData.append('id', feedbackId);
-            formData.append('status', newStatus);
-            formData.append('__RequestVerificationToken', token);
-            
-            console.log(`Updating feedback #${feedbackId} to status: ${newStatus}`);
-            
-            // Send AJAX request using FormData instead of JSON
-            fetch('/Feedback/Admin/UpdateFeedbackStatus', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'RequestVerificationToken': token
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    // Update the status badge in the modal
-                    const statusBadges = document.querySelectorAll('#feedback-detail-view .rounded-full');
-                    if (statusBadges.length > 0) {
-                        const badge = statusBadges[0];
-                        badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(newStatus)}`;
-                        badge.textContent = newStatus;
-                    }
-                    
-                    showToast(`Status updated to ${newStatus}`);
-                    
-                    // Also update in the table if present
-                    const statusBadge = document.querySelector(`.feedback-row[data-id="${feedbackId}"] .status-badge`);
-                    if (statusBadge) {
-                        // Update the class based on new status
-                        statusBadge.className = `status-badge status-${newStatus.toLowerCase().replace(' ', '-')}`;
-                        statusBadge.textContent = newStatus;
-                    }
-                } else {
-                    showToast('Failed to update status: ' + (data.message || 'Unknown error'), 'error');
-                }
-                
-                // Restore button state
-                saveStatusBtn.innerHTML = originalBtnText;
-                saveStatusBtn.disabled = false;
-            })
-            .catch(error => {
-                console.error('Error updating status:', error);
-                showToast('An error occurred while updating status', 'error');
-                // Restore button state
-                saveStatusBtn.innerHTML = originalBtnText;
-                saveStatusBtn.disabled = false;
-            });
+    // Get the current feedback ID and selected status
+    const feedbackIdText = document.getElementById('modal-title').textContent.replace('Feedback #', '').trim();
+    const feedbackId = parseInt(feedbackIdText);
+    const newStatus = document.getElementById('feedback-status').value;
+    
+    // Show updating indicator on the button
+    const saveStatusBtn = document.getElementById('save-status');
+    const originalBtnText = saveStatusBtn.innerHTML;
+    saveStatusBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Updating...';
+    saveStatusBtn.disabled = true;
+    
+    // Get CSRF token
+    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    
+    console.log(`Attempting to update feedback #${feedbackId} to status: ${newStatus}`);
+    
+    // Build form data for submission as a URLSearchParams object
+    const formData = new URLSearchParams();
+    formData.append('id', feedbackId);
+    formData.append('status', newStatus);
+    
+    // Send AJAX request with the correct URL and headers
+    fetch('/Feedback/Admin/UpdateFeedbackStatus', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'RequestVerificationToken': token
+        },
+        body: formData.toString() // Convert URLSearchParams to string
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Status update response:', data);
+        
+        if (data.success) {
+            // Update the status badge in the modal
+            const statusBadges = document.querySelectorAll('#feedback-detail-view .rounded-full');
+            if (statusBadges.length > 0) {
+                const badge = statusBadges[0];
+                badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(newStatus)}`;
+                badge.textContent = newStatus;
+            }
+            
+            showToast(`Status updated to ${newStatus}`);
+            
+            // Also update in the table if present
+            const statusBadge = document.querySelector(`.feedback-row[data-id="${feedbackId}"] .status-badge`);
+            if (statusBadge) {
+                // Update the status badge in the table
+                const oldStatusClasses = Array.from(statusBadge.classList)
+                    .filter(cls => cls.startsWith('status-') && cls !== 'status-badge');
+                oldStatusClasses.forEach(cls => statusBadge.classList.remove(cls));
+                
+                statusBadge.classList.add(`status-${newStatus.toLowerCase().replace(' ', '-')}`);
+                statusBadge.textContent = newStatus;
+            }
+        } else {
+            showToast('Failed to update status: ' + (data.message || 'Unknown error'), 'error');
+        }
+        
+        // Restore button state
+        saveStatusBtn.innerHTML = originalBtnText;
+        saveStatusBtn.disabled = false;
+    })
+    .catch(error => {
+        console.error('Error updating status:', error);
+        showToast('An error occurred while updating status', 'error');
+        
+        // Restore button state
+        saveStatusBtn.innerHTML = originalBtnText;
+        saveStatusBtn.disabled = false;
+    });
+}
             
             // Function to add feedback response
             function addFeedbackResponse(feedbackId) {

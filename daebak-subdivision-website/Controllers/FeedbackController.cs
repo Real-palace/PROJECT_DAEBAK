@@ -282,7 +282,13 @@ namespace daebak_subdivision_website.Controllers
         {
             try
             {
-                _logger.LogInformation($"Updating feedback status - ID: {id}, Status: {status}");
+                _logger.LogInformation($"UpdateFeedbackStatus called with ID: {id}, Status: {status}");
+                
+                // Log the route data and form values for debugging
+                foreach (var key in Request.Form.Keys)
+                {
+                    _logger.LogInformation($"Form data - {key}: {Request.Form[key]}");
+                }
                 
                 var feedback = await _context.Feedbacks.FindAsync(id);
                 
