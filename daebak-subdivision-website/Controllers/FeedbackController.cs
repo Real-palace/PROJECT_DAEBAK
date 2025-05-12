@@ -234,6 +234,7 @@ namespace daebak_subdivision_website.Controllers
             {
                 var feedback = await _context.Feedbacks
                     .Include(f => f.User)
+                    .ThenInclude(u => u.Homeowner)  // Make sure to include Homeowner
                     .FirstOrDefaultAsync(f => f.FeedbackId == id);
 
                 if (feedback == null)
@@ -241,19 +242,6 @@ namespace daebak_subdivision_website.Controllers
                     _logger.LogWarning($"Feedback with ID {id} not found");
                     return Json(new { success = false, message = $"Feedback #{id} not found" });
                 }
-
-                // Get responses
-                var responses = await _context.FeedbackResponses
-                    .Where(r => r.FeedbackId == id)
-                    .OrderByDescending(r => r.CreatedAt)
-                    .Select(r => new
-                    {
-                        responseId = r.ResponseId,
-                        responseText = r.ResponseText,
-                        respondedBy = r.RespondedBy,
-                        respondedAt = r.CreatedAt.ToString("MMM dd, yyyy 'at' HH:mm")
-                    })
-                    .ToListAsync();
 
                 // Format the house number if available
                 string houseNumber = "Not specified";
@@ -275,8 +263,7 @@ namespace daebak_subdivision_website.Controllers
                         description = feedback.Description,
                         status = feedback.Status,
                         createdAt = feedback.CreatedAt,
-                        updatedAt = feedback.UpdatedAt,
-                        responses = responses
+                        updatedAt = feedback.UpdatedAt
                     }
                 });
             }
@@ -290,101 +277,48 @@ namespace daebak_subdivision_website.Controllers
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Admin/UpdateFeedbackStatus")]
+        [Route("Feedback/Admin/UpdateFeedbackStatus")]
         public async Task<IActionResult> UpdateFeedbackStatus(int id, string status)
         {
             try
             {
+                _logger.LogInformation($"Updating feedback status - ID: {id}, Status: {status}");
+                
                 var feedback = await _context.Feedbacks.FindAsync(id);
+                
                 if (feedback == null)
                 {
-                    return NotFound(new { success = false, message = "Feedback not found" });
-                }                // Validate status against database schema values (Submitted, In Review, In Progress, Resolved, Closed)
-                if (status != "Submitted" && status != "In Review" && status != "In Progress" && status != "Resolved" && status != "Closed")
+                    _logger.LogWarning($"Failed to update status: Feedback with ID {id} not found");
+                    return Json(new { success = false, message = "Feedback not found" });
+                }
+                
+                // Validate status against check constraint in database
+                if (status != "Submitted" && status != "In Review" && status != "In Progress" && 
+                    status != "Resolved" && status != "Closed")
                 {
-                    return BadRequest(new { success = false, message = "Invalid status value" });
+                    _logger.LogWarning($"Invalid status value: {status}");
+                    return Json(new { success = false, message = "Invalid status value" });
                 }
 
                 feedback.Status = status;
                 feedback.UpdatedAt = DateTime.Now;
 
                 await _context.SaveChangesAsync();
+                
+                _logger.LogInformation($"Successfully updated feedback {id} status to {status}");
                 return Json(new { success = true, message = $"Status updated to {status}" });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error updating feedback status for ID {id}");
-                return StatusCode(500, new { success = false, message = "Failed to update feedback status" });
+                return Json(new { success = false, message = "An error occurred while updating status" });
             }
         }
 
         [Authorize(Roles = "ADMIN")]
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Route("Admin/AddFeedbackResponse")]
-        public async Task<IActionResult> AddFeedbackResponse(int feedbackId, string responseText)
-        {
-            try
-            {
-                // Check if feedback exists
-                var feedback = await _context.Feedbacks.FindAsync(feedbackId);
-                if (feedback == null)
-                {
-                    return NotFound(new { success = false, message = "Feedback not found" });
-                }
-
-                // Validate input
-                if (string.IsNullOrWhiteSpace(responseText))
-                {
-                    return BadRequest(new { success = false, message = "Response text cannot be empty" });
-                }
-
-                // Get current admin name
-                string adminName = User.Identity.Name ?? "Administrator";
-
-                // Create new response
-                var response = new FeedbackResponse
-                {
-                    FeedbackId = feedbackId,
-                    ResponseText = responseText,
-                    RespondedBy = adminName,
-                    CreatedAt = DateTime.Now
-                };
-
-                _context.FeedbackResponses.Add(response);                // Update the feedback status to "In Progress" if it's currently "Submitted"
-                if (feedback.Status == "Submitted")
-                {
-                    feedback.Status = "In Progress";
-                    feedback.UpdatedAt = DateTime.Now;
-                }
-
-                await _context.SaveChangesAsync();
-
-                // Return formatted response for display
-                return Json(new
-                {
-                    success = true,
-                    message = "Response added successfully",
-                    response = new
-                    {
-                        ResponseId = response.ResponseId,
-                        ResponseText = response.ResponseText,
-                        RespondedBy = response.RespondedBy,
-                        RespondedAt = response.CreatedAt.ToString("yyyy-MM-dd HH:mm")
-                    }
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error adding feedback response for ID {feedbackId}");
-                return StatusCode(500, new { success = false, message = "Failed to add response" });
-            }
-        }
-
-        [Authorize(Roles = "ADMIN")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [Route("Admin/DeleteFeedback")]
+        [Route("Feedback/Admin/DeleteFeedback")]
         public async Task<IActionResult> AdminDeleteFeedback(int id)
         {
             try
@@ -395,11 +329,7 @@ namespace daebak_subdivision_website.Controllers
                     return NotFound(new { success = false, message = "Feedback not found" });
                 }
 
-                // Delete related responses first
-                var responses = await _context.FeedbackResponses.Where(r => r.FeedbackId == id).ToListAsync();
-                _context.FeedbackResponses.RemoveRange(responses);
-
-                // Then delete the feedback
+                // Simply delete the feedback (no responses to worry about)
                 _context.Feedbacks.Remove(feedback);
                 await _context.SaveChangesAsync();
 
