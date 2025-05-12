@@ -590,143 +590,144 @@
                 });
             });
 
-            // Show feedback details in modal
             function showFeedbackDetails(id) {
-                // Display a loading state in the modal
-                document.getElementById('feedback-modal').classList.remove('hidden');
-                document.getElementById('modal-title').textContent = `Feedback #${id}`;
-                document.getElementById('feedback-detail-view').innerHTML = `
-                    <div class="flex justify-center items-center p-8">
-                        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                        <span class="ml-3 text-gray-700">Loading feedback details...</span>
-                    </div>
-                `;
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-                
-                // Fetch feedback details
-                fetch(`/Admin/Feedback/GetDetails/${id}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        if (!data.success) {
-                            throw new Error(data.message || 'Failed to load feedback details');
-                        }
-                        
-                        const feedback = data.feedback;
-                        const createdDate = new Date(feedback.createdAt).toLocaleString();
-                        
-                        // Build a more professional UI
-                        document.getElementById('feedback-detail-view').innerHTML = `
-                            <!-- Status Panel -->
-                            <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
-                                <div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
-                                    <div class="flex items-center space-x-2">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(feedback.status)}">
-                                            ${feedback.status}
-                                        </span>
-                                        <span class="text-sm text-gray-500">ID: ${feedback.feedbackId}</span>
-                                    </div>
-                                    <div class="flex items-center space-x-2">
-                                        <select id="feedback-status" class="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary">
-                                            <option value="Submitted" ${feedback.status === 'Submitted' ? 'selected' : ''}>Submitted</option>
-                                            <option value="In Review" ${feedback.status === 'In Review' ? 'selected' : ''}>In Review</option>
-                                            <option value="In Progress" ${feedback.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                            <option value="Resolved" ${feedback.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
-                                            <option value="Closed" ${feedback.status === 'Closed' ? 'selected' : ''}>Closed</option>
-                                        </select>
-                                        <button id="save-status" onclick="updateFeedbackStatus(${feedback.feedbackId})" 
-                                            class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                            Update Status
-                                        </button>
-                                    </div>
+            // Display a loading state in the modal
+            document.getElementById('feedback-modal').classList.remove('hidden');
+            document.getElementById('modal-title').textContent = `Feedback #${id}`;
+            document.getElementById('feedback-detail-view').innerHTML = `
+                <div class="flex justify-center items-center p-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+                    <span class="ml-3 text-gray-700">Loading feedback details...</span>
+                </div>
+            `;
+            document.body.style.overflow = 'hidden'; // Prevent scrolling
+            
+            // Fetch feedback details
+            console.log(`Fetching feedback details for ID: ${id}`);
+            
+            fetch(`/Admin/Feedback/GetDetails/${id}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Feedback details received:', data);
+                    
+                    if (!data || !data.success) {
+                        throw new Error(data?.message || 'Failed to load feedback details');
+                    }
+                    
+                    const feedback = data.feedback;
+                    const createdDate = new Date(feedback.createdAt).toLocaleString();
+                    
+                    // Build a more professional UI
+                    document.getElementById('feedback-detail-view').innerHTML = `
+                        <!-- Status Panel -->
+                        <div class="bg-white rounded-lg shadow-md mb-6 overflow-hidden">
+                            <div class="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
+                                <div class="flex items-center space-x-2">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(feedback.status)}">
+                                        ${feedback.status}
+                                    </span>
+                                    <span class="text-sm text-gray-500">ID: ${feedback.feedbackId}</span>
                                 </div>
-                                
-                                <!-- Resident Info -->
-                                <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Resident Information</h3>
-                                        <div class="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <div class="text-xs text-gray-500">Name</div>
-                                                <div class="font-medium">${feedback.userName || 'Not specified'}</div>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs text-gray-500">House #</div>
-                                                <div class="font-medium">${feedback.houseNumber || 'Not specified'}</div>
-                                            </div>
+                                <div class="flex items-center space-x-2">
+                                    <select id="feedback-status" class="text-sm border-gray-300 rounded-md focus:ring-primary focus:border-primary">
+                                        <option value="Submitted" ${feedback.status === 'Submitted' ? 'selected' : ''}>Submitted</option>
+                                        <option value="In Review" ${feedback.status === 'In Review' ? 'selected' : ''}>In Review</option>
+                                        <option value="In Progress" ${feedback.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                        <option value="Resolved" ${feedback.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                                        <option value="Closed" ${feedback.status === 'Closed' ? 'selected' : ''}>Closed</option>
+                                    </select>
+                                    <button id="save-status" onclick="updateFeedbackStatus()" 
+                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                        Update Status
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Resident Info -->
+                            <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Resident Information</h3>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div class="text-xs text-gray-500">Name</div>
+                                            <div class="font-medium">${feedback.userName || 'Not specified'}</div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Feedback Information</h3>
-                                        <div class="grid grid-cols-2 gap-3">
-                                            <div>
-                                                <div class="text-xs text-gray-500">Type</div>
-                                                <div class="font-medium">${feedback.feedbackType}</div>
-                                            </div>
-                                            <div>
-                                                <div class="text-xs text-gray-500">Submitted</div>
-                                                <div class="font-medium">${createdDate}</div>
-                                            </div>
+                                        <div>
+                                            <div class="text-xs text-gray-500">House #</div>
+                                            <div class="font-medium">${feedback.houseNumber || 'Not specified'}</div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Description -->
-                            <div class="bg-white rounded-lg shadow-md mb-6">
-                                <div class="px-4 py-3 bg-gray-50 border-b">
-                                    <h3 class="text-sm font-medium text-gray-700">Description</h3>
-                                </div>
-                                <div class="p-4">
-                                    <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-60 overflow-y-auto">
-                                        <p class="text-sm whitespace-pre-line">${feedback.description}</p>
+                                <div>
+                                    <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Feedback Information</h3>
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <div class="text-xs text-gray-500">Type</div>
+                                            <div class="font-medium">${feedback.feedbackType}</div>
+                                        </div>
+                                        <div>
+                                            <div class="text-xs text-gray-500">Submitted</div>
+                                            <div class="font-medium">${createdDate}</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            
-                            <!-- Actions -->
-                            <div class="flex justify-between mt-6">
-                                <button onclick="showDeleteConfirmation(${feedback.feedbackId})" 
-                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                                    <i class="ph ph-trash-simple mr-1"></i>
-                                    Delete Feedback
-                                </button>
-                                <button onclick="closeFeedbackModal()" 
-                                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    <i class="ph ph-x-circle mr-1"></i>
-                                    Close
-                                </button>
+                        </div>
+                        
+                        <!-- Description -->
+                        <div class="bg-white rounded-lg shadow-md mb-6">
+                            <div class="px-4 py-3 bg-gray-50 border-b">
+                                <h3 class="text-sm font-medium text-gray-700">Description</h3>
                             </div>
-                        `;
-                    })
-                    .catch(error => {
-                        console.error('Error loading feedback details:', error);
-                        document.getElementById('feedback-detail-view').innerHTML = `
-                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                                <div class="flex">
-                                    <div class="flex-shrink-0">
-                                        <i class="ph ph-warning-circle text-red-600 text-xl"></i>
-                                    </div>
-                                    <div class="ml-3">
-                                        <h3 class="text-red-800 font-medium">Failed to load feedback details</h3>
-                                        <p class="text-red-700 mt-1">${error.message}</p>
-                                    </div>
+                            <div class="p-4">
+                                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-60 overflow-y-auto custom-scrollbar">
+                                    <p class="text-sm whitespace-pre-line">${feedback.description}</p>
                                 </div>
                             </div>
-                            
-                            <div class="flex justify-end mt-4">
-                                <button onclick="closeFeedbackModal()" 
-                                    class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
-                                    Close
-                                </button>
+                        </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex justify-end mt-6">
+                            <button onclick="closeFeedbackModal()" 
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                <i class="ph ph-x-circle mr-1"></i>
+                                Close
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Store the feedback ID in a data attribute for easier access
+                    document.getElementById('feedback-modal').dataset.feedbackId = feedback.feedbackId;
+                })
+                .catch(error => {
+                    console.error('Error loading feedback details:', error);
+                    document.getElementById('feedback-detail-view').innerHTML = `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="ph ph-warning-circle text-red-600 text-xl"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-red-800 font-medium">Failed to load feedback details</h3>
+                                    <p class="text-red-700 mt-1">${error.message || 'Unknown error occurred'}</p>
+                                </div>
                             </div>
-                        `;
-                    });
-            }
+                        </div>
+                        
+                        <div class="flex justify-end mt-4">
+                            <button onclick="closeFeedbackModal()" 
+                                class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Close
+                            </button>
+                        </div>
+                    `;
+                });
+        }
 
             // Utility function to get status color classes
             function getStatusColorClasses(status) {
@@ -1033,7 +1034,9 @@
                     document.body.style.overflow = ''; // Re-enable scrolling
                 }
             });
-        });        // Function to set up event listeners for modal elements after the modal content is rebuilt
+        });        
+        
+        // Function to set up event listeners for modal elements after the modal content is rebuilt
         function setupModalEventListeners() {
             // Make sure the elements exist before attaching event listeners
             const saveStatusBtn = document.getElementById('save-status');
@@ -1046,9 +1049,11 @@
                 sendResponseBtn.addEventListener('click', sendFeedbackResponse);
             }
             // Add any other event listeners needed for elements inside the modal
-        }        function updateFeedbackStatus() {
+        }        
+        
+           function updateFeedbackStatus() {
             // Get the current feedback ID and selected status
-            const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
+            const feedbackId = parseInt(document.getElementById('modal-title').textContent.replace('Feedback #', ''));
             const newStatus = document.getElementById('feedback-status').value;
             
             // Show updating indicator on the button
@@ -1056,105 +1061,73 @@
             const originalBtnText = saveStatusBtn.innerHTML;
             saveStatusBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Updating...';
             saveStatusBtn.disabled = true;
-              // Send AJAX request to update status - use the correct endpoint
+            
+            // Get CSRF token
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            
+            console.log(`Trying to update feedback ID ${feedbackId} to status: "${newStatus}"`);
+            
+            // Build form data for submission
+            const formData = new URLSearchParams();
+            formData.append('id', feedbackId);
+            formData.append('status', newStatus);
+            formData.append('__RequestVerificationToken', token);
+            
+            // Send AJAX request - note the correct URL format
             fetch('/Feedback/Admin/UpdateFeedbackStatus', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
                 },
-                body: JSON.stringify({
-                    id: parseInt(feedbackId),
-                    status: newStatus
-                })
+                body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
+                console.log('Status update response:', data);
+                
                 if (data.success) {
+                    // Update the status badge in the modal
+                    const statusBadges = document.querySelectorAll('#feedback-detail-view .rounded-full');
+                    if (statusBadges.length > 0) {
+                        const badge = statusBadges[0];
+                        badge.className = `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColorClasses(newStatus)}`;
+                        badge.textContent = newStatus;
+                    }
+                    
                     showToast(`Status updated to ${newStatus}`);
-                    // Refresh the table or update the specific row
-                    setTimeout(() => location.reload(), 1000);
+                    
+                    // Also update in the table if present
+                    const statusBadge = document.querySelector(`.feedback-row[data-id="${feedbackId}"] .status-badge`);
+                    if (statusBadge) {
+                        // Update the status badge in the table
+                        const oldStatusClasses = Array.from(statusBadge.classList)
+                            .filter(cls => cls.startsWith('status-') && cls !== 'status-badge');
+                        oldStatusClasses.forEach(cls => statusBadge.classList.remove(cls));
+                        
+                        statusBadge.classList.add(`status-${newStatus.toLowerCase().replace(' ', '-')}`);
+                        statusBadge.textContent = newStatus;
+                    }
                 } else {
                     showToast('Failed to update status: ' + (data.message || 'Unknown error'), 'error');
-                    // Restore button state
-                    saveStatusBtn.innerHTML = originalBtnText;
-                    saveStatusBtn.disabled = false;
                 }
+                
+                // Restore button state
+                saveStatusBtn.innerHTML = originalBtnText;
+                saveStatusBtn.disabled = false;
             })
             .catch(error => {
                 console.error('Error updating status:', error);
                 showToast('An error occurred while updating status', 'error');
+                
                 // Restore button state
                 saveStatusBtn.innerHTML = originalBtnText;
                 saveStatusBtn.disabled = false;
-            });
-        }        function sendFeedbackResponse() {
-            // Get the response text
-            const responseText = document.getElementById('response-text').value.trim();
-            if (!responseText) {
-                showToast('Please enter a response message', 'error');
-                return;
-            }
-            
-            // Get the feedback ID from the modal title
-            const feedbackId = document.getElementById('modal-title').textContent.replace('Feedback #', '');
-            
-            // Show sending indicator on the button
-            const sendBtn = document.getElementById('send-response');
-            const originalBtnText = sendBtn.innerHTML;
-            sendBtn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Sending...';
-            sendBtn.disabled = true;
-            
-            // Send API request to save the response
-            fetch('/Admin/AddFeedbackResponse', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                },
-                body: JSON.stringify({
-                    feedbackId: parseInt(feedbackId),
-                    responseText: responseText
-                })
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Clear the response text area and show success message
-                    document.getElementById('response-message').classList.remove('hidden');
-                    document.getElementById('response-text').value = '';
-                    showToast('Response sent successfully');
-                    
-                    // Add to the response history
-                    const responseHistory = document.getElementById('response-history');
-                    const responseItem = document.createElement('div');
-                    responseItem.className = 'border-l-2 border-gray-300 pl-3 py-2';
-                    
-                    responseItem.innerHTML = `
-                        <p class="text-xs text-gray-500">${data.response.respondedAt}</p>
-                        <p class="text-sm text-gray-700 mt-1">${data.response.responseText}</p>
-                        <p class="text-xs text-gray-500 mt-1">- ${data.response.respondedBy}</p>
-                    `;
-                    
-                    responseHistory.insertBefore(responseItem, responseHistory.firstChild);
-                    document.getElementById('response-history-section').classList.remove('hidden');
-                    
-                    // Restore button state
-                    sendBtn.innerHTML = originalBtnText;
-                    sendBtn.disabled = false;
-                } else {
-                    showToast('Failed to send response: ' + (data.message || 'Unknown error'), 'error');
-                    // Restore button state
-                    sendBtn.innerHTML = originalBtnText;
-                    sendBtn.disabled = false;
-                }
-            })
-            .catch(error => {
-                console.error('Error sending response:', error);
-                showToast('An error occurred while sending response', 'error');
-                // Restore button state
-                sendBtn.innerHTML = originalBtnText;
-                sendBtn.disabled = false;
             });
         }
 
