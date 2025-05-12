@@ -104,6 +104,12 @@ namespace daebak_subdivision_website.Models
                     .WithMany()
                     .HasForeignKey(e => e.UserId)
                     .HasPrincipalKey(h => h.UserId);
+
+                // Configure relationship with RequestImage
+                entity.HasMany(e => e.Images)
+                    .WithOne(e => e.ServiceRequest)
+                    .HasForeignKey(e => e.RequestId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Configure RequestImage entity
@@ -114,8 +120,8 @@ namespace daebak_subdivision_website.Models
                 entity.Property(e => e.ImagePath).IsRequired();
                 
                 // Configure relationship with ServiceRequest
-                entity.HasOne<ServiceRequest>()
-                    .WithMany()
+                entity.HasOne(e => e.ServiceRequest)
+                    .WithMany(e => e.Images)
                     .HasForeignKey(e => e.RequestId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
